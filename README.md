@@ -39,3 +39,13 @@ The [bedrock](https://github.com/GorgonFreeman/bedrock) middleware, refactored f
   - `meta` — pagination, total items, etc.
   - `results` — array of responses from a queue or batch of calls
   - [Examples](docs/response-examples.md)
+- **BYO Creds**
+  ```
+  {
+    credsPath,
+    shopifyCredsPath,
+    credsObject,
+    credsProvider, // function that returns a credsObject
+  }
+  ```
+
