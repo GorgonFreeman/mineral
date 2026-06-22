@@ -48,4 +48,6 @@ The [bedrock](https://github.com/GorgonFreeman/bedrock) middleware, refactored f
     credsProvider, // function that returns a credsObject
   }
   ```
+- **Monorepo structure**
+Mineral gets pushed to from a larger repo that can also contain private functions. Mineral should be strictly useful stuff for the public, and can be used standalone, but needs to be instantiated for serving, setting stuff like which creds file to use. This allows it to be used as part of another repo in the same HTTP/curl way as by itself.
 
