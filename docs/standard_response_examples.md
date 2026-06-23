@@ -37,22 +37,29 @@ Examples of the [mineral response format](../README.md#the-plan).
 // Mutate single product — validation failure
 {
   ok: false,
-  errors: [
-    { code: "INVALID_PRICE", message: "Price cannot be negative", field: "price" },
-  ],
+  error: {
+    code: "INVALID_PRICE",
+    message: "Price cannot be negative",
+    field: "price",
+  },
 }
 
 // Batch mutate — mixed results
 {
   ok: false,
   results: [
-    { ok: true, id: "sku-001", data: { id: "sku-001", price: "49.95" } },
+    {
+      ok: true,
+      data: { id: "sku-001", price: "49.95" },
+    },
     {
       ok: false,
-      id: "sku-002",
-      errors: [
-        { code: "INVALID_PRICE", message: "Price cannot be negative", field: "price" },
-      ],
+      meta: { id: "sku-002" },
+      error: {
+        code: "INVALID_PRICE", 
+        message: "Price cannot be negative", 
+        field: "price",
+      },
     },
   ],
   meta: { total: 2, succeeded: 1, failed: 1 },
