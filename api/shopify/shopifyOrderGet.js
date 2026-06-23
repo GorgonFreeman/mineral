@@ -2,11 +2,11 @@ const { wait } = require('../utils');
 const { credsValidator } = require('../validators');
 
 const shopifyOrderGet = async (
-  creds,
+  credsPayload,
   orderId,
 ) => {
 
-  if (!credsValidator(creds)) {
+  if (!credsValidator(credsPayload)) {
     return {
       ok: false,
       error: {
@@ -15,6 +15,15 @@ const shopifyOrderGet = async (
       },
     };
   }
+
+  const creds = credsFromPayload(credsPayload);
+
+  const {
+    STORE_HANDLE,
+    API_KEY,
+  } = creds;
+
+  console.log(STORE_HANDLE, API_KEY)
 
   await wait(1000);
   console.log('Mineral says hi');
