@@ -1,6 +1,7 @@
 const { logDeep } = require('../utils');
 
-const shopifyResponseHandler = (response) => {
+// TODO: Consider making standard handler supporting resultPath etc.
+const shopifyResponseHandler = (response, { resultPath }) => {
 
   logDeep('shopifyResponseHandler');
   logDeep('before', { response });
@@ -8,7 +9,14 @@ const shopifyResponseHandler = (response) => {
   if (!response.ok) {
     return response;
   }
-  return response?.data || response;
+
+  return {
+    ...response,
+    ...response?.data ? {
+      // TODO: Handle array vs dot paths, and trace full path
+      data: response?.data?.[resultPath],
+    } : {},
+  };
 };
 
 module.exports = {

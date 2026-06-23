@@ -39,7 +39,7 @@ const shopifyOrderGet = async (
     },
   );
 
-  const handledResponse = shopifyResponseHandler(fetchResponse);
+  const handledResponse = shopifyResponseHandler(fetchResponse, { resultPath: 'order' });
 
   if (!handledResponse.ok) {
     return handledResponse;
