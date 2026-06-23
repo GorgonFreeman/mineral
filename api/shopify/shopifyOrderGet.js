@@ -1,4 +1,4 @@
-const { wait } = require('../utils');
+const { wait, credsFromPayload } = require('../utils');
 const { credsValidator } = require('../validators');
 
 const shopifyOrderGet = async (
