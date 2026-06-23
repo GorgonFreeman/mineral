@@ -1,4 +1,4 @@
-const { wait, credsFromPayload } = require('../utils');
+const { credsFromPayload } = require('../utils');
 const { credsValidator } = require('../validators');
 
 const shopifyOrderGet = async (
@@ -23,16 +23,26 @@ const shopifyOrderGet = async (
     API_KEY,
   } = creds;
 
-  console.log(STORE_HANDLE, API_KEY)
+  const orderGid = `gid://shopify/Order/${ orderId }`;
 
-  await wait(1000);
-  console.log('Mineral says hi');
-  return {
-    ok: true,
-    data: {
-      id: orderId,
+  const response = await fetch(
+    `https://${ STORE_HANDLE }.myshopify.com/admin/api/2024-10/graphql.json`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': API_KEY,
+      },
+      body: JSON.stringify({
+        query: `query { order(id: "${ orderGid }") { id name createdAt displayFinancialStatus displayFulfillmentStatus } }`,
+      }),
     },
-  };
+  );
+
+  const responseData = await response.json();
+  console.log('responseData', responseData);
+
+  return responseData;
 };
 
 module.exports = {
