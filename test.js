@@ -1,7 +1,21 @@
 const { shopifyOrderGet } = require('./api/shopify/shopifyOrderGet');
 
-shopifyOrderGet('1234567890').then((result) => {
-  console.log(result);
+const [
+  storeUrl,
+  shopifyApiKey,
+  orderId,
+] = process.argv.slice(2);
+
+shopifyOrderGet(
+  {
+    credsObject: {
+      STORE_URL: storeUrl,
+      SHOPIFY_API_KEY: shopifyApiKey,
+    },
+  },
+  orderId,
+).then((result) => {
+  console.log('result', result);
 });
 
-// node test.js
+// node test.js a-b-c shpat_111111 1111
