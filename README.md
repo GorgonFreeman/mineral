@@ -38,7 +38,7 @@ The [bedrock](https://github.com/GorgonFreeman/bedrock) middleware, refactored f
   - `error` — when present, multiple errors go in `error.details`
   - `meta` — pagination, total items, etc.
   - `results` — array of responses from a queue or batch of calls
-  - [Examples](docs/standard_response_examples.md)
+  - [Examples](_docs/standard_response_examples.md)
 - **BYO Creds**
   ```
   {
