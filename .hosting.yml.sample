@@ -1,0 +1,41 @@
+google_cloud_info:
+  project: 
+  region: 
+  zone: 
+  set_env_vars:
+    mask: on
+
+functions:
+  platformThingDo: 
+    memory: 1024
+    timeout: 300
+    max_instances: 1
+    min_instances: 1
+    set_env_vars:
+      mask: off
+    schedules:
+      - name: do_thing_errday
+        schedule: 0 0 * * *
+        attempt_deadline: 30m
+      - name: do_thing_every_10_minutes
+        schedule: */10 * * * *
+
+    # If function isn't in servable.js
+    source: platform/platformThingDo
+    entry_point: platformThingDo
+
+    # If function isn't named the same as this entry
+    entry_point: anyFuncNameYouWant (anyFuncNameYouWant.js from servable.js)
+  
+  # Example webhook setup
+  hookForwardButtonPress:
+    entry_point: bedrock_utilities_webhookForward
+    min_instances: 1
+    set_env_vars: FORWARD_URL=https://.../platformWebhookButtonPressHandle
+  hookHandleButtonPress:
+    entry_point: platformWebhookButtonPressHandle
+    min_instances: 1
+
+groups:
+  doing_things:
+    - platformThingDo
