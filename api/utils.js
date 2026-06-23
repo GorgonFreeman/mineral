@@ -55,10 +55,13 @@ const customFetch = async (url, {
         ...body ? { body: JSON.stringify(body) } : {},
       });
 
+      const parsedResponse = await response[responseType]();
+      logDeep({ parsedResponse });
+
       if (response.ok) {
         return {
           ok: true,
-          data: await response[responseType](),
+          data: parsedResponse?.data || parsedResponse,
         };
       }
 
