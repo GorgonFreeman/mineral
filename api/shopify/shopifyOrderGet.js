@@ -1,5 +1,6 @@
 const { credsFromPayload, customFetch, logDeep } = require('../utils');
 const { credsValidator } = require('../validators');
+const { shopifyResponseHandler } = require('./shopify.utils');
 
 const shopifyOrderGet = async (
   credsPayload,
@@ -38,12 +39,14 @@ const shopifyOrderGet = async (
     },
   );
 
-  if (!fetchResponse.ok) {
-    return fetchResponse;
+  const handledResponse = shopifyResponseHandler(fetchResponse);
+
+  if (!handledResponse.ok) {
+    return handledResponse;
   }
 
-  logDeep('fetchResponse', fetchResponse);
-  return fetchResponse;
+  logDeep('handledResponse', handledResponse);
+  return handledResponse;
 };
 
 module.exports = {
