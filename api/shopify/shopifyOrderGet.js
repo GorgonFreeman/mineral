@@ -1,4 +1,4 @@
-const { credsFromPayload, customFetch } = require('../utils');
+const { credsFromPayload, customFetch, logDeep } = require('../utils');
 const { credsValidator } = require('../validators');
 
 const shopifyOrderGet = async (
@@ -42,7 +42,7 @@ const shopifyOrderGet = async (
     return fetchResponse;
   }
 
-  console.log({ fetchResponse });
+  logDeep('fetchResponse', fetchResponse);
   return fetchResponse;
 };
 

@@ -106,9 +106,16 @@ const customFetch = async (url, {
   }
 };
 
+const logDeep = (...args) => {
+  for (const arg of args) {
+    console.dir(arg, { depth: null });
+  }
+};
+
 module.exports = {
   wait,
   objHasAny,
   credsFromPayload,
   customFetch,
+  logDeep,
 };
