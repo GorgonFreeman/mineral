@@ -308,14 +308,15 @@ class FetchClient {
     responseInterpreter,
 
     context = {},
+    inspect = false,
   } = {}) {
 
     const mergedContext = {
       ...(this.context ?? {}),
       ...(context ?? {}),
     };
-    logDeep({ mergedContext });
-    await askQuestion('?');
+    inspect && logDeep({ mergedContext });
+    inspect && await askQuestion('?');
 
     let requestPayload = {
       url,
@@ -324,8 +325,8 @@ class FetchClient {
       ...(params ? { params } : {}),
       ...(body ? { body } : {}),
     };
-    logDeep({ requestPayload });
-    await askQuestion('?');
+    inspect && logDeep({ requestPayload });
+    inspect && await askQuestion('?');
 
     if (this.requestPreparer) {
       if (this.requestPreparer instanceof Chain) {
@@ -334,15 +335,15 @@ class FetchClient {
         requestPayload = await this.requestPreparer(requestPayload, mergedContext);
       }
     }
-    logDeep({ requestPayload });
-    await askQuestion('?');
+    inspect && logDeep({ requestPayload });
+    inspect && await askQuestion('?');
 
     let response = await customFetch(
       requestPayload.url,
       requestPayload,
     );
-    logDeep({ response });
-    await askQuestion('?');
+    inspect && logDeep({ response });
+    inspect && await askQuestion('?');
     
     const usedResponseInterpreter = responseInterpreter || this.responseInterpreter;
     if (usedResponseInterpreter) {
@@ -352,8 +353,8 @@ class FetchClient {
         response = await usedResponseInterpreter(response, mergedContext);
       }
     }
-    logDeep({ response });
-    await askQuestion('?');
+    inspect && logDeep({ response });
+    inspect && await askQuestion('?');
 
     return response;
   }
