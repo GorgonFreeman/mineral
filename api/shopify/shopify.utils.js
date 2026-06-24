@@ -27,6 +27,8 @@ const shopifyClientRequestPreparer = new Chain([
 ]);
 
 const shopifyClientResponseInterpreter = new Chain([
+  fetchClientCommonSteps.stripEdgesAndNodes,
+  fetchClientCommonSteps.collapseDataWithOneValue,
   fetchClientCommonSteps.inspect,
   fetchClientCommonSteps.exitEarlyOnNotOk,
   fetchClientCommonSteps.digToPath,

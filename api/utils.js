@@ -214,6 +214,49 @@ const appendUrlToBase = (baseUrl, url) => {
   return `${ baseUrl }/${ url }`;
 };
 
+const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+
+const stripGraphqlEdgesAndNodes = (value) => {
+  if (Array.isArray(value)) {
+    return value.map(stripGraphqlEdgesAndNodes);
+  }
+
+  if (!isObject(value)) {
+    return value;
+  }
+
+  if (Array.isArray(value.edges)) {
+    return value.edges.map((edge) => stripGraphqlEdgesAndNodes(edge?.node));
+  }
+
+  const output = {};
+  for (const [key, nestedValue] of Object.entries(value)) {
+    output[key] = stripGraphqlEdgesAndNodes(nestedValue);
+  }
+  return output;
+};
+
+const collapseDataOnlyWrappers = (value) => {
+  if (Array.isArray(value)) {
+    return value.map(collapseDataOnlyWrappers);
+  }
+
+  if (!isObject(value)) {
+    return value;
+  }
+
+  const keys = Object.keys(value);
+  if (keys.length === 1 && keys[0] === 'data') {
+    return collapseDataOnlyWrappers(value.data);
+  }
+
+  const output = {};
+  for (const [key, nestedValue] of Object.entries(value)) {
+    output[key] = collapseDataOnlyWrappers(nestedValue);
+  }
+  return output;
+};
+
 class Chain {
   constructor(steps = []) {
     this.steps = steps;
@@ -317,6 +360,26 @@ class FetchClient {
 }
 
 const fetchClientCommonSteps = {
+  stripEdgesAndNodes: async (response) => {
+    if (!response?.ok || !response?.data) {
+      return response;
+    }
+
+    return {
+      ...response,
+      data: stripGraphqlEdgesAndNodes(response.data),
+    };
+  },
+  collapseDataWithOneValue: async (response) => {
+    if (!response?.ok || !response?.data) {
+      return response;
+    }
+
+    return {
+      ...response,
+      data: collapseDataOnlyWrappers(response.data),
+    };
+  },
   inspect: async (input, context) => {
     logDeep({ input, context });
     await askQuestion('?');
