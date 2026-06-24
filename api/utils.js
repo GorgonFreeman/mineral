@@ -313,7 +313,7 @@ class FetchClient {
     let requestPayload = {
       url: constructedUrl,
       ...(method ? { method } : {}),
-      ...(headers ? { headers: constructedHeaders } : {}),
+      ...(constructedHeaders ? { headers: constructedHeaders } : {}),
       ...(params ? { params } : {}),
       ...(body ? { body } : {}),
     };
