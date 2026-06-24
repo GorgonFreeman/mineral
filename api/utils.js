@@ -298,6 +298,16 @@ class FetchClient {
 
     logDeep({ constructedUrl });
     await askQuestion('?');
+
+    // Supplement headers with fetchClientHeaders
+    const constructedHeaders = {
+      ...(fetchClientHeaders ?? {}),
+      ...(headers ?? {}),
+    };
+    logDeep({ constructedHeaders });
+    await askQuestion('?');
+
+    
   }
 }
 
