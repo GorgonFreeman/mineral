@@ -58,14 +58,10 @@ const customFetch = async (url, {
       const parsedResponse = await response[responseType]();
       logDeep({ parsedResponse });
 
-      const { desired, omitted } = objectDigNodeAtPath(parsedResponse, 'data', { returnOmitted: true });
-
       if (response.ok) {
-
         return {
           ok: true,
-          data: desired ?? parsedResponse,
-          ...omitted && { meta: { omitted } },
+          data: parsedResponse,
         };
       }
 
