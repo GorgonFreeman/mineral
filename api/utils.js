@@ -233,7 +233,7 @@ class Chain {
     for (const step of this.steps) {
       output = await step(output, context);
 
-      const { breakChain, ...brokeOutput } = step;
+      const { breakChain, ...brokeOutput } = output;
       if (breakChain) {
         return brokeOutput;
       }
