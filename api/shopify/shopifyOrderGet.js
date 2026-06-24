@@ -28,6 +28,7 @@ const shopifyOrderGet = async (
     },
     context: {
       creds,
+      resultPath: 'data.order',
     },
   });
 

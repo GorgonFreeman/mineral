@@ -256,6 +256,11 @@ class Chain {
     let output = input;
     for (const step of this.steps) {
       output = await step(output, context);
+
+      const { breakChain, ...brokeOutput } = step;
+      if (breakChain) {
+        return brokeOutput;
+      }
     }
     return output;
   }
@@ -340,6 +345,38 @@ const fetchClientCommonSteps = {
     logDeep({ input, context });
     await askQuestion('?');
     return input;
+  },
+  exitEarlyOnNotOk: async (input, context) => {
+    if (!input.ok) {
+      return {
+        ...input,
+        breakChain: true,
+      };
+    }
+    return input;
+  },
+  digToPath: async (response, context) => {
+    const { resultPath } = context;
+    let { data, meta } = response;
+
+    if (!data || !resultPath) {
+      return response;
+    }
+
+    const resultPathNodes = pathAsArray(resultPath);
+    const { desired: dataAtPath, omitted } = objectDigNodeAtPath(data, resultPathNodes);
+
+    if (omitted) {
+      meta = meta || {};
+      meta.omitted = omitted;
+    }
+
+    return {
+      ...response,
+      data: dataAtPath,
+      ...meta && { meta },
+      breakChain: true,
+    };
   },
 };
 

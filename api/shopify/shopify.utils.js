@@ -1,41 +1,5 @@
 const { logDeep, pathAsArray, objectDigNodeAtPath, askQuestion, FetchClient, Chain, appendUrlToBase, fetchClientCommonSteps } = require('../utils');
 
-// TODO: Consider making standard handler supporting resultPath etc.
-const shopifyResponseHandler = async (response, { resultPath }) => {
-
-  logDeep('shopifyResponseHandler');
-  logDeep('before', { response });
-  await askQuestion('?');
-
-  if (!response.ok) {
-    return response;
-  }
-
-  const resultPathNodes = [
-    'data',
-    ...pathAsArray(resultPath),
-  ];
-
-  const { 
-    data: responseData, 
-  } = response;
-  let { 
-    meta: responseMeta, 
-  } = response;
-
-  const resultPathData = objectDigNodeAtPath(responseData, resultPathNodes);
-  if (!resultPathData) {
-    responseMeta = responseMeta || {};
-    responseMeta.fullData = responseData;
-  }
-
-  return {
-    ...response,
-    data: resultPathData,
-    ...responseMeta && { meta: responseMeta },
-  };
-};
-
 const addUrlAndAuthHeaders = async (requestPayload, context) => {
   const { creds } = context;
   const {
@@ -64,6 +28,8 @@ const shopifyClientRequestPreparer = new Chain([
 
 const shopifyClientResponseInterpreter = new Chain([
   fetchClientCommonSteps.inspect,
+  fetchClientCommonSteps.exitEarlyOnNotOk,
+  fetchClientCommonSteps.digToPath,
 ]);
 
 const shopifyClient = new FetchClient({
