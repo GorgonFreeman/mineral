@@ -1,10 +1,8 @@
-const { credsFromPayload } = require('../utils');
+const { credsFromPayload, capitaliseString } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 
 const defaultAttrs = 'id';
-
-const capitaliseString = (value) => `${ value[0].toUpperCase() }${ value.slice(1) }`;
 
 const gidFromId = (id, resource, { gidType } = {}) => {
   if (id?.startsWith('gid://')) {

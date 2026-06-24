@@ -6,6 +6,8 @@ const objHasAny = (obj, keys) => {
   return keys.some((key) => obj[key] !== undefined);
 };
 
+const capitaliseString = (value) => `${ value[0].toUpperCase() }${ value.slice(1) }`;
+
 const credsFromPayload = (credsPayload) => {
   const {
     credsPath,
@@ -426,6 +428,7 @@ const fetchClientCommonSteps = {
 module.exports = {
   wait,
   objHasAny,
+  capitaliseString,
   credsFromPayload,
   customFetch,
   logDeep,
