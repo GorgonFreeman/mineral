@@ -357,25 +357,29 @@ const fetchClientCommonSteps = {
   },
   digToPath: async (response, context) => {
     const { resultPath } = context;
-    let { data, meta } = response;
+    const { data } = response;
 
     if (!data || !resultPath) {
       return response;
     }
 
     const resultPathNodes = pathAsArray(resultPath);
-    const { desired: dataAtPath, omitted } = objectDigNodeAtPath(data, resultPathNodes);
+    const { dataAtPath } = objectDigNodeAtPath(data, resultPathNodes);
 
-    if (omitted) {
-      meta = meta || {};
-      meta.omitted = omitted;
+    if (!dataAtPath) {
+      return {
+        ...response,
+        error: {
+          code: 'DIG_FAILED',
+          message: `Data not found at path ${ resultPath }`,
+        },
+        breakChain: true,
+      };
     }
 
     return {
       ...response,
-      data: dataAtPath,
-      ...meta && { meta },
-      breakChain: true,
+      data: dataAtPath,      
     };
   },
 };
