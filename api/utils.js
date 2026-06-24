@@ -247,15 +247,14 @@ class FetchClient {
     url, // requests will be appended to the end
     headers = {}, // merged with the headers for each request
     
-    requestPreparer, // a function that updates responses before sending
+    requestPreparer, // a function that updates requests before sending
     responseInterpreter, // a function that transforms responses to report back
   } = {}) {
     this.context = context;
     this.url = url;
     this.headers = headers;
     this.requestPreparer = requestPreparer; // can be a Chain
-    this.responseInterpreter = responseInterpreter; // can be a Chain
-  }
+    this.responseInterpreter = responseInterpreter; // can be a Chain  }
 
   async fetch({
     url,
