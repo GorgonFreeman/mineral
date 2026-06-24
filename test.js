@@ -1,19 +1,17 @@
-const { shopifyOrderGet } = require('./api/shopify/shopifyOrderGet');
+const { shopifyOrdersGet } = require('./api/shopify/shopifyOrdersGet');
 
 const [
   storeHandle,
   apiKey,
-  orderId,
 ] = process.argv.slice(2);
 
-shopifyOrderGet(
+shopifyOrdersGet(
   {
     credsObject: {
       STORE_HANDLE: storeHandle,
       API_KEY: apiKey,
     },
   },
-  orderId,
 ).then((result) => {
   console.log('result', result);
 });
