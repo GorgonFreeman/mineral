@@ -1,10 +1,11 @@
-const { logDeep, pathAsArray, objectDigNodeAtPath } = require('../utils');
+const { logDeep, pathAsArray, objectDigNodeAtPath, askQuestion } = require('../utils');
 
 // TODO: Consider making standard handler supporting resultPath etc.
-const shopifyResponseHandler = (response, { resultPath }) => {
+const shopifyResponseHandler = async (response, { resultPath }) => {
 
   logDeep('shopifyResponseHandler');
   logDeep('before', { response });
+  await askQuestion('?');
 
   if (!response.ok) {
     return response;
@@ -15,19 +16,24 @@ const shopifyResponseHandler = (response, { resultPath }) => {
     ...pathAsArray(resultPath),
   ];
   logDeep('resultPathNodes', resultPathNodes);
-  // return;
 
-  const { desired, omitted } = objectDigNodeAtPath(response, resultPathNodes, { returnOmitted: true });
+  const { 
+    data: responseData, 
+  } = response;
+  let { 
+    meta: responseMeta, 
+  } = response;
 
-  const metaWithOmitted = {
-    ...response?.meta,
-    omitted,
-  };
+  const resultPathData = objectDigNodeAtPath(responseData, resultPathNodes);
+  if (!resultPathData) {
+    responseMeta = responseMeta || {};
+    responseMeta.fullResponse = response;
+  }
 
   return {
     ...response,
-    data: desired,
-    ...metaWithOmitted && { meta: metaWithOmitted },
+    data: resultPathData,
+    ...responseMeta && { meta: responseMeta },
   };
 };
 
