@@ -1,4 +1,4 @@
-const { logDeep, pathAsArray } = require('../utils');
+const { logDeep, pathAsArray, objectDigNodeAtPath } = require('../utils');
 
 // TODO: Consider making standard handler supporting resultPath etc.
 const shopifyResponseHandler = (response, { resultPath }) => {
@@ -15,45 +15,19 @@ const shopifyResponseHandler = (response, { resultPath }) => {
     ...pathAsArray(resultPath),
   ];
   logDeep('resultPathNodes', resultPathNodes);
-  return;
+  // return;
 
-  if (!resultPath || !response?.data) {
-    return response;
-  }
-  
-  // TODO: Handle array vs dot paths, and trace full path
+  const { desired, omitted } = objectDigNodeAtPath(response, resultPathNodes, { returnOmitted: true });
 
-  let desiredData = response;
-  let omittedData;
-  let lastKey;
-
-  for (const key of ['data', resultPath]) {
-    const { [key]: value, ...rest } = desiredData;
-
-    if (!value) {
-      throw new Error(`resultPath didn't work`);
-    }
-
-    desiredData = value;
-
-    if (omittedData) {
-      omittedData[lastKey] = rest;
-    } else {
-      omittedData = { ...rest };
-    }
-
-    lastKey = key;
-  }
+  const metaWithOmitted = {
+    ...response?.meta,
+    omitted,
+  };
 
   return {
     ...response,
-    ...{
-      data: desiredData,
-      meta: {
-        ...response?.meta,
-        ...omittedData,
-      },
-    },
+    data: desired,
+    ...metaWithOmitted && { meta: metaWithOmitted },
   };
 };
 
