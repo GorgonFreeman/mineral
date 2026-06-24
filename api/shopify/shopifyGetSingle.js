@@ -2,7 +2,7 @@ const { credsFromPayload, capitaliseString } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 
-const shopifyResourcesThatUseId = ['shop'];
+const resourcesNotRequiringId = ['shop'];
 
 const defaultAttrs = 'id';
 
@@ -10,17 +10,27 @@ const shopifyGetSingle = async (
   credsPayload,
   resource,
   id,
-  options = {},
-) => {
-  const {
+  {
     apiVersion = '2024-10',
     attrs = defaultAttrs,
     gidType,
-  } = options;
+  } = {},
+) => {
+
+  if (!credsValidator(credsPayload)) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_ARGS',
+        message: 'Invalid creds',
+      },
+    };
+  }
+
   const creds = credsFromPayload(credsPayload);
 
   const Resource = capitaliseString(resource);
-  const usesId = shopifyResourcesThatUseId.includes(resource);
+  const usesId = !resourcesNotRequiringId.includes(resource);
 
   const query = `
     query Get${ Resource }${ usesId ? '' : '($id: ID!)' } {
@@ -57,7 +67,7 @@ const funcApiConfig = {
   validatorsByArg: {
     credsPayload: (credsPayload) => credsValidator(credsPayload),
     resource: (resource) => Boolean(resource),
-    id: (id, body) => shopifyResourcesThatUseId.includes(body?.resource) || Boolean(id),
+    id: (id, body) => resourcesNotRequiringId.includes(body?.resource) || Boolean(id),
   },
 };
 
