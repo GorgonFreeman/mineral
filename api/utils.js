@@ -253,8 +253,8 @@ class FetchClient {
     this.context = context;
     this.url = url;
     this.headers = headers;
-    this.requestPreparer = requestPreparer; // typeof Chain
-    this.responseInterpreter = responseInterpreter; // typeof Chain
+    this.requestPreparer = requestPreparer; // can be a Chain
+    this.responseInterpreter = responseInterpreter; // can be a Chain
   }
 
   async fetch({
