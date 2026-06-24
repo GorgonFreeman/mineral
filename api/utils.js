@@ -217,7 +217,7 @@ const objectDigNodeAtPath = (obj, path, { returnOmitted = false } = {}) => {
   };
 };
 
-class fetchClient {
+class FetchClient {
   constructor({
     context, // necessary data for the preparer to use
     clientPreparer, // a function that reads context, and updates stuff like auth headers
