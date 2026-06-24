@@ -4,15 +4,6 @@ const { shopifyClient } = require('./shopify.utils');
 
 const defaultAttrs = 'id';
 
-const gidFromId = (id, resource, { gidType } = {}) => {
-  if (id?.startsWith('gid://')) {
-    return id;
-  }
-
-  const resourceType = gidType || capitaliseString(resource);
-  return `gid://shopify/${ resourceType }/${ id }`;
-};
-
 const shopifyGetSingle = async (
   credsPayload,
   resource,
@@ -45,7 +36,7 @@ const shopifyGetSingle = async (
         ? {}
         : {
           variables: {
-            id: gidFromId(id, resource, { gidType }),
+            id: `gid://shopify/${ gidType || Resource }/${ id }`,
           },
         },
     },
