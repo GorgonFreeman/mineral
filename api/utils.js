@@ -321,7 +321,11 @@ class FetchClient {
     await askQuestion('?');
 
     if (this.requestPreparer) {
-      requestPayload = await this.requestPreparer.run(requestPayload);
+      if (typeof this.requestPreparer === 'Chain') {
+        requestPayload = await this.requestPreparer.run(requestPayload);
+      } else {
+        requestPayload = await this.requestPreparer(requestPayload);
+      }
     }
     logDeep({ requestPayload });
     await askQuestion('?');
@@ -335,7 +339,11 @@ class FetchClient {
     
     const usedResponseInterpreter = responseInterpreter || this.responseInterpreter;
     if (usedResponseInterpreter) {
-      response = await usedResponseInterpreter.run(response);
+      if (typeof usedResponseInterpreter === 'Chain') {
+        response = await usedResponseInterpreter.run(response);
+      } else {
+        response = await usedResponseInterpreter(response);
+      }
     }
     logDeep({ response });
     await askQuestion('?');
