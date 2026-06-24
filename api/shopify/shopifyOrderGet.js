@@ -1,6 +1,6 @@
 const { credsFromPayload, logDeep } = require('../utils');
 const { credsValidator } = require('../validators');
-const { shopifyFetchClient } = require('./shopify.utils');
+const { shopifyClient } = require('./shopify.utils');
 
 const shopifyOrderGet = async (
   credsPayload,
@@ -21,7 +21,7 @@ const shopifyOrderGet = async (
 
   const orderGid = `gid://shopify/Order/${ orderId }`;
 
-  const response = await shopifyFetchClient.fetch({
+  const response = await shopifyClient.fetch({
     method: 'post',
     body: {
       query: `query { order(id: "${ orderGid }") { id name createdAt displayFinancialStatus displayFulfillmentStatus } }`,

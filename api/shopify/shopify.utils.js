@@ -1,4 +1,4 @@
-const { logDeep, pathAsArray, objectDigNodeAtPath, askQuestion } = require('../utils');
+const { logDeep, pathAsArray, objectDigNodeAtPath, askQuestion, FetchClient, Chain } = require('../utils');
 
 // TODO: Consider making standard handler supporting resultPath etc.
 const shopifyResponseHandler = async (response, { resultPath }) => {
@@ -36,6 +36,27 @@ const shopifyResponseHandler = async (response, { resultPath }) => {
   };
 };
 
+const shopifyClientRequestPreparer = new Chain([
+  async (requestPayload, context) => {
+    logDeep({ requestPayload, context });
+    await askQuestion('?');
+    return requestPayload;
+  },
+]);
+
+const shopifyClientResponseInterpreter = new Chain([
+  async (response, context) => {
+    logDeep({ response, context });
+    await askQuestion('?');
+    return response;
+  },
+]);
+
+const shopifyClient = new FetchClient({
+  requestPreparer: shopifyClientRequestPreparer,
+  responseInterpreter: shopifyClientResponseInterpreter,
+});
+
 module.exports = {
-  shopifyResponseHandler,
+  shopifyClient,
 };

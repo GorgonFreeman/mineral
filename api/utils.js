@@ -366,5 +366,6 @@ module.exports = {
   askQuestion,
   pathAsArray,
   objectDigNodeAtPath,
+  Chain,
   FetchClient,
 };
