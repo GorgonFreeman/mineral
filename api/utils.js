@@ -184,17 +184,13 @@ const pathAsArray = (path) => {
 
 const objectDigNodeAtPath = (obj, path) => {
   let nodes = pathAsArray(path);
+  console.log(nodes);
 
-  let desired = obj;
-
+  let output = obj;
   for (const node of nodes) {
-    const { 
-      [node]: value, 
-    } = desired;
-    desired = value;
+    output = output[node];
   }
-
-  return desired;
+  return output;
 };
 
 const appendUrlToBase = (baseUrl, url) => {
