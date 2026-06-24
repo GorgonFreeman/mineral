@@ -2,6 +2,8 @@ const { credsFromPayload, capitaliseString } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 
+const shopifyResourcesThatUseId = ['shop'];
+
 const defaultAttrs = 'id';
 
 const shopifyGetSingle = async (
@@ -18,7 +20,7 @@ const shopifyGetSingle = async (
   const creds = credsFromPayload(credsPayload);
 
   const Resource = capitaliseString(resource);
-  const usesId = ['shop'].includes(resource);
+  const usesId = shopifyResourcesThatUseId.includes(resource);
 
   const query = `
     query Get${ Resource }${ usesId ? '' : '($id: ID!)' } {
@@ -55,7 +57,7 @@ const funcApiConfig = {
   validatorsByArg: {
     credsPayload: (credsPayload) => credsValidator(credsPayload),
     resource: (resource) => Boolean(resource),
-    id: (id, body) => body?.resource === 'shop' || Boolean(id),
+    id: (id, body) => shopifyResourcesThatUseId.includes(body?.resource) || Boolean(id),
   },
 };
 
