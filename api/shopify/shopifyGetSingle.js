@@ -75,7 +75,6 @@ const funcApiConfig = {
     credsPayload: (credsPayload) => credsValidator(credsPayload),
     resource: (resource) => Boolean(resource),
     id: (id, body) => body?.resource === 'shop' || Boolean(id),
-    options: () => true,
   },
 };
 
