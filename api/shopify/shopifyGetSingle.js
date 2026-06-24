@@ -51,16 +51,6 @@ const shopifyGetSingle = async (
 };
 
 const funcApiConfig = {
-  requestHandler: async ({ body }) => {
-    const normalisedBody = {
-      ...body,
-      options: body?.options || {},
-    };
-
-    return {
-      body: normalisedBody,
-    };
-  },
   argNames: ['credsPayload', 'resource', 'id', 'options'],
   validatorsByArg: {
     credsPayload: (credsPayload) => credsValidator(credsPayload),
