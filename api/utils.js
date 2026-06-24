@@ -263,17 +263,11 @@ class Chain {
 
 class FetchClient {
   constructor({
-    context, // necessary data for preparer and interpreters to refer to
-    
-    url, // requests will be appended to the end
-    headers = {}, // merged with the headers for each request
-    
+    context, // necessary data for preparer and interpreters to refer to    
     requestPreparer, // a function that updates requests before sending
     responseInterpreter, // a function that transforms responses to report back
   } = {}) {
     this.context = context;
-    this.url = url;
-    this.headers = headers;
     this.requestPreparer = requestPreparer; // can be a Chain
     this.responseInterpreter = responseInterpreter; // can be a Chain  
   }
