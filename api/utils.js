@@ -312,10 +312,10 @@ class FetchClient {
     
     let requestPayload = {
       url: constructedUrl,
-      method,
-      headers: constructedHeaders,
-      params,
-      body,
+      ...(method ? { method } : {}),
+      ...(headers ? { headers: constructedHeaders } : {}),
+      ...(params ? { params } : {}),
+      ...(body ? { body } : {}),
     };
     logDeep({ requestPayload });
     await askQuestion('?');
