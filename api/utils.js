@@ -321,7 +321,7 @@ class FetchClient {
     await askQuestion('?');
 
     if (this.requestPreparer) {
-      if (typeof this.requestPreparer === 'Chain') {
+      if (this.requestPreparer instanceof Chain) {
         requestPayload = await this.requestPreparer.run(requestPayload);
       } else {
         requestPayload = await this.requestPreparer(requestPayload);
@@ -339,7 +339,7 @@ class FetchClient {
     
     const usedResponseInterpreter = responseInterpreter || this.responseInterpreter;
     if (usedResponseInterpreter) {
-      if (typeof usedResponseInterpreter === 'Chain') {
+      if (usedResponseInterpreter instanceof Chain) {
         response = await usedResponseInterpreter.run(response);
       } else {
         response = await usedResponseInterpreter(response);
