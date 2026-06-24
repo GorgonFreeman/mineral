@@ -5,12 +5,6 @@ const { respondJson, errorToReadable, getRequestBody, argsFromBody, funcApi } = 
 
 const apiDirectory = path.join(__dirname, 'api');
 
-const camelCaseToPathSegments = (value) => {
-  return value
-    .replace(/([a-z0-9])([A-Z])/g, '$1/$2')
-    .toLowerCase();
-};
-
 const shouldSkipApiFile = (fileName) => {
   if (!fileName.endsWith('.js')) {
     return true;
@@ -45,38 +39,6 @@ const walkFilesRecursive = (directory) => {
   }
 
   return files;
-};
-
-const routePathsForExport = (filePath, exportName) => {
-  const relativeDirectory = path.relative(apiDirectory, path.dirname(filePath));
-  const directorySegments = relativeDirectory === '.'
-    ? []
-    : relativeDirectory.split(path.sep).filter(Boolean);
-
-  const canonicalPath = [
-    ...directorySegments,
-    exportName,
-  ].join('/');
-
-  const directoryPrefix = directorySegments[directorySegments.length - 1];
-  let trimmedExportName = exportName;
-  if (directoryPrefix) {
-    const directoryPrefixLower = directoryPrefix.toLowerCase();
-    const exportNameLower = exportName.toLowerCase();
-    if (exportNameLower.startsWith(directoryPrefixLower)) {
-      trimmedExportName = exportName.slice(directoryPrefix.length) || exportName;
-    }
-  }
-
-  const prettyPath = [
-    ...directorySegments,
-    camelCaseToPathSegments(trimmedExportName).replace(/^\//, ''),
-  ].filter(Boolean).join('/');
-
-  return [
-    `/${ canonicalPath }`,
-    `/${ prettyPath }`,
-  ];
 };
 
 const loadHandlers = () => {
@@ -128,15 +90,18 @@ const loadHandlers = () => {
         ? funcApi(exportedValue, exportFuncApiConfig)
         : exportedValue;
 
-      const routePaths = routePathsForExport(filePath, exportName);
-      for (const routePath of routePaths) {
-        routeToHandler.set(routePath, {
-          filePath,
-          exportName,
-          handler,
-          usesFuncApi: Boolean(exportFuncApiConfig),
-        });
+      const routePath = `/${ exportName }`;
+      if (routeToHandler.has(routePath)) {
+        const existing = routeToHandler.get(routePath);
+        throw new Error(`Duplicate handler route '${ routePath }' from ${ filePath } and ${ existing.filePath }`);
       }
+
+      routeToHandler.set(routePath, {
+        filePath,
+        exportName,
+        handler,
+        usesFuncApi: Boolean(exportFuncApiConfig),
+      });
     }
   }
 
