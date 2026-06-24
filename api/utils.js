@@ -340,7 +340,7 @@ const fetchClientCommonSteps = {
     }
 
     const resultPathNodes = pathAsArray(resultPath);
-    const { dataAtPath } = objectDigNodeAtPath(data, resultPathNodes);
+    const dataAtPath = objectDigNodeAtPath(data, resultPathNodes);
 
     if (!dataAtPath) {
       return {
