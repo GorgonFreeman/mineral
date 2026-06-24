@@ -295,7 +295,9 @@ class FetchClient {
         constructedUrl += '/';
       }
     }
-    constructedUrl += url;
+    if (url) {
+      constructedUrl += url;
+    }
 
     logDeep({ constructedUrl });
     await askQuestion('?');
