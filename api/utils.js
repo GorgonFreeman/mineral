@@ -217,6 +217,24 @@ const objectDigNodeAtPath = (obj, path, { returnOmitted = false } = {}) => {
   };
 };
 
+class fetchClient {
+  constructor({
+    context, // necessary data for the preparer to use
+    preparer, // a function that reads context, and updates stuff like auth headers
+    
+    url, // requests will be appended to the end
+    headers = {}, // merged with the headers for each request
+
+    interpreter = [], // functions that transform the response
+  } = {}) {
+    this.context = context;
+    this.preparer = preparer;
+    this.url = url;
+    this.headers = headers;
+    this.interpreter = interpreter;
+  }
+}
+
 module.exports = {
   wait,
   objHasAny,
