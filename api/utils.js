@@ -217,6 +217,29 @@ const objectDigNodeAtPath = (obj, path, { returnOmitted = false } = {}) => {
   };
 };
 
+class Chain {
+  constructor(steps = []) {
+    this.steps = steps;
+  }
+
+  addSteps(steps) {
+    this.steps.push(...steps);
+    return this;
+  }
+
+  getSteps() {
+    return this.steps;
+  }
+
+  async run(input) {
+    let output = input;
+    for (const step of this.steps) {
+      output = await step(output);
+    }
+    return output;
+  }
+}
+
 class FetchClient {
   constructor({
     context, // necessary data for the preparer to use
@@ -229,11 +252,11 @@ class FetchClient {
     responseInterpreter, // a function that transforms responses to report back
   } = {}) {
     this.context = context;
-    this.clientPreparer = clientPreparer;
+    this.clientPreparer = clientPreparer; // typeof Chain
     this.url = url;
     this.headers = headers;
-    this.requestPreparer = requestPreparer;
-    this.responseInterpreter = responseInterpreter;
+    this.requestPreparer = requestPreparer; // typeof Chain
+    this.responseInterpreter = responseInterpreter; // typeof Chain
   }
 
   }
