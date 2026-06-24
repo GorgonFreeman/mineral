@@ -276,6 +276,7 @@ class FetchClient {
     const {
       url: fetchClientUrl,
       headers: fetchClientHeaders,
+      responseInterpreter: fetchClientResponseInterpreter,
     } = this;
 
     let constructedUrl = '';
@@ -323,7 +324,21 @@ class FetchClient {
     logDeep({ requestPayload });
     await askQuestion('?');
 
+    let response = await customFetch(
+      requestPayload.url,
+      requestPayload,
+    );
+    logDeep({ response });
+    await askQuestion('?');
     
+    const usedResponseInterpreter = responseInterpreter || this.responseInterpreter;
+    if (usedResponseInterpreter) {
+      response = await usedResponseInterpreter.run(response);
+    }
+    logDeep({ response });
+    await askQuestion('?');
+
+    return response;
   }
 }
 
@@ -336,4 +351,5 @@ module.exports = {
   askQuestion,
   pathAsArray,
   objectDigNodeAtPath,
+  FetchClient,
 };
