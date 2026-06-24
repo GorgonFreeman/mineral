@@ -1,4 +1,4 @@
-const { logDeep } = require('../utils');
+const { logDeep, pathAsArray } = require('../utils');
 
 // TODO: Consider making standard handler supporting resultPath etc.
 const shopifyResponseHandler = (response, { resultPath }) => {
@@ -9,6 +9,13 @@ const shopifyResponseHandler = (response, { resultPath }) => {
   if (!response.ok) {
     return response;
   }
+
+  const resultPathNodes = [
+    'data',
+    ...pathAsArray(resultPath),
+  ];
+  logDeep('resultPathNodes', resultPathNodes);
+  return;
 
   if (!resultPath || !response?.data) {
     return response;

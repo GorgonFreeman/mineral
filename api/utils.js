@@ -115,10 +115,25 @@ const logDeep = (...args) => {
   }
 };
 
+const pathAsArray = (path) => {
+  let nodes = Array.isArray(path) 
+    ? path.map(node => {
+      try {
+        return node.split('.');
+      } catch (err) {
+        return null;
+      }
+    }) 
+    : path.split('.');
+  nodes = nodes.flat().filter(n => n);
+  return nodes;
+};
+
 module.exports = {
   wait,
   objHasAny,
   credsFromPayload,
   customFetch,
   logDeep,
+  pathAsArray,
 };
