@@ -1,3 +1,5 @@
+const readline = require('readline');
+
 const wait = (ms) => new Promise((resolve, reject) => setTimeout(resolve, ms));
 
 const objHasAny = (obj, keys) => {
@@ -115,6 +117,57 @@ const logDeep = (...args) => {
   }
 };
 
+const askQuestion = async (
+  query,
+  {
+    defaultAnswer,
+    validate,
+    invalidMessage = 'Invalid input, try again.',
+  } = {},
+) => {
+  const prompt = defaultAnswer !== undefined
+    ? `${ query }(default: ${ defaultAnswer }) `
+    : query;
+
+  while (true) {
+    const answer = await new Promise((resolve, reject) => {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
+
+      let settled = false;
+
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        rl.close();
+        resolve(value);
+      };
+
+      rl.on('close', () => {
+        if (settled) return;
+        settled = true;
+        if (defaultAnswer !== undefined) {
+          resolve(defaultAnswer);
+        } else {
+          reject(new Error('Input closed'));
+        }
+      });
+
+      rl.question(prompt, (response) => {
+        finish(response === '' && defaultAnswer !== undefined ? defaultAnswer : response);
+      });
+    });
+
+    if (!validate || validate(answer)) {
+      return answer;
+    }
+
+    console.log(invalidMessage);
+  }
+};
+
 const pathAsArray = (path) => {
   let nodes = Array.isArray(path) 
     ? path.map(node => {
@@ -170,6 +223,7 @@ module.exports = {
   credsFromPayload,
   customFetch,
   logDeep,
+  askQuestion,
   pathAsArray,
   objectDigNodeAtPath,
 };
