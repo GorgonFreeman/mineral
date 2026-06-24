@@ -259,6 +259,45 @@ class FetchClient {
     this.responseInterpreter = responseInterpreter; // typeof Chain
   }
 
+  async fetch({
+    url,
+
+    // customAxios payload
+    method,
+    headers,
+    params,
+    body,
+    
+    responseInterpreter,
+
+    context = {},
+  } = {}) {
+
+    const {
+      url: fetchClientUrl,
+      headers: fetchClientHeaders,
+    } = this;
+
+    let constructedUrl = '';
+    if (fetchClientUrl) {
+      constructedUrl = fetchClientUrl;
+      if (url) {
+        // Remove fetchClientUrl from url if it's there
+        if (url.startsWith(fetchClientUrl)) {
+          url = url.slice(fetchClientUrl.length);
+        }
+        
+        // Remove trailing and leading slashes
+        constructedUrl = constructedUrl.replace(/\/$/, '');
+        url = url.replace(/^\//, '');
+
+        constructedUrl += '/';
+      }
+    }
+    constructedUrl += url;
+
+    logDeep({ constructedUrl });
+    await askQuestion('?');
   }
 }
 
