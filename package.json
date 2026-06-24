@@ -1,0 +1,11 @@
+{
+  "name": "mineral",
+  "version": "0.1.0",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "serve": "PORT=8100 node server.js",
+    "start": "node server.js"
+  }
+}
