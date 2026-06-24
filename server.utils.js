@@ -78,9 +78,89 @@ const argsFromBody = (body) => {
   return [body];
 };
 
+const valueProvided = (value) => value !== undefined && value !== null;
+
+const funcApi = (func, config = {}) => {
+  const {
+    argNames,
+    validatorsByArg = {},
+    validators = [],
+    requestVerifiers = [],
+    bodyModifiers = [],
+    passThroughReq = false,
+    passThroughBody = false,
+  } = config;
+
+  return async ({
+    req,
+    res,
+    body,
+    args,
+  }) => {
+    for (const requestVerifier of requestVerifiers) {
+      const verified = await requestVerifier(req, res, body);
+      if (!verified) {
+        return {
+          ok: false,
+          error: {
+            code: 'REQUEST_NOT_VERIFIED',
+            message: 'Request verification failed.',
+          },
+        };
+      }
+    }
+
+    let modifiedBody = body;
+    for (const bodyModifier of bodyModifiers) {
+      modifiedBody = await bodyModifier(modifiedBody, req, res);
+    }
+
+    if (argNames?.length) {
+      for (const argName of argNames) {
+        const validator = validatorsByArg[argName] || valueProvided;
+        const valid = await validator(modifiedBody?.[argName], modifiedBody, req, res);
+        if (!valid) {
+          return {
+            ok: false,
+            error: {
+              code: 'INVALID_ARGS',
+              message: `Invalid arg: ${ argName }`,
+            },
+          };
+        }
+      }
+    }
+
+    for (const validator of validators) {
+      const valid = await validator(modifiedBody, req, res);
+      if (!valid) {
+        return {
+          ok: false,
+          error: {
+            code: 'INVALID_BODY',
+            message: 'Request body failed validation.',
+          },
+        };
+      }
+    }
+
+    let callArgs = args;
+    if (passThroughReq) {
+      callArgs = [req];
+    } else if (passThroughBody) {
+      callArgs = [modifiedBody];
+    } else if (argNames?.length) {
+      callArgs = argNames.map((argName) => modifiedBody?.[argName]);
+    }
+
+    return await func(...callArgs);
+  };
+};
+
 module.exports = {
   respondJson,
   errorToReadable,
   getRequestBody,
   argsFromBody,
+  funcApi,
 };

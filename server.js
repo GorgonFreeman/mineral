@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
-const { respondJson, errorToReadable, getRequestBody, argsFromBody } = require('./server.utils');
+const { respondJson, errorToReadable, getRequestBody, argsFromBody, funcApi } = require('./server.utils');
 
 const apiDirectory = path.join(__dirname, 'api');
 
@@ -89,17 +89,52 @@ const loadHandlers = () => {
       continue;
     }
 
+    const {
+      funcApiConfig,
+    } = moduleExports;
+    const functionExportNames = Object.entries(moduleExports)
+      .filter(([exportName, exportedValue]) => exportName !== 'funcApiConfig' && typeof exportedValue === 'function')
+      .map(([exportName]) => exportName);
+
+    const getFuncApiConfigForExport = (exportName) => {
+      if (!funcApiConfig || typeof funcApiConfig !== 'object') {
+        return undefined;
+      }
+
+      const configByExportName = funcApiConfig[exportName];
+      if (configByExportName && typeof configByExportName === 'object' && !Array.isArray(configByExportName)) {
+        return configByExportName;
+      }
+
+      // If there's only one function export and config isn't keyed by function names,
+      // treat funcApiConfig as the config for that function.
+      const configIsKeyedByFunctionName = functionExportNames.some((functionExportName) => funcApiConfig[functionExportName] !== undefined);
+      if (!configIsKeyedByFunctionName && functionExportNames.length === 1) {
+        return funcApiConfig;
+      }
+    };
+
     for (const [exportName, exportedValue] of Object.entries(moduleExports)) {
+      if (exportName === 'funcApiConfig') {
+        continue;
+      }
+
       if (typeof exportedValue !== 'function') {
         continue;
       }
+
+      const exportFuncApiConfig = getFuncApiConfigForExport(exportName);
+      const handler = exportFuncApiConfig
+        ? funcApi(exportedValue, exportFuncApiConfig)
+        : exportedValue;
 
       const routePaths = routePathsForExport(filePath, exportName);
       for (const routePath of routePaths) {
         routeToHandler.set(routePath, {
           filePath,
           exportName,
-          handler: exportedValue,
+          handler,
+          usesFuncApi: Boolean(exportFuncApiConfig),
         });
       }
     }
@@ -149,7 +184,14 @@ const server = http.createServer(async (req, res) => {
   try {
     const body = await getRequestBody(req);
     const args = argsFromBody(body);
-    const result = await matchedHandler.handler(...args);
+    const result = matchedHandler.usesFuncApi
+      ? await matchedHandler.handler({
+        req,
+        res,
+        body,
+        args,
+      })
+      : await matchedHandler.handler(...args);
 
     if (result === undefined) {
       respondJson(res, 200, {
