@@ -335,6 +335,14 @@ class FetchClient {
   }
 }
 
+const fetchClientCommonSteps = {
+  inspect: async (input, context) => {
+    logDeep({ input, context });
+    await askQuestion('?');
+    return input;
+  },
+};
+
 module.exports = {
   wait,
   objHasAny,
@@ -347,4 +355,5 @@ module.exports = {
   appendUrlToBase,
   Chain,
   FetchClient,
+  fetchClientCommonSteps,
 };

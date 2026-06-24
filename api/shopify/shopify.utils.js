@@ -1,4 +1,4 @@
-const { logDeep, pathAsArray, objectDigNodeAtPath, askQuestion, FetchClient, Chain, appendUrlToBase } = require('../utils');
+const { logDeep, pathAsArray, objectDigNodeAtPath, askQuestion, FetchClient, Chain, appendUrlToBase, fetchClientCommonSteps } = require('../utils');
 
 // TODO: Consider making standard handler supporting resultPath etc.
 const shopifyResponseHandler = async (response, { resultPath }) => {
@@ -36,44 +36,34 @@ const shopifyResponseHandler = async (response, { resultPath }) => {
   };
 };
 
+const addUrlAndAuthHeaders = async (requestPayload, context) => {
+  const { creds } = context;
+  const {
+    STORE_HANDLE,
+    API_KEY,
+  } = creds;
+
+  const baseUrl = `https://${ STORE_HANDLE }.myshopify.com/admin/api/2024-10/graphql.json`;
+  const baseHeaders = {
+    'X-Shopify-Access-Token': API_KEY,
+  };
+
+  return {
+    ...requestPayload,
+    url: appendUrlToBase(baseUrl, requestPayload.url),
+    headers: {
+      ...baseHeaders,
+      ...requestPayload.headers,
+    },
+  };
+};
+
 const shopifyClientRequestPreparer = new Chain([
-  async (requestPayload, context) => {
-    logDeep({ requestPayload, context });
-
-    const { creds } = context;
-    const {
-      STORE_HANDLE,
-      API_KEY,
-    } = creds;
-
-    const baseUrl = `https://${ STORE_HANDLE }.myshopify.com/admin/api/2024-10/graphql.json`;
-    const baseHeaders = {
-      'X-Shopify-Access-Token': API_KEY,
-    };
-
-    const {
-      url,
-      headers,
-    } = requestPayload;
-
-    return {
-      ...requestPayload,
-      url: appendUrlToBase(baseUrl, url),
-      headers: {
-        ...baseHeaders,
-        ...headers,
-      },
-    };
-  },
+  addUrlAndAuthHeaders,
 ]);
 
 const shopifyClientResponseInterpreter = new Chain([
-  async (response, context) => {
-    logDeep({ response, context });
-    
-    await askQuestion('?');
-    return response;
-  },
+  fetchClientCommonSteps.inspect,
 ]);
 
 const shopifyClient = new FetchClient({
