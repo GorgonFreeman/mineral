@@ -1,5 +1,4 @@
 const { StringDecoder } = require('string_decoder');
-const { Chain } = require('./api/utils');
 
 const respondJson = (res, statusCode, payload) => {
   const body = JSON.stringify(payload);
@@ -97,11 +96,6 @@ const runRequestHandler = async (requestHandler, requestContext) => {
     return requestContext;
   }
 
-  if (requestHandler instanceof Chain) {
-    const handlerOutput = await requestHandler.run(requestContext);
-    return mergeRequestContext(requestContext, handlerOutput);
-  }
-
   if (Array.isArray(requestHandler)) {
     let updatedRequestContext = requestContext;
     for (const requestHandlerStep of requestHandler) {
@@ -114,12 +108,12 @@ const runRequestHandler = async (requestHandler, requestContext) => {
     return updatedRequestContext;
   }
 
-  if (typeof requestHandler === 'function') {
-    const handlerOutput = await requestHandler(requestContext);
-    return mergeRequestContext(requestContext, handlerOutput);
+  if (typeof requestHandler?.run !== 'function' && typeof requestHandler !== 'function') {
+    throw new Error('requestHandler must be a function, array of functions, or a Chain');
   }
 
-  throw new Error('requestHandler must be a function, array of functions, or a Chain');
+  const handlerOutput = await requestHandler?.run(requestContext) || await requestHandler(requestContext);
+  return mergeRequestContext(requestContext, handlerOutput);
 };
 
 const funcApi = (func, config = {}) => {
