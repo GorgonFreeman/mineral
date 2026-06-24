@@ -18,11 +18,11 @@ const shopifyGetSingle = async (
   const creds = credsFromPayload(credsPayload);
 
   const Resource = capitaliseString(resource);
-  const isShopResource = resource === 'shop';
+  const usesId = ['shop'].includes(resource);
 
   const query = `
-    query Get${ Resource }${ isShopResource ? '' : '($id: ID!)' } {
-      ${ resource }${ isShopResource ? '' : '(id: $id)' } {
+    query Get${ Resource }${ usesId ? '' : '($id: ID!)' } {
+      ${ resource }${ usesId ? '' : '(id: $id)' } {
         ${ attrs }
       }
     }
@@ -32,7 +32,7 @@ const shopifyGetSingle = async (
     method: 'post',
     body: {
       query,
-      ...isShopResource
+      ...usesId
         ? {}
         : {
           variables: {
