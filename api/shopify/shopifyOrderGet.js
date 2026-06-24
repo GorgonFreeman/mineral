@@ -1,43 +1,44 @@
-const { credsFromPayload, logDeep } = require('../utils');
-const { credsValidator } = require('../validators');
-const { shopifyClient } = require('./shopify.utils');
+const { shopifyGetSingle } = require('../shopify/shopifyGetSingle');
+
+const defaultAttrs = 'id name createdAt displayFinancialStatus displayFulfillmentStatus';
 
 const shopifyOrderGet = async (
   credsPayload,
-  orderId,
+  {
+    orderId,
+    orderName,
+  },
+  {
+    apiVersion,
+    attrs = defaultAttrs,
+  } = {},
 ) => {
 
-  if (!credsValidator(credsPayload)) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_ARGS',
-        message: 'Invalid creds',
+  if (orderId) {
+    const response = await shopifyGetSingle(
+      credsPayload,
+      'order',
+      orderId,
+      {
+        apiVersion,
+        attrs,
       },
-    };
-  }
+    );
 
-  const creds = credsFromPayload(credsPayload);
-
-  const orderGid = `gid://shopify/Order/${ orderId }`;
-
-  const response = await shopifyClient.fetch({
-    method: 'post',
-    body: {
-      query: `query { order(id: "${ orderGid }") { id name createdAt displayFinancialStatus displayFulfillmentStatus } }`,
-    },
-    context: {
-      creds,
-      resultPath: 'data.order',
-    },
-  });
-
-  if (!response.ok) {
     return response;
   }
 
-  logDeep('response', response);
-  return response;
+  /* orderName */
+  // const response = await shopifyOrdersGet(credsPath, {
+  //   apiVersion,
+  //   attrs,
+  //   queries: [`name:${ orderName }`],
+  // });
+
+  // const singleResponse = standardInterpreters.expectOne(response);
+
+  // return singleResponse;
+  /* /orderName */
 };
 
 module.exports = {
