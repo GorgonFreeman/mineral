@@ -271,6 +271,13 @@ class FetchClient {
     context = {},
   } = {}) {
 
+    const mergedContext = {
+      ...(this.context ?? {}),
+      ...(context ?? {}),
+    };
+    logDeep({ mergedContext });
+    await askQuestion('?');
+
     const {
       url: fetchClientUrl,
       headers: fetchClientHeaders,
@@ -320,9 +327,9 @@ class FetchClient {
 
     if (this.requestPreparer) {
       if (this.requestPreparer instanceof Chain) {
-        requestPayload = await this.requestPreparer.run(requestPayload);
+        requestPayload = await this.requestPreparer.run(requestPayload, mergedContext);
       } else {
-        requestPayload = await this.requestPreparer(requestPayload);
+        requestPayload = await this.requestPreparer(requestPayload, mergedContext);
       }
     }
     logDeep({ requestPayload });
@@ -338,9 +345,9 @@ class FetchClient {
     const usedResponseInterpreter = responseInterpreter || this.responseInterpreter;
     if (usedResponseInterpreter) {
       if (usedResponseInterpreter instanceof Chain) {
-        response = await usedResponseInterpreter.run(response);
+        response = await usedResponseInterpreter.run(response, mergedContext);
       } else {
-        response = await usedResponseInterpreter(response);
+        response = await usedResponseInterpreter(response, mergedContext);
       }
     }
     logDeep({ response });
