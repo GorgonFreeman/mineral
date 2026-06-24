@@ -306,6 +306,22 @@ class FetchClient {
     };
     logDeep({ constructedHeaders });
     await askQuestion('?');
+    
+    let requestPayload = {
+      url: constructedUrl,
+      method,
+      headers: constructedHeaders,
+      params,
+      body,
+    };
+    logDeep({ requestPayload });
+    await askQuestion('?');
+
+    if (this.requestPreparer) {
+      requestPayload = await this.requestPreparer.run(requestPayload);
+    }
+    logDeep({ requestPayload });
+    await askQuestion('?');
 
     
   }
