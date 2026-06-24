@@ -61,7 +61,7 @@ const customFetch = async (url, {
       if (response.ok) {
         return {
           ok: true,
-          data: parsedResponse?.data || parsedResponse,
+          data: parsedResponse,
         };
       }
 
