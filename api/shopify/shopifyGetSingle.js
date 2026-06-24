@@ -66,6 +66,23 @@ module.exports = {
   funcApiConfig,
 };
 /*
+
+curl -X POST "http://localhost:8000/shopifyGetSingle" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsObject": {
+        "STORE_HANDLE": "arisawa-heavy-industries",
+        "API_KEY": "shpat_xxx"
+      }
+    },
+    "resource": "order",
+    "id": "1234567890",
+    "options": {
+      "attrs": "id name"
+    }
+  }'
+
 curl -X POST "http://localhost:8000/shopifyGetSingle" \
   -H "Content-Type: application/json" \
   -d '{
