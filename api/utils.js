@@ -182,39 +182,19 @@ const pathAsArray = (path) => {
   return nodes;
 };
 
-const objectDigNodeAtPath = (obj, path, { returnOmitted = false } = {}) => {
+const objectDigNodeAtPath = (obj, path) => {
   let nodes = pathAsArray(path);
 
   let desired = obj;
-  let omitted;
-  let omittedEdge;
 
   for (const node of nodes) {
     const { 
       [node]: value, 
-      ...rest
     } = desired;
     desired = value;
-    
-    if (returnOmitted) {
-      if (omittedEdge) {
-        omittedEdge[node] = rest || {};
-        omittedEdge = omittedEdge[node];
-      } else {
-        omitted = { ...rest };
-        omittedEdge = omitted;
-      }
-    }
   }
 
-  if (!returnOmitted) {
-    return desired;
-  }
-
-  return {
-    desired,
-    omitted,
-  };
+  return desired;
 };
 
 const appendUrlToBase = (baseUrl, url) => {
