@@ -15,7 +15,6 @@ const shopifyResponseHandler = async (response, { resultPath }) => {
     'data',
     ...pathAsArray(resultPath),
   ];
-  logDeep('resultPathNodes', resultPathNodes);
 
   const { 
     data: responseData, 
@@ -27,7 +26,7 @@ const shopifyResponseHandler = async (response, { resultPath }) => {
   const resultPathData = objectDigNodeAtPath(responseData, resultPathNodes);
   if (!resultPathData) {
     responseMeta = responseMeta || {};
-    responseMeta.fullResponse = response;
+    responseMeta.fullData = responseData;
   }
 
   return {
