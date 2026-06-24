@@ -231,10 +231,10 @@ class Chain {
     return this.steps;
   }
 
-  async run(input) {
+  async run(input, context) {
     let output = input;
     for (const step of this.steps) {
-      output = await step(output);
+      output = await step(output, context);
     }
     return output;
   }
