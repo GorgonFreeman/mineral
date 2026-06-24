@@ -1,4 +1,4 @@
-const { credsFromPayload, customFetch, logDeep } = require('../utils');
+const { credsFromPayload, customFetch, logDeep, FetchClient } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyResponseHandler } = require('./shopify.utils');
 
@@ -26,27 +26,27 @@ const shopifyOrderGet = async (
 
   const orderGid = `gid://shopify/Order/${ orderId }`;
 
-  const fetchResponse = await customFetch(
-    `https://${ STORE_HANDLE }.myshopify.com/admin/api/2024-10/graphql.json`,
-    {
-      method: 'POST',
-      headers: {
-        'X-Shopify-Access-Token': API_KEY,
-      },
-      body: {
-        query: `query { order(id: "${ orderGid }") { id name createdAt displayFinancialStatus displayFulfillmentStatus } }`,
-      },
+  const shopifyFetchClient = new FetchClient({
+    url: `https://${ STORE_HANDLE }.myshopify.com/admin/api/2024-10/graphql.json`,
+    headers: {
+      'X-Shopify-Access-Token': API_KEY,
     },
-  );
+  });
 
-  const handledResponse = shopifyResponseHandler(fetchResponse, { resultPath: 'order' });
+  const response = await shopifyFetchClient.fetch({
+    method: 'POST',
+    body: {
+      query: `query { order(id: "${ orderGid }") { id name createdAt displayFinancialStatus displayFulfillmentStatus } }`,
+    },
+    responseInterpreter: shopifyResponseHandler,
+  });
 
-  if (!handledResponse.ok) {
-    return handledResponse;
+  if (!response.ok) {
+    return response;
   }
 
-  logDeep('handledResponse', handledResponse);
-  return handledResponse;
+  logDeep('response', response);
+  return response;
 };
 
 module.exports = {
