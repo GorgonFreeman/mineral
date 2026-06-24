@@ -275,7 +275,8 @@ class FetchClient {
     this.url = url;
     this.headers = headers;
     this.requestPreparer = requestPreparer; // can be a Chain
-    this.responseInterpreter = responseInterpreter; // can be a Chain  }
+    this.responseInterpreter = responseInterpreter; // can be a Chain  
+  }
 
   async fetch({
     url,
