@@ -1,4 +1,5 @@
 const { StringDecoder } = require('string_decoder');
+const { Chain } = require('./api/utils');
 
 const respondJson = (res, statusCode, payload) => {
   const body = JSON.stringify(payload);
@@ -80,8 +81,50 @@ const argsFromBody = (body) => {
 
 const valueProvided = (value) => value !== undefined && value !== null;
 
+const mergeRequestContext = (requestContext, update) => {
+  if (!update || typeof update !== 'object') {
+    return requestContext;
+  }
+
+  return {
+    ...requestContext,
+    ...update,
+  };
+};
+
+const runRequestHandler = async (requestHandler, requestContext) => {
+  if (!requestHandler) {
+    return requestContext;
+  }
+
+  if (requestHandler instanceof Chain) {
+    const handlerOutput = await requestHandler.run(requestContext);
+    return mergeRequestContext(requestContext, handlerOutput);
+  }
+
+  if (Array.isArray(requestHandler)) {
+    let updatedRequestContext = requestContext;
+    for (const requestHandlerStep of requestHandler) {
+      if (typeof requestHandlerStep !== 'function') {
+        throw new Error('requestHandler array only supports functions');
+      }
+      const stepOutput = await requestHandlerStep(updatedRequestContext);
+      updatedRequestContext = mergeRequestContext(updatedRequestContext, stepOutput);
+    }
+    return updatedRequestContext;
+  }
+
+  if (typeof requestHandler === 'function') {
+    const handlerOutput = await requestHandler(requestContext);
+    return mergeRequestContext(requestContext, handlerOutput);
+  }
+
+  throw new Error('requestHandler must be a function, array of functions, or a Chain');
+};
+
 const funcApi = (func, config = {}) => {
   const {
+    requestHandler,
     argNames,
     validatorsByArg = {},
     validators = [],
@@ -97,8 +140,25 @@ const funcApi = (func, config = {}) => {
     body,
     args,
   }) => {
+    let requestContext = {
+      req,
+      res,
+      body,
+      args,
+    };
+
+    requestContext = await runRequestHandler(requestHandler, requestContext);
+    if (requestContext?.response !== undefined) {
+      return requestContext.response;
+    }
+
     for (const requestVerifier of requestVerifiers) {
-      const verified = await requestVerifier(req, res, body);
+      const verified = await requestVerifier(
+        requestContext.req,
+        requestContext.res,
+        requestContext.body,
+        requestContext,
+      );
       if (!verified) {
         return {
           ok: false,
@@ -110,15 +170,22 @@ const funcApi = (func, config = {}) => {
       }
     }
 
-    let modifiedBody = body;
+    let modifiedBody = requestContext.body;
     for (const bodyModifier of bodyModifiers) {
-      modifiedBody = await bodyModifier(modifiedBody, req, res);
+      modifiedBody = await bodyModifier(modifiedBody, requestContext.req, requestContext.res, requestContext);
     }
+    requestContext.body = modifiedBody;
 
     if (argNames?.length) {
       for (const argName of argNames) {
         const validator = validatorsByArg[argName] || valueProvided;
-        const valid = await validator(modifiedBody?.[argName], modifiedBody, req, res);
+        const valid = await validator(
+          modifiedBody?.[argName],
+          modifiedBody,
+          requestContext.req,
+          requestContext.res,
+          requestContext,
+        );
         if (!valid) {
           return {
             ok: false,
@@ -132,7 +199,12 @@ const funcApi = (func, config = {}) => {
     }
 
     for (const validator of validators) {
-      const valid = await validator(modifiedBody, req, res);
+      const valid = await validator(
+        modifiedBody,
+        requestContext.req,
+        requestContext.res,
+        requestContext,
+      );
       if (!valid) {
         return {
           ok: false,
@@ -144,9 +216,9 @@ const funcApi = (func, config = {}) => {
       }
     }
 
-    let callArgs = args;
+    let callArgs = requestContext.args;
     if (passThroughReq) {
-      callArgs = [req];
+      callArgs = [requestContext.req];
     } else if (passThroughBody) {
       callArgs = [modifiedBody];
     } else if (argNames?.length) {
