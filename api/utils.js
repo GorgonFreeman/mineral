@@ -217,6 +217,27 @@ const objectDigNodeAtPath = (obj, path, { returnOmitted = false } = {}) => {
   };
 };
 
+const appendUrlToBase = (baseUrl, url) => {
+  if (!baseUrl) {
+    return url;
+  }
+
+  if (!url) {
+    return baseUrl;
+  }
+
+  // Remove baseUrl from url if it's there
+  if (url.startsWith(baseUrl)) {
+    url = url.slice(baseUrl.length);
+  }
+
+  // Remove trailing and leading slashes
+  baseUrl = baseUrl.replace(/\/$/, '');
+  url = url.replace(/^\//, '');
+
+  return `${ baseUrl }/${ url }`;
+};
+
 class Chain {
   constructor(steps = []) {
     this.steps = steps;
@@ -277,47 +298,10 @@ class FetchClient {
     logDeep({ mergedContext });
     await askQuestion('?');
 
-    const {
-      url: fetchClientUrl,
-      headers: fetchClientHeaders,
-      responseInterpreter: fetchClientResponseInterpreter,
-    } = this;
-
-    let constructedUrl = '';
-    if (fetchClientUrl) {
-      constructedUrl = fetchClientUrl;
-      if (url) {
-        // Remove fetchClientUrl from url if it's there
-        if (url.startsWith(fetchClientUrl)) {
-          url = url.slice(fetchClientUrl.length);
-        }
-        
-        // Remove trailing and leading slashes
-        constructedUrl = constructedUrl.replace(/\/$/, '');
-        url = url.replace(/^\//, '');
-
-        constructedUrl += '/';
-      }
-    }
-    if (url) {
-      constructedUrl += url;
-    }
-
-    logDeep({ constructedUrl });
-    await askQuestion('?');
-
-    // Supplement headers with fetchClientHeaders
-    const constructedHeaders = {
-      ...(fetchClientHeaders ?? {}),
-      ...(headers ?? {}),
-    };
-    logDeep({ constructedHeaders });
-    await askQuestion('?');
-    
     let requestPayload = {
-      url: constructedUrl,
+      url,
       ...(method ? { method } : {}),
-      ...(constructedHeaders ? { headers: constructedHeaders } : {}),
+      ...(headers ? { headers } : {}),
       ...(params ? { params } : {}),
       ...(body ? { body } : {}),
     };
@@ -365,6 +349,7 @@ module.exports = {
   askQuestion,
   pathAsArray,
   objectDigNodeAtPath,
+  appendUrlToBase,
   Chain,
   FetchClient,
 };

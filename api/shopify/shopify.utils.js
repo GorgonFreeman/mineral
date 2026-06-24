@@ -1,4 +1,4 @@
-const { logDeep, pathAsArray, objectDigNodeAtPath, askQuestion, FetchClient, Chain } = require('../utils');
+const { logDeep, pathAsArray, objectDigNodeAtPath, askQuestion, FetchClient, Chain, appendUrlToBase } = require('../utils');
 
 // TODO: Consider making standard handler supporting resultPath etc.
 const shopifyResponseHandler = async (response, { resultPath }) => {
@@ -39,14 +39,38 @@ const shopifyResponseHandler = async (response, { resultPath }) => {
 const shopifyClientRequestPreparer = new Chain([
   async (requestPayload, context) => {
     logDeep({ requestPayload, context });
-    await askQuestion('?');
-    return requestPayload;
+
+    const { creds } = context;
+    const {
+      STORE_HANDLE,
+      API_KEY,
+    } = creds;
+
+    const baseUrl = `https://${ STORE_HANDLE }.myshopify.com/admin/api/2024-10/graphql.json`;
+    const baseHeaders = {
+      'X-Shopify-Access-Token': API_KEY,
+    };
+
+    const {
+      url,
+      headers,
+    } = requestPayload;
+
+    return {
+      ...requestPayload,
+      url: appendUrlToBase(baseUrl, url),
+      headers: {
+        ...baseHeaders,
+        ...headers,
+      },
+    };
   },
 ]);
 
 const shopifyClientResponseInterpreter = new Chain([
   async (response, context) => {
     logDeep({ response, context });
+    
     await askQuestion('?');
     return response;
   },
