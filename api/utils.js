@@ -271,10 +271,13 @@ class Chain {
     return this.steps;
   }
 
-  async run(input, context) {
+  async run(input, context, { inspect = false } = {}) {
     let output = input;
     for (const step of this.steps) {
       output = await step(output, context);
+
+      inspect && logDeep({ output });
+      inspect && await askQuestion('?');
 
       const { breakChain, ...brokeOutput } = output;
       if (breakChain) {
