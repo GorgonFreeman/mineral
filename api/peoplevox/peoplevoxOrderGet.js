@@ -1,4 +1,4 @@
-const { credsFromPayload } = require('../utils');
+const { credsFromPayload, FetchClient } = require('../utils');
 const { peoplevoxAuthGet } = require('../peoplevox/peoplevoxAuthGet');
 
 const peoplevoxOrderGet = async (
@@ -20,12 +20,74 @@ const peoplevoxOrderGet = async (
   const { Detail } = authResponse?.data?.['soap:Envelope']?.['soap:Body']?.['AuthenticateResponse']?.['AuthenticateResult'];
   const [clientId, sessionId] = Detail.split(',');
 
-  return {
-    ok: true,
-    data: {
-      sessionId,
+  const peoplevoxClient = new FetchClient({
+    context: {
+      credsPayload,
     },
-  };
+    requestPreparer: async (requestPayload, context) => {
+      const { headers, body } = requestPayload;
+      const { credsPayload } = context;
+      let { sessionId: localSessionId } = context;
+      const { CLIENT_ID, USERNAME, PASSWORD } = credsFromPayload(credsPayload);
+
+      if (!localSessionId) {
+        const authResponse = await peoplevoxAuthGet(credsPayload);
+        if (!authResponse.ok) {
+          return { ...authResponse, breakChain: true };
+        }
+
+        const { Detail } = authResponse?.data?.['soap:Envelope']?.['soap:Body']?.['AuthenticateResponse']?.['AuthenticateResult'];
+        const [clientId, responseSessionId] = Detail.split(',');
+
+        localSessionId = responseSessionId;
+      }
+
+      return {
+        ...requestPayload,
+        url: `https://ap.peoplevox.net/${ CLIENT_ID }/Resources/IntegrationServicev4.asmx`,
+        headers: {
+          ...headers,
+          'Content-Type': 'text/xml; charset=utf-8',
+        },
+        body: `
+          <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Header>
+              <UserSessionCredentials>
+                <UserId>0</UserId>
+                <clientId>${ CLIENT_ID }</clientId>
+                <SessionId>${ localSessionId }</SessionId>
+              </UserSessionCredentials>
+            </soap:Header>
+            <soap:Body>
+              ${ body }
+            </soap:Body>
+          </soap:Envelope>
+        `.trim(),
+      };
+    },
+  });
+
+  const orderGetResponse = await peoplevoxClient.fetch({
+    method: 'post',
+    body: {
+      query: `
+        query OrderGet($salesOrderNumber: String!) {
+          order(salesOrderNumber: $salesOrderNumber) {
+            id
+            salesOrderNumber
+          }
+        }
+      `,
+      variables: {
+        salesOrderNumber,
+      },
+    },
+    context: {
+      credsPayload,
+    },
+  });
+
+  return orderGetResponse;
 };
 
 module.exports = {
