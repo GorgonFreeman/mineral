@@ -6,7 +6,7 @@ const peoplevoxClient = new FetchClient({
     const { headers, body } = requestPayload;
     const { credsPayload, action } = context;
     let { sessionId: localSessionId } = context;
-    const { CLIENT_ID, USERNAME, PASSWORD } = credsFromPayload(credsPayload);
+    const { CLIENT_ID, USERNAME, PASSWORD } = await credsFromPayload(credsPayload);
 
     if (!localSessionId) {
       const authResponse = await peoplevoxAuthGet(credsPayload);

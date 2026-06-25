@@ -1,5 +1,7 @@
 const xml2js = require('xml2js');
 const readline = require('readline');
+const fs = require('fs').promises;
+const yaml = require('yaml');
 
 const wait = (ms) => new Promise((resolve, reject) => setTimeout(resolve, ms));
 
@@ -9,7 +11,36 @@ const objHasAny = (obj, keys) => {
 
 const capitaliseString = (value) => `${ value[0].toUpperCase() }${ value.slice(1) }`;
 
-const credsFromPayload = (credsPayload) => {
+const credsByPath = (credsPath, credsObject) => {
+  const pathNodes = pathAsArray(credsPath);
+
+  let creds = {};
+  let credsEdge;
+
+  for (const node of pathNodes) {
+    
+    credsEdge = (creds || credsObject)[node];
+
+    if (!credsEdge) {
+      return creds;
+    }
+
+    const nonStructuralCreds = Object.fromEntries(
+      Object.entries(credsEdge).filter(([key]) => {
+        return key !== key.toUpperCase();
+      })
+    );
+
+    creds = {
+      ...creds,
+      ...nonStructuralCreds,
+    };
+  }
+
+  return creds;
+};
+
+const credsFromPayload = async (credsPayload) => {
   const {
     credsPath,
     credsObject,
@@ -18,6 +49,13 @@ const credsFromPayload = (credsPayload) => {
 
   if (credsObject) {
     return credsObject;
+  }
+
+  if (credsPath) {
+    // Get creds from .creds.yml. 
+    const credsText = await fs.readFile('.creds.yml', 'utf8');
+    const credsYmlAsObject = yaml.parse(credsText);
+    return credsByPath(credsPath, credsYmlAsObject);
   }
 
   return false;

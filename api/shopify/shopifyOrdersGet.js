@@ -22,7 +22,7 @@ const shopifyOrdersGet = async (
     };
   }
 
-  const creds = credsFromPayload(credsPayload);
+  const creds = await credsFromPayload(credsPayload);
 
   const response = await shopifyClient.fetch({
     method: 'post',

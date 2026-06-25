@@ -27,7 +27,7 @@ const shopifyGetSingle = async (
     };
   }
 
-  const creds = credsFromPayload(credsPayload);
+  const creds = await credsFromPayload(credsPayload);
 
   const Resource = capitaliseString(resource);
   const usesId = !resourcesNotRequiringId.includes(resource);

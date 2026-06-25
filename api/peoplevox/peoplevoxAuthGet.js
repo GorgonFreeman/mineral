@@ -8,7 +8,7 @@ const peoplevoxAuthGet = async (
     CLIENT_ID,
     USERNAME,
     PASSWORD,
-  } = credsFromPayload(credsPayload);
+  } = await credsFromPayload(credsPayload);
 
   const url = `https://ap.peoplevox.net/${ CLIENT_ID }/Resources/IntegrationServicev4.asmx`;
   
