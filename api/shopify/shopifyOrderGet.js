@@ -59,4 +59,13 @@ curl -X POST "http://localhost:8000/shopifyOrderGet" \
       { "orderId": "1234567890" }
     ]
   }'
+
+  curl -X POST "http://localhost:8000/shopifyOrderGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "args": [
+      { "credsPath": "shopify.au" },
+      { "orderId": "7015155466312" }
+    ]
+  }'
   */
