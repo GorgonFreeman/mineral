@@ -368,9 +368,9 @@ class FetchClient {
     inspect && await askQuestion('?');
 
     if (this.requestPreparer) {
-      const preparedRequestPayload = await this.requestPreparer?.run(requestPayload, mergedContext)
-        || await this.requestPreparer(requestPayload, mergedContext);
-      requestPayload = preparedRequestPayload;
+      requestPayload = this.requestPreparer.run
+        ? await this.requestPreparer.run(requestPayload, mergedContext)
+        : await this.requestPreparer(requestPayload, mergedContext);
     }
     inspect && logDeep({ requestPayload });
     inspect && await askQuestion('?');
@@ -384,9 +384,9 @@ class FetchClient {
     
     const usedResponseInterpreter = responseInterpreter || this.responseInterpreter;
     if (usedResponseInterpreter) {
-      const interpretedResponse = await usedResponseInterpreter?.run(response, mergedContext)
-        || await usedResponseInterpreter(response, mergedContext);
-      response = interpretedResponse;
+      response = usedResponseInterpreter.run
+        ? await usedResponseInterpreter.run(response, mergedContext)
+        : await usedResponseInterpreter(response, mergedContext);
     }
     inspect && logDeep({ response });
     inspect && await askQuestion('?');
