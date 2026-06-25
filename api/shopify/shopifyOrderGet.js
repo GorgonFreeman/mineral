@@ -56,7 +56,7 @@ curl -X POST "http://localhost:8000/shopifyOrderGet" \
           "API_KEY": "shpat_xxx"
         }
       },
-      "1234567890"
+      { "orderId": "1234567890" }
     ]
   }'
   */
