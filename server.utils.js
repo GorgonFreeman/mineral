@@ -1,6 +1,8 @@
+const { logDeep } = require('./api/utils');
 const { StringDecoder } = require('string_decoder');
 
 const respondJson = (res, statusCode, payload) => {
+  logDeep(payload);
   const body = JSON.stringify(payload);
   res.writeHead(statusCode, {
     'Content-Type': 'application/json',
