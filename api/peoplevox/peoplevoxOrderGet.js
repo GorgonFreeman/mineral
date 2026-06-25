@@ -27,3 +27,7 @@ const peoplevoxOrderGet = async (
     },
   };
 };
+
+module.exports = {
+  peoplevoxOrderGet,
+};
