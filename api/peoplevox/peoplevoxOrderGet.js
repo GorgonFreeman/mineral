@@ -17,10 +17,13 @@ const peoplevoxOrderGet = async (
     return authResponse;
   }
 
+  const { Detail } = authResponse?.data?.['soap:Envelope']?.['soap:Body']?.['AuthenticateResponse']?.['AuthenticateResult'];
+  const [clientId, sessionId] = Detail.split(',');
+
   return {
     ok: true,
     data: {
-      salesOrderNumber,
+      sessionId,
     },
   };
 };
