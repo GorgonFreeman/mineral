@@ -53,14 +53,16 @@ const peoplevoxOrderGet = async (
       const wrappedBody = `
         <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
           <soap:Header>
-            <UserSessionCredentials>
-              <UserId>0</UserId>
-              <clientId>${ CLIENT_ID }</clientId>
+            <UserSessionCredentials xmlns="http://www.peoplevox.net/">
+              <UserId>1</UserId>
+              <ClientId>${ CLIENT_ID }</ClientId>
               <SessionId>${ localSessionId }</SessionId>
             </UserSessionCredentials>
           </soap:Header>
           <soap:Body>
-            ${ body }
+            <${ action } xmlns="http://www.peoplevox.net/">
+              ${ body }
+            </${ action }>
           </soap:Body>
         </soap:Envelope>
       `.trim();
