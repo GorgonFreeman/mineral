@@ -31,7 +31,7 @@ const credsByPath = (credsPath, credsObject, { prefix } = {}) => {
 
     const nonStructuralCreds = Object.fromEntries(
       Object.entries(credsEdge).filter(([key]) => {
-        return key !== key.toUpperCase();
+        return key === key.toUpperCase();
       })
     );
 
