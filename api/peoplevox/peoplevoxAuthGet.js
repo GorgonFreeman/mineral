@@ -38,6 +38,24 @@ const peoplevoxAuthGet = async (
     },
   );
 
+  /* e.g.
+  'soap:Envelope': {
+    'soap:Body': {
+      AuthenticateResponse: {
+        AuthenticateResult: {
+          ResponseId: '0',
+          TotalCount: '1',
+          Detail: 'abc123,9999999-3e02-46a3-bb7c-9dca6b9db243',
+          Statuses: '',
+          ImportingQueueId: '0',
+          SalesOrdersToDespatchIds: '',
+          ErrorCode: ''
+        }
+      }
+    }
+  }
+  */
+
   return response;
 };
 
