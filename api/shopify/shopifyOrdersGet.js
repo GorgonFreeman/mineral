@@ -8,6 +8,7 @@ const shopifyOrdersGet = async (
     first = 50,
     after,
     query,
+    apiVersion,
   } = {},
 ) => {
 
@@ -57,6 +58,7 @@ const shopifyOrdersGet = async (
     },
     context: {
       creds,
+      apiVersion,
       resultPath: 'data.orders',
     },
   });

@@ -1,13 +1,17 @@
+const { DEFAULT_API_VERSION } = require('../shopify/shopify.constants');
 const { logDeep, pathAsArray, objectDigNodeAtPath, askQuestion, FetchClient, Chain, appendUrlToBase, fetchClientCommonSteps } = require('../utils');
 
 const addUrlAndAuthHeaders = async (requestPayload, context) => {
-  const { creds } = context;
+  const { 
+    creds,
+    apiVersion = DEFAULT_API_VERSION,
+  } = context;
   const {
     STORE_HANDLE,
     API_KEY,
   } = creds;
 
-  const baseUrl = `https://${ STORE_HANDLE }.myshopify.com/admin/api/2024-10/graphql.json`;
+  const baseUrl = `https://${ STORE_HANDLE }.myshopify.com/admin/api/${ apiVersion }/graphql.json`;
   const baseHeaders = {
     'X-Shopify-Access-Token': API_KEY,
   };

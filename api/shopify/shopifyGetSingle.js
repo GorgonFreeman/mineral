@@ -11,7 +11,7 @@ const shopifyGetSingle = async (
   resource,
   id,
   {
-    apiVersion = '2024-10',
+    apiVersion,
     attrs = defaultAttrs,
     gidType,
   } = {},
