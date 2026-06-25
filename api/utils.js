@@ -11,8 +11,12 @@ const objHasAny = (obj, keys) => {
 
 const capitaliseString = (value) => `${ value[0].toUpperCase() }${ value.slice(1) }`;
 
-const credsByPath = (credsPath, credsObject) => {
-  const pathNodes = pathAsArray(credsPath);
+const credsByPath = (credsPath, credsObject, { prefix } = {}) => {
+
+  const pathNodes = pathAsArray([
+    ...(prefix ? [prefix] : []),
+    credsPath,
+  ]);
 
   let creds = {};
   let credsEdge;
@@ -40,7 +44,7 @@ const credsByPath = (credsPath, credsObject) => {
   return creds;
 };
 
-const credsFromPayload = async (credsPayload) => {
+const credsFromPayload = async (credsPayload, context = {}) => {
   const {
     credsPath,
     credsObject,
@@ -55,7 +59,7 @@ const credsFromPayload = async (credsPayload) => {
     // Get creds from .creds.yml. 
     const credsText = await fs.readFile('.creds.yml', 'utf8');
     const credsYmlAsObject = yaml.parse(credsText);
-    return credsByPath(credsPath, credsYmlAsObject);
+    return credsByPath(credsPath, credsYmlAsObject, context);
   }
 
   return false;
