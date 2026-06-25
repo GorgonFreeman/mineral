@@ -22,12 +22,20 @@ const credsFromPayload = (credsPayload) => {
   return false;
 };
 
+const getResponseParser = (contentType) => {
+  if (contentType.includes('application/json')) return (res) => res.json();
+  if (contentType.includes('text/xml')) return (res) => res.text();
+  if (contentType.includes('application/soap+xml')) return (res) => res.text();
+  if (contentType.includes('application/octet-stream')) return (res) => res.arrayBuffer();
+  return (res) => res.text(); // safe default
+};
+
 const customFetch = async (url, {
   method = 'get',
   headers = {},
   params,
   body,
-  responseType = 'json',
+  responseParser,
 
   verbose,
   omitRequestId = false,
@@ -56,10 +64,20 @@ const customFetch = async (url, {
       const response = await fetch(url, {
         method,
         headers,
-        ...body ? { body: JSON.stringify(body) } : {},
+        ...body 
+          ? { body: typeof body === 'string' 
+              ? body 
+              : JSON.stringify(body) 
+          } : {},
       });
 
-      const parsedResponse = await response[responseType]();
+      const responseContentType = response.headers.get('content-type');
+
+      if (!responseParser) {
+        responseParser = getResponseParser(responseContentType);
+      }
+
+      const parsedResponse = await responseParser(response);
       logDeep({ parsedResponse });
 
       if (response.ok) {
@@ -70,7 +88,7 @@ const customFetch = async (url, {
       }
 
       const { status } = response;
-      const data = await response[responseType]().catch(() => null);
+      const { data } = parsedResponse;
       verbose && console.error(status, data);
 
       if (retryStatuses.has(status)) {
