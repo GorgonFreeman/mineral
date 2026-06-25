@@ -31,3 +31,21 @@ const peoplevoxOrderGet = async (
 module.exports = {
   peoplevoxOrderGet,
 };
+
+/*
+curl localhost:8000/peoplevoxOrderGet \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "args": [
+      {
+        "credsObject": {
+          "CLIENT_ID": "kaibacorp",
+          "USERNAME": "Seto",
+          "PASSWORD": "8lu33y3z8e$t"
+        }
+      },
+      "7680864157768"
+    ]
+  }'
+*/
