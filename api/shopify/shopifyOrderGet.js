@@ -44,3 +44,19 @@ const shopifyOrderGet = async (
 module.exports = {
   shopifyOrderGet,
 };
+
+/*
+curl -X POST "http://localhost:8000/shopifyOrderGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "args": [
+      {
+        "credsObject": {
+          "STORE_HANDLE": "arisawa-heavy-industries",
+          "API_KEY": "shpat_xxx"
+        }
+      },
+      "1234567890"
+    ]
+  }'
+  */
