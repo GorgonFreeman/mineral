@@ -23,7 +23,7 @@ const credsByPath = (credsPath, credsObject, { prefix } = {}) => {
 
   for (const node of pathNodes) {
     
-    credsEdge = (creds || credsObject)[node];
+    credsEdge = (credsEdge ? credsEdge : credsObject)[node];
 
     if (!credsEdge) {
       return creds;
