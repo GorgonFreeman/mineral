@@ -1,3 +1,4 @@
+const xml2js = require('xml2js');
 const readline = require('readline');
 
 const wait = (ms) => new Promise((resolve, reject) => setTimeout(resolve, ms));
@@ -22,9 +23,23 @@ const credsFromPayload = (credsPayload) => {
   return false;
 };
 
+const xmlResponseParser = (parserOptions = {}) => {
+  const parser = new xml2js.Parser({
+    explicitArray: false,
+    mergeAttrs: true,
+    ignoreAttrs: true,
+    ...parserOptions,
+  });
+
+  return async (response) => {
+    const text = await response.text();
+    return parser.parseStringPromise(text);
+  };
+};
+
 const getResponseParser = (contentType) => {
   if (contentType.includes('application/json')) return (res) => res.json();
-  if (contentType.includes('text/xml')) return (res) => res.text();
+  if (contentType.includes('text/xml')) return xmlResponseParser();
   if (contentType.includes('application/soap+xml')) return (res) => res.text();
   if (contentType.includes('application/octet-stream')) return (res) => res.arrayBuffer();
   return (res) => res.text(); // safe default
@@ -72,6 +87,7 @@ const customFetch = async (url, {
       });
 
       const responseContentType = response.headers.get('content-type');
+      console.log(responseContentType);
 
       if (!responseParser) {
         responseParser = getResponseParser(responseContentType);

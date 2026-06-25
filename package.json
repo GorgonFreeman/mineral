@@ -7,5 +7,8 @@
     "dev": "node --watch server.js",
     "serve": "PORT=8100 node server.js",
     "start": "node server.js"
+  },
+  "dependencies": {
+    "xml2js": "^0.6.2"
   }
 }
