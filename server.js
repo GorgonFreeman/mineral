@@ -122,17 +122,6 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method !== 'POST') {
-    respondJson(res, 405, {
-      ok: false,
-      error: {
-        code: 'METHOD_NOT_ALLOWED',
-        message: 'Only POST is supported for function routes.',
-      },
-    });
-    return;
-  }
-
   const pathOnly = (req.url || '/').split('?')[0];
   const matchedHandler = handlers.get(pathOnly);
   if (!matchedHandler) {
