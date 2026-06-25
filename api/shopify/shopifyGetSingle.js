@@ -33,8 +33,8 @@ const shopifyGetSingle = async (
   const usesId = !resourcesNotRequiringId.includes(resource);
 
   const query = `
-    query Get${ Resource }${ usesId ? '' : '($id: ID!)' } {
-      ${ resource }${ usesId ? '' : '(id: $id)' } {
+    query Get${ Resource }${ usesId ? '($id: ID!)' : '' } {
+      ${ resource }${ usesId ? '(id: $id)' : '' } {
         ${ attrs }
       }
     }
@@ -44,13 +44,9 @@ const shopifyGetSingle = async (
     method: 'post',
     body: {
       query,
-      ...usesId
-        ? {}
-        : {
-          variables: {
-            id: `gid://shopify/${ gidType || Resource }/${ id }`,
-          },
-        },
+      variables: {
+        ...(usesId ? { id: `gid://shopify/${ gidType || Resource }/${ id }` } : {}),
+      },
     },
     context: {
       creds,
