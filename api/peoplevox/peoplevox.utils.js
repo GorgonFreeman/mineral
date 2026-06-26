@@ -1,6 +1,17 @@
 const { FetchClient, credsFromPayload, appendUrlToBase, logDeep, Chain } = require('../utils');
 const { peoplevoxAuthGet } = require('../peoplevox/peoplevoxAuthGet');
 
+const stripEnvelope = (response, context) => {
+  const { action } = context;
+
+  return {
+    ...response,
+    ...response?.data ? {
+      data: response.data?.['soap:Envelope']?.['soap:Body']?.[`${ action }Response`]?.[`${ action }Result`],
+    } : {},
+  };
+};
+
 const peoplevoxClient = new FetchClient({
   requestPreparer: async (requestPayload, context) => {
     const { headers, body } = requestPayload;
@@ -55,17 +66,7 @@ const peoplevoxClient = new FetchClient({
     };
   },
   responseInterpreter: new Chain([
-    // strip envelope markup
-    (response, context) => {
-      const { action } = context;
-
-      return {
-        ...response,
-        ...response?.data ? {
-          data: response.data?.['soap:Envelope']?.['soap:Body']?.[`${ action }Response`]?.[`${ action }Result`],
-        } : {},
-      };
-    },
+    stripEnvelope,
   ]),
 });
 
