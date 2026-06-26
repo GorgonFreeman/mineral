@@ -77,4 +77,8 @@ curl -X POST "http://localhost:8000/peoplevoxAuthGet" \
       }
     ]
   }'
-  */
+
+curl -X POST "http://localhost:8000/peoplevoxAuthGet" \
+  -H "Content-Type: application/json" \
+  -d '{ "args": [{ "credsPath": "peoplevox" }] }'
+*/

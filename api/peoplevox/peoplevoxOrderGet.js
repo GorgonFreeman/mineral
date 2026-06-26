@@ -42,4 +42,11 @@ curl localhost:8000/peoplevoxOrderGet \
       "7680864157768"
     ]
   }'
+
+curl -X POST "http://localhost:8000/peoplevoxOrderGet" \
+  -H "Content-Type: application/json" \
+  -d '{ "args": [
+    { "credsPath": "peoplevox" },
+    "7680864157768"
+  ] }'
 */
