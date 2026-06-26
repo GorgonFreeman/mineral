@@ -65,6 +65,23 @@ const unwrapSingleDetail = (response) => {
   };
 };
 
+const hoistDetail = (response) => {
+  if (!response?.ok || !response?.data || response.data.Detail === undefined) {
+    return response;
+  }
+
+  const { Detail, ...metaFromData } = response.data;
+
+  return {
+    ...response,
+    data: Detail,
+    meta: {
+      ...(response.meta ?? {}),
+      ...metaFromData,
+    },
+  };
+};
+
 const peoplevoxClient = new FetchClient({
   requestPreparer: async (requestPayload, context) => {
     const { headers, body } = requestPayload;
@@ -122,6 +139,7 @@ const peoplevoxClient = new FetchClient({
     stripEnvelope,
     tryToParseDetailAsCsv,
     unwrapSingleDetail,
+    hoistDetail,
   ]),
 });
 
