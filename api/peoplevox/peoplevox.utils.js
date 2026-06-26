@@ -45,6 +45,26 @@ const tryToParseDetailAsCsv = async (response) => {
   };
 };
 
+const unwrapSingleDetail = (response) => {
+  if (!response?.ok || !Array.isArray(response?.data?.Detail)) {
+    return response;
+  }
+
+  const { Detail } = response.data;
+
+  if (Detail.length !== 1) {
+    return response;
+  }
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      Detail: Detail[0],
+    },
+  };
+};
+
 const peoplevoxClient = new FetchClient({
   requestPreparer: async (requestPayload, context) => {
     const { headers, body } = requestPayload;
@@ -101,6 +121,7 @@ const peoplevoxClient = new FetchClient({
   responseInterpreter: new Chain([
     stripEnvelope,
     tryToParseDetailAsCsv,
+    unwrapSingleDetail,
   ]),
 });
 
