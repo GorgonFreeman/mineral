@@ -1,4 +1,4 @@
-const { FetchClient, credsFromPayload, appendUrlToBase, logDeep } = require('../utils');
+const { FetchClient, credsFromPayload, appendUrlToBase, logDeep, Chain } = require('../utils');
 const { peoplevoxAuthGet } = require('../peoplevox/peoplevoxAuthGet');
 
 const peoplevoxClient = new FetchClient({
@@ -54,6 +54,19 @@ const peoplevoxClient = new FetchClient({
       body: wrappedBody,
     };
   },
+  responseInterpreter: new Chain([
+    // strip envelope markup
+    (response, context) => {
+      const { action } = context;
+
+      return {
+        ...response,
+        ...response?.data ? {
+          data: response.data?.['soap:Envelope']?.['soap:Body']?.[`${ action }Response`]?.[`${ action }Result`],
+        } : {},
+      };
+    },
+  ]),
 });
 
 module.exports = {
