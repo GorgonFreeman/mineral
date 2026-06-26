@@ -388,7 +388,7 @@ class FetchClient {
     inspect = false,
   } = {}) {
 
-    const mergedContext = {
+    let mergedContext = {
       ...(this.context ?? {}),
       ...(context ?? {}),
     };
@@ -406,11 +406,22 @@ class FetchClient {
     inspect && await askQuestion('?');
 
     if (this.requestPreparer) {
-      requestPayload = this.requestPreparer.run
+      const { 
+        requestPayload: updatedRequestPayload, 
+        context: updatedContext, 
+      } = this.requestPreparer.run
         ? await this.requestPreparer.run(requestPayload, mergedContext)
         : await this.requestPreparer(requestPayload, mergedContext);
+
+      if (updatedRequestPayload) {
+        requestPayload = updatedRequestPayload;
+      }
+
+      if (updatedContext) {
+        mergedContext = updatedContext;
+      }
     }
-    inspect && logDeep({ requestPayload });
+    inspect && logDeep({ requestPayload, mergedContext });
     inspect && await askQuestion('?');
 
     let response = await customFetch(
