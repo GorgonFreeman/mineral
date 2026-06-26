@@ -1,3 +1,4 @@
+const csvtojson = require('csvtojson');
 const { FetchClient, credsFromPayload, appendUrlToBase, logDeep, Chain } = require('../utils');
 const { peoplevoxAuthGet } = require('../peoplevox/peoplevoxAuthGet');
 
@@ -9,6 +10,38 @@ const stripEnvelope = (response, context) => {
     ...response?.data ? {
       data: response.data?.['soap:Envelope']?.['soap:Body']?.[`${ action }Response`]?.[`${ action }Result`],
     } : {},
+  };
+};
+
+const tryToParseDetailAsCsv = async (response) => {
+  if (!response?.ok || !response?.data?.Detail) {
+    return response;
+  }
+
+  const { Detail } = response.data;
+
+  if (typeof Detail !== 'string') {
+    return response;
+  }
+
+  let parsedDetail = Detail;
+
+  try {
+    const parsed = await csvtojson().fromString(Detail);
+
+    if (parsed.length || !Detail.trim()) {
+      parsedDetail = parsed;
+    }
+  } catch (error) {
+    console.warn('error parsing Detail', error, Detail);
+  }
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      Detail: parsedDetail,
+    },
   };
 };
 
@@ -67,6 +100,7 @@ const peoplevoxClient = new FetchClient({
   },
   responseInterpreter: new Chain([
     stripEnvelope,
+    tryToParseDetailAsCsv,
   ]),
 });
 
