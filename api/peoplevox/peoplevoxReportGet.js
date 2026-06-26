@@ -1,25 +1,5 @@
 const { peoplevoxClient } = require('../peoplevox/peoplevox.utils');
 
-const buildGetReportBody = ({
-  reportName,
-  searchClause,
-  perPage,
-  filter,
-  orderBy,
-  columns,
-}) => {
-  const tags = [
-    `<TemplateName>${ reportName }</TemplateName>`,
-    ...(searchClause ? [`<SearchClause>${ searchClause }</SearchClause>`] : []),
-    ...(perPage ? [`<ItemsPerPage>${ perPage }</ItemsPerPage>`] : []),
-    ...(filter ? [`<FilterClause>${ filter }</FilterClause>`] : []),
-    ...(orderBy ? [`<OrderBy>${ orderBy }</OrderBy>`] : []),
-    ...(columns ? [`<Columns>${ columns.join(',') }</Columns>`] : []),
-  ];
-
-  return `<getReportRequest>${ tags.join('') }</getReportRequest>`;
-};
-
 const peoplevoxReportGet = async (
   credsPayload,
   reportName,
@@ -34,14 +14,16 @@ const peoplevoxReportGet = async (
 
   const reportGetResponse = await peoplevoxClient.fetch({
     method: 'post',
-    body: buildGetReportBody({
-      reportName,
-      searchClause,
-      perPage,
-      filter,
-      orderBy,
-      columns,
-    }),
+    body: {
+      getReportRequest: {
+        TemplateName: reportName,
+        ...(searchClause ? { SearchClause: searchClause } : {}),
+        ...(perPage ? { ItemsPerPage: perPage } : {}),
+        ...(filter ? { FilterClause: filter } : {}),
+        ...(orderBy ? { OrderBy: orderBy } : {}),
+        ...(columns ? { Columns: columns.join(',') } : {}),
+      },
+    },
     context: {
       credsPayload,
       action: 'GetReportData',
@@ -62,6 +44,20 @@ curl -X POST "http://localhost:8000/peoplevoxReportGet" \
     "args": [
       { "credsPath": "peoplevox" },
       "Item inventory summary"
+    ]
+  }'
+
+curl -X POST "http://localhost:8000/peoplevoxReportGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "args": [
+      { "credsPath": "peoplevox" },
+      "Despatch summary",
+      {
+        "searchClause": "([Salesorder number].Equals(\"11221660500337\"))",
+        "perPage": 50,
+        "columns": ["Salesorder number", "Despatch number", "Tracking number"]
+      }
     ]
   }'
 */
