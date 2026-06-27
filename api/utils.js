@@ -345,20 +345,27 @@ class Chain {
     return this.steps;
   }
 
-  async run(input, context, { inspect = false } = {}) {
-    let output = input;
+  async run(state, { inspect = false } = {}) {
     for (const step of this.steps) {
-      output = await step(output, context);
+      const patch = await step(state);
 
-      inspect && logDeep({ output });
+      inspect && logDeep({ patch });
       inspect && await askQuestion('?');
 
-      const { breakChain, ...brokeOutput } = output;
-      if (breakChain) {
-        return brokeOutput;
+      state = {
+        ...state,
+        ...patch || {},
+      };
+
+      inspect && logDeep({ state });
+      inspect && await askQuestion('?');
+
+      if (patch.breakChain) {
+        return state;
       }
     }
-    return output;
+
+    return state;
   }
 }
 
