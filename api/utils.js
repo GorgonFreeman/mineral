@@ -331,6 +331,24 @@ const collapseDataOnlyWrappers = (value) => {
   return output;
 };
 
+const objectValuesMerge = (input, updates) => {
+  let output = { ...input };
+  
+  for (const [key, value] of Object.entries(updates)) {
+    if (value === null) {
+      delete output[key];
+      continue;
+    }
+
+    output[key] = {
+      ...(output[key] ?? {}),
+      ...(value ?? {}),
+    };
+  }
+
+  return output;
+};
+
 class Chain {
   constructor(steps = []) {
     this.steps = steps;
@@ -347,20 +365,17 @@ class Chain {
 
   async run(state, { inspect = false } = {}) {
     for (const step of this.steps) {
-      const patch = await step(state);
+      const updates = await step(state) || {};
 
-      inspect && logDeep({ patch });
+      inspect && logDeep({ updates });
       inspect && await askQuestion('?');
 
-      state = {
-        ...state,
-        ...patch || {},
-      };
+      state = objectValuesMerge(state, updates);
 
       inspect && logDeep({ state });
       inspect && await askQuestion('?');
 
-      if (patch.breakChain) {
+      if (updates.breakChain) {
         return state;
       }
     }
