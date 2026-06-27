@@ -1,8 +1,9 @@
 const { DEFAULT_API_VERSION } = require('../shopify/shopify.constants');
 const { logDeep, pathAsArray, objectDigNodeAtPath, askQuestion, FetchClient, Chain, appendUrlToBase, fetchClientCommonSteps } = require('../utils');
 
-const addUrlAndAuthHeaders = async (requestPayload, context) => {
-  const { 
+const addUrlAndAuthHeaders = async (state) => {
+  const { requestPayload, context } = state;
+  const {
     creds,
     apiVersion = DEFAULT_API_VERSION,
   } = context;
@@ -17,11 +18,13 @@ const addUrlAndAuthHeaders = async (requestPayload, context) => {
   };
 
   return {
-    ...requestPayload,
-    url: appendUrlToBase(baseUrl, requestPayload.url),
-    headers: {
-      ...baseHeaders,
-      ...requestPayload.headers,
+    requestPayload: {
+      ...requestPayload,
+      url: appendUrlToBase(baseUrl, requestPayload.url),
+      headers: {
+        ...baseHeaders,
+        ...requestPayload.headers,
+      },
     },
   };
 };
