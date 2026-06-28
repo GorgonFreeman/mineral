@@ -331,18 +331,23 @@ const collapseDataOnlyWrappers = (value) => {
   return output;
 };
 
-const objectValuesMerge = (input, updates) => {
-  let output = { ...input };
-  
+const objectMergeEntries = (object, updates) => {
+  const output = { ...object };
+
   for (const [key, value] of Object.entries(updates)) {
     if (value === null) {
       delete output[key];
       continue;
     }
 
+    if (!isObject(value)) {
+      output[key] = value;
+      continue;
+    }
+
     output[key] = {
       ...(output[key] ?? {}),
-      ...(value ?? {}),
+      ...value,
     };
   }
 
