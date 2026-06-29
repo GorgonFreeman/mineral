@@ -7,12 +7,12 @@ const peoplevoxOrderGet = async (
 
   const orderGetResponse = await peoplevoxClient.fetch({
     method: 'post',
-    body: `
-      <getRequest>
-        <TemplateName>Sales orders</TemplateName>
-        <SearchClause>SalesOrderNumber.Equals("${ salesOrderNumber }")</SearchClause>
-      </getRequest>
-    `.trim(),
+    body: {
+      getRequest: {
+        TemplateName: 'Sales orders',
+        SearchClause: `SalesOrderNumber.Equals("${ salesOrderNumber }")`,
+      },
+    },
     context: {
       credsPayload,
       action: 'GetData',
