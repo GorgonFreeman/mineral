@@ -355,8 +355,9 @@ const objectMergeEntries = (object, updates) => {
 };
 
 class Chain {
-  constructor(steps = []) {
+  constructor(steps = [], { outputHandler = objectMergeEntries } = {}) {
     this.steps = steps;
+    this.outputHandler = outputHandler;
   }
 
   addSteps(steps) {
@@ -368,14 +369,14 @@ class Chain {
     return this.steps;
   }
 
-  async run(state, { inspect = false } = {}) {
+  async run(state, { inspect = false, outputHandler = this.outputHandler } = {}) {
     for (const step of this.steps) {
       const updates = await step(state) || {};
 
       inspect && logDeep({ updates });
       inspect && await askQuestion('?');
 
-      state = objectValuesMerge(state, updates);
+      state = outputHandler(state, updates);
 
       inspect && logDeep({ state });
       inspect && await askQuestion('?');
