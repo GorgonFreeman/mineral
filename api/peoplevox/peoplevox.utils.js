@@ -88,26 +88,32 @@ const peoplevoxRequestPreparer = async (requestPayload, context) => {
   };
 };
 
-const stripEnvelope = (response, context) => {
+const stripEnvelope = (state) => {
+  const { response, context } = state;
   const { action } = context;
 
+  if (!response?.data) {
+    return {};
+  }
+
   return {
-    ...response,
-    ...response?.data ? {
+    response: {
       data: response.data?.['soap:Envelope']?.['soap:Body']?.[`${ action }Response`]?.[`${ action }Result`],
-    } : {},
+    },
   };
 };
 
-const tryToParseDetailAsCsv = async (response) => {
+const tryToParseDetailAsCsv = async (state) => {
+  const { response } = state;
+
   if (!response?.ok || !response?.data?.Detail) {
-    return response;
+    return {};
   }
 
   const { Detail } = response.data;
 
   if (typeof Detail !== 'string') {
-    return response;
+    return {};
   }
 
   let parsedDetail = Detail;
@@ -123,47 +129,49 @@ const tryToParseDetailAsCsv = async (response) => {
   }
 
   return {
-    ...response,
-    data: {
-      ...response.data,
-      Detail: parsedDetail,
+    response: {
+      data: {
+        Detail: parsedDetail,
+      },
     },
   };
 };
 
-const unwrapSingleDetail = (response) => {
+const unwrapSingleDetail = (state) => {
+  const { response } = state;
+
   if (!response?.ok || !Array.isArray(response?.data?.Detail)) {
-    return response;
+    return {};
   }
 
   const { Detail } = response.data;
 
   if (Detail.length !== 1) {
-    return response;
+    return {};
   }
 
   return {
-    ...response,
-    data: {
-      ...response.data,
-      Detail: Detail[0],
+    response: {
+      data: {
+        Detail: Detail[0],
+      },
     },
   };
 };
 
-const hoistDetail = (response) => {
+const hoistDetail = (state) => {
+  const { response } = state;
+
   if (!response?.ok || !response?.data || response.data.Detail === undefined) {
-    return response;
+    return {};
   }
 
   const { Detail, ...metaFromData } = response.data;
 
   return {
-    ...response,
-    data: Detail,
-    meta: {
-      ...(response.meta ?? {}),
-      ...metaFromData,
+    response: {
+      data: Detail,
+      meta: metaFromData,
     },
   };
 };

@@ -19,7 +19,6 @@ const addUrlAndAuthHeaders = async (state) => {
 
   return {
     requestPayload: {
-      ...requestPayload,
       url: appendUrlToBase(baseUrl, requestPayload.url),
       headers: {
         ...baseHeaders,

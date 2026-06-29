@@ -434,19 +434,16 @@ class FetchClient {
     inspect && await askQuestion('?');
 
     if (this.requestPreparer) {
-      const { 
-        requestPayload: updatedRequestPayload, 
-        context: updatedContext, 
-      } = this.requestPreparer.run
-        ? await this.requestPreparer.run(requestPayload, mergedContext)
-        : await this.requestPreparer(requestPayload, mergedContext);
-
-      if (updatedRequestPayload) {
-        requestPayload = updatedRequestPayload;
-      }
-
-      if (updatedContext) {
-        mergedContext = updatedContext;
+      if (this.requestPreparer.run) {
+        ({ requestPayload, context: mergedContext } = await this.requestPreparer.run(
+          { requestPayload, context: mergedContext },
+          { inspect },
+        ));
+      } else {
+        const result = await this.requestPreparer(requestPayload, mergedContext);
+        if (result) {
+          requestPayload = result;
+        }
       }
     }
     inspect && logDeep({ requestPayload, mergedContext });
@@ -461,9 +458,14 @@ class FetchClient {
     
     const usedResponseInterpreter = responseInterpreter || this.responseInterpreter;
     if (usedResponseInterpreter) {
-      response = usedResponseInterpreter.run
-        ? await usedResponseInterpreter.run(response, mergedContext)
-        : await usedResponseInterpreter(response, mergedContext);
+      if (usedResponseInterpreter.run) {
+        ({ response, context: mergedContext } = await usedResponseInterpreter.run(
+          { response, context: mergedContext },
+          { inspect },
+        ));
+      } else {
+        response = await usedResponseInterpreter(response, mergedContext);
+      }
     }
     inspect && logDeep({ response });
     inspect && await askQuestion('?');
@@ -473,46 +475,53 @@ class FetchClient {
 }
 
 const fetchClientCommonSteps = {
-  stripEdgesAndNodes: async (response) => {
+  stripEdgesAndNodes: async (state) => {
+    const { response } = state;
+
     if (!response?.ok || !response?.data) {
-      return response;
+      return {};
     }
 
     return {
-      ...response,
-      data: stripGraphqlEdgesAndNodes(response.data),
+      response: {
+        data: stripGraphqlEdgesAndNodes(response.data),
+      },
     };
   },
-  collapseDataWithOneValue: async (response) => {
+  collapseDataWithOneValue: async (state) => {
+    const { response } = state;
+
     if (!response?.ok || !response?.data) {
-      return response;
+      return {};
     }
 
     return {
-      ...response,
-      data: collapseDataOnlyWrappers(response.data),
+      response: {
+        data: collapseDataOnlyWrappers(response.data),
+      },
     };
   },
-  inspect: async (input, context) => {
-    logDeep({ input, context });
+  inspect: async (state) => {
+    logDeep({ state });
     await askQuestion('?');
-    return input;
+    return {};
   },
-  exitEarlyOnNotOk: async (input, context) => {
-    if (!input.ok) {
-      return {
-        ...input,
-        breakChain: true,
-      };
+  exitEarlyOnNotOk: async (state) => {
+    const { response } = state;
+
+    if (!response?.ok) {
+      return { breakChain: true };
     }
-    return input;
+
+    return {};
   },
-  digToPath: async (response, context) => {
+  digToPath: async (state) => {
+    const { response, context } = state;
     const { resultPath } = context;
     const { data } = response;
 
     if (!data || !resultPath) {
-      return response;
+      return {};
     }
 
     const resultPathNodes = pathAsArray(resultPath);
@@ -520,18 +529,20 @@ const fetchClientCommonSteps = {
 
     if (!dataAtPath) {
       return {
-        ...response,
-        error: {
-          code: 'DIG_FAILED',
-          message: `Data not found at path ${ resultPath }`,
+        response: {
+          error: {
+            code: 'DIG_FAILED',
+            message: `Data not found at path ${ resultPath }`,
+          },
         },
         breakChain: true,
       };
     }
 
     return {
-      ...response,
-      data: dataAtPath,      
+      response: {
+        data: dataAtPath,
+      },
     };
   },
 };
