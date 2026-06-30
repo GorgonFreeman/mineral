@@ -1,25 +1,18 @@
-const { peoplevoxClient } = require('../peoplevox/peoplevox.utils');
+const { peoplevoxGetSingle } = require('../peoplevox/peoplevoxGetSingle');
 
 const peoplevoxOrderGet = async (
   credsPayload,
   salesOrderNumber,
 ) => {
 
-  const orderGetResponse = await peoplevoxClient.fetch({
-    method: 'post',
-    body: {
-      getRequest: {
-        TemplateName: 'Sales orders',
-        SearchClause: `SalesOrderNumber.Equals("${ salesOrderNumber }")`,
-      },
+  return peoplevoxGetSingle(
+    credsPayload,
+    'Sales orders',
+    {
+      id: salesOrderNumber,
+      idName: 'SalesOrderNumber',
     },
-    context: {
-      credsPayload,
-      action: 'GetData',
-    },
-  });
-
-  return orderGetResponse;
+  );
 };
 
 module.exports = {
