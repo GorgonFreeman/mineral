@@ -1,6 +1,10 @@
 const { peoplevoxClient } = require('../peoplevox/peoplevox.utils');
 const { credsValidator } = require('../validators');
 
+const searchParametersValidator = ({ searchClause, id, idName }) => {
+  return searchClause || (id && idName);
+};
+
 const peoplevoxGetSingle = async (
   credsPayload,
   templateName,
@@ -8,7 +12,8 @@ const peoplevoxGetSingle = async (
     searchClause,
     id,
     idName,
-  } = {},
+  },
+  options = {},
 ) => {
 
   if (!credsValidator(credsPayload)) {
@@ -17,6 +22,16 @@ const peoplevoxGetSingle = async (
       error: {
         code: 'INVALID_ARGS',
         message: 'Invalid creds',
+      },
+    };
+  }
+
+  if (!searchParametersValidator({ searchClause, id, idName })) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_ARGS',
+        message: 'Missing searchClause or idName + id',
       },
     };
   }
@@ -83,46 +98,32 @@ const peoplevoxGetSingle = async (
   return response;
 };
 
-const optionsValidator = (options = {}) => {
-  if (options.searchClause) {
-    return true;
-  }
-
-  return Boolean(options.id) && Boolean(options.idName);
-};
-
-const funcApiConfig = {
-  argNames: ['credsPayload', 'templateName', 'options'],
-  validatorsByArg: {
-    credsPayload: (credsPayload) => credsValidator(credsPayload),
-    templateName: (templateName) => Boolean(templateName),
-    options: optionsValidator,
-  },
-};
-
 module.exports = {
   peoplevoxGetSingle,
-  funcApiConfig,
+  funcApiConfig: {
+    argNames: ['credsPayload', 'templateName', 'searchParameters'],
+    validatorsByArg: {
+      credsPayload: credsValidator,
+      templateName: Boolean,
+      searchParameters: searchParametersValidator,
+    },
+  },
 };
 
 /*
 curl -X POST "http://localhost:8000/peoplevoxGetSingle" \
   -H "Content-Type: application/json" \
   -d '{
-    "args": [
-      { "credsPath": "peoplevox" },
-      "Sales orders",
-      { "id": "7680864157768", "idName": "SalesOrderNumber" }
-    ]
+    "credsPayload": { "credsPath": "peoplevox" },
+    "templateName": "Sales orders",
+    "searchParameters": { "id": "7680864157768", "idName": "SalesOrderNumber" }
   }'
 
 curl -X POST "http://localhost:8000/peoplevoxGetSingle" \
   -H "Content-Type: application/json" \
   -d '{
-    "args": [
-      { "credsPath": "peoplevox" },
-      "Despatches",
-      { "searchClause": "DespatchNumber.Equals(\"DES1937757\")" }
-    ]
+    "credsPayload": { "credsPath": "peoplevox" },
+    "templateName": "Sales orders",
+    "searchParameters": { "searchClause": "SalesOrderNumber.Equals(\"7680864157768\")" }
   }'
 */
