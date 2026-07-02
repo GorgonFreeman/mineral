@@ -23,6 +23,8 @@ const shopifyMutationDo = async (
     };
   }
 
+  const creds = await credsFromPayload(credsPayload);
+
   const mutation = `
     mutation ${ mutationName }(${ Object.entries(mutationVariables).map(([name, { type }]) => `$${ name }: ${ type }`).join(', ') }) {
       ${ mutationName }(${ Object.keys(mutationVariables).map(name => `${ name }: $${ name }`).join(', ') }) {
@@ -44,7 +46,7 @@ const shopifyMutationDo = async (
     method: 'post',
     body: { query: mutation, variables },
     context: {
-      credsPath,
+      creds,
       apiVersion,
       resultsNode: mutationName,
     },
