@@ -15,6 +15,7 @@ const shopifyPageUpdate = async (
     isPublished,
     publishDate,
     metafields,
+    templateSuffix,
   */
   {
     apiVersion,
