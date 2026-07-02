@@ -1,4 +1,4 @@
-const { credsFromPayload } = require('../utils');
+const { credsFromPayload, logDeep } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 
