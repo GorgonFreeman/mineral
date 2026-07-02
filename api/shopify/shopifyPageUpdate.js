@@ -1,3 +1,5 @@
+// https://shopify.dev/docs/api/admin-graphql/latest/mutations/pageUpdate
+
 const { credsValidator } = require('../validators');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
