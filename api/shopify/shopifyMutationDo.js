@@ -48,7 +48,7 @@ const shopifyMutationDo = async (
     context: {
       creds,
       apiVersion,
-      resultsNode: mutationName,
+      // resultPath: `data.${ mutationName }`,
     },
     ...clientOptions,
   });
