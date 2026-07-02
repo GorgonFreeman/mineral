@@ -92,10 +92,11 @@ const shopifyPageUpdate = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'pageId', 'options'],
+  argNames: ['credsPayload', 'pageId', 'updatePayload', 'options'],
   validatorsByArg: {
     credsPayload: credsValidator,
     pageId: Boolean,
+    updatePayload: Boolean,
   },
 };
 
@@ -112,8 +113,8 @@ curl -X POST "http://localhost:8000/shopifyPageUpdate" \
       "credsPath": "shopify.au"
     },
     "pageId": "104188477512",
-    "options": {
-      "template": "styleguide"
+    "updatePayload": {
+      "templateSuffix": "styleguide"
     }
   }'
 */
