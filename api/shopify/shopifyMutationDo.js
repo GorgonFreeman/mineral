@@ -69,3 +69,27 @@ module.exports = {
   shopifyMutationDo,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/shopifyMutationDo" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "shopify.au"
+    },
+    "mutationName": "tagsAdd",
+    "options": {
+      "mutationVariables": {
+        "id": {
+          "value": "gid://shopify/Order/7693468893256",
+          "type": "ID"
+        },
+        "tags": {
+          "value": ["test-tag"],
+          "type": "[String!]"
+        }
+      },
+      "returnSchema": "node { id } userErrors { field message }"
+    }
+  }'
+*/
