@@ -6,11 +6,19 @@ const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 const shopifyPageUpdate = async (
   credsPayload,
   pageId,
+  updatePayload,
+  /*
+    body,
+    title,
+    handle,
+    redirectNewHandle,
+    isPublished,
+    publishDate,
+    metafields,
+  */
   {
-    template,
-    templateSuffix = template,
     apiVersion,
-    ...pageFields
+    returnPageAttrs = 'title handle templateSuffix',
   } = {},
 ) => {
 
@@ -34,21 +42,6 @@ const shopifyPageUpdate = async (
     };
   }
 
-  if (templateSuffix === undefined) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_ARGS',
-        message: 'template or templateSuffix is required',
-      },
-    };
-  }
-
-  const page = {
-    ...pageFields,
-    templateSuffix,
-  };
-
   const response = await shopifyMutationDo(
     credsPayload,
     'pageUpdate',
@@ -59,11 +52,11 @@ const shopifyPageUpdate = async (
           type: 'ID!',
         },
         page: {
-          value: page,
+          value: updatePayload,
           type: 'PageUpdateInput!',
         },
       },
-      returnSchema: 'page { id title handle templateSuffix }',
+      returnSchema: `page { ${ returnPageAttrs } }`,
       apiVersion,
     },
   );
