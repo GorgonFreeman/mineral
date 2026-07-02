@@ -49,12 +49,12 @@ const shopifyPageUpdate = async (
     {
       mutationVariables: {
         id: {
-          value: `gid://shopify/Page/${ pageId }`,
           type: 'ID!',
+          value: `gid://shopify/Page/${ pageId }`,
         },
         page: {
-          value: updatePayload,
           type: 'PageUpdateInput!',
+          value: updatePayload,
         },
       },
       returnSchema: `page { ${ returnPageAttrs } }`,
