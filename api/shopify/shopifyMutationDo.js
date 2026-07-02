@@ -82,11 +82,11 @@ curl -X POST "http://localhost:8000/shopifyMutationDo" \
       "mutationVariables": {
         "id": {
           "value": "gid://shopify/Order/7693468893256",
-          "type": "ID"
+          "type": "ID!"
         },
         "tags": {
           "value": ["test-tag"],
-          "type": "[String!]"
+          "type": "[String!]!"
         }
       },
       "returnSchema": "node { id } userErrors { field message }"
