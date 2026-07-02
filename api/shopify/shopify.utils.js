@@ -36,6 +36,7 @@ const shopifyClientResponseInterpreter = new Chain([
   fetchClientCommonSteps.stripEdgesAndNodes,
   fetchClientCommonSteps.collapseDataWithOneValue,
   fetchClientCommonSteps.exitEarlyOnNotOk,
+  fetchClientCommonSteps.exitEarlyOnGraphqlErrors,
   fetchClientCommonSteps.digToPath,
 ]);
 

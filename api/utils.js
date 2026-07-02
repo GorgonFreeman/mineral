@@ -518,6 +518,31 @@ const fetchClientCommonSteps = {
 
     return {};
   },
+  exitEarlyOnGraphqlErrors: async (state) => {
+    const { response } = state;
+    const errors = response?.data?.errors;
+
+    if (!Array.isArray(errors) || !errors.length) {
+      return {};
+    }
+
+    const message = errors
+      .map((error) => error?.message)
+      .filter(Boolean)
+      .join('; ');
+
+    return {
+      response: {
+        ok: false,
+        error: {
+          code: 'GRAPHQL_ERROR',
+          message: message || 'GraphQL request failed',
+          details: errors,
+        },
+      },
+      breakChain: true,
+    };
+  },
   digToPath: async (state) => {
     const { response, context } = state;
     const { resultPath } = context;
