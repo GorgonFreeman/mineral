@@ -7,11 +7,15 @@ const shopifyMutationDo = async (
   mutationName,
   {
     mutationVariables = {},
-    returnSchema,
+    returnSchema = '',
     apiVersion,
     ...clientOptions
   } = {},
 ) => {
+  
+  if (!returnSchema?.includes('userErrors')) {
+    returnSchema += ' userErrors { field message }';
+  }
 
   if (!credsValidator(credsPayload)) {
     return {
@@ -89,7 +93,7 @@ curl -X POST "http://localhost:8000/shopifyMutationDo" \
           "type": "[String!]!"
         }
       },
-      "returnSchema": "node { id } userErrors { field message }"
+      "returnSchema": "order { id name }"
     }
   }'
 */
