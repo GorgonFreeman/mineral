@@ -262,6 +262,9 @@ const objectDigNodeAtPath = (obj, path) => {
 
   let output = obj;
   for (const node of nodes) {
+    if (output == null) {
+      return undefined;
+    }
     output = output[node];
   }
   return output;
@@ -530,6 +533,7 @@ const fetchClientCommonSteps = {
     if (!dataAtPath) {
       return {
         response: {
+          ok: false,
           error: {
             code: 'DIG_FAILED',
             message: `Data not found at path ${ resultPath }`,
