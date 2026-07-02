@@ -3,14 +3,6 @@
 const { credsValidator } = require('../validators');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
-const pageIdToGid = (pageId) => {
-  if (String(pageId).startsWith('gid://')) {
-    return pageId;
-  }
-
-  return `gid://shopify/Page/${ pageId }`;
-};
-
 const shopifyPageUpdate = async (
   credsPayload,
   pageId,
@@ -63,7 +55,7 @@ const shopifyPageUpdate = async (
     {
       mutationVariables: {
         id: {
-          value: pageIdToGid(pageId),
+          value: `gid://shopify/Page/${ pageId }`,
           type: 'ID!',
         },
         page: {
