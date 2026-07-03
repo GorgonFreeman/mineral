@@ -629,7 +629,15 @@ const everyIfArray = (func, value) => {
   return func(value);
 };
 
-const seconds = (number) => number * 1000;
+const timeMs = {
+  seconds: (number) => number * 1000,
+  minutes: (number) => number * 1000 * 60,
+  hours: (number) => number * 1000 * 60 * 60,
+  days: (number) => number * 1000 * 60 * 60 * 24,
+  weeks: (number) => number * 1000 * 60 * 60 * 24 * 7,
+  monthsish: (number) => number * 1000 * 60 * 60 * 24 * 30,
+  yearsish: (number) => number * 1000 * 60 * 60 * 24 * 365,
+};
 
 const responseArrayToResponse = (responses, { flatten = false } = {}) => {
   if (responses.length === 1) {
@@ -720,7 +728,7 @@ class OperationQueue {
 
       // Wait for all operations to complete
       while (completedCount < this.queue.length) {
-        await wait(seconds(1));
+        await wait(timeMs.seconds(1));
       }
 
       this.queue.length = 0;
@@ -793,6 +801,7 @@ const actionSingleOrMultiple = async (input, func, buildOpArgs, { queueRunOption
 
 module.exports = {
   wait,
+  timeMs,
   objHasAny,
   capitaliseString,
   credsFromPayload,
