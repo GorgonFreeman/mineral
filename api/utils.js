@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const xml2js = require('xml2js');
 const readline = require('readline');
 const fs = require('fs').promises;
@@ -53,9 +55,25 @@ const credsFromPayload = async (credsPayload) => {
   }
 
   if (credsPath) {
-    // Get creds from .creds.yml. 
-    const credsText = await fs.readFile('.creds.yml', 'utf8');
-    const credsYmlAsObject = yaml.parse(credsText);
+    let credsYmlAsObject;
+
+    if (HOSTED) {
+      const { CREDS } = process.env;
+
+      if (!CREDS) {
+        throw new Error('HOSTED mode requires CREDS environment variable');
+      }
+
+      try {
+        credsYmlAsObject = JSON.parse(CREDS);
+      } catch (err) {
+        throw new Error(`Malformed CREDS environment variable: ${ err }`);
+      }
+    } else {
+      const credsText = await fs.readFile('.creds.yml', 'utf8');
+      credsYmlAsObject = yaml.parse(credsText);
+    }
+
     return credsByPath(credsPath, credsYmlAsObject);
   }
 
