@@ -576,6 +576,16 @@ const fetchClientCommonSteps = {
   },
 };
 
+const validateArgs = (validatorsByArg, args) => {
+  const rejectArgsMessages = [];
+  for (const [argName, validator] of Object.entries(validatorsByArg)) {
+    if (!validator(args[argName])) {
+      rejectArgsMessages.push(`Invalid '${ argName }'`);
+    }
+  }
+  return rejectArgsMessages;
+};
+
 module.exports = {
   wait,
   objHasAny,
@@ -590,4 +600,5 @@ module.exports = {
   Chain,
   FetchClient,
   fetchClientCommonSteps,
+  validateArgs,
 };

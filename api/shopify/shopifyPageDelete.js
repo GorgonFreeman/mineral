@@ -3,6 +3,11 @@
 const { credsValidator } = require('../validators');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
+const validatorsByArg = {
+  credsPayload: credsValidator,
+  pageId: Boolean,
+};
+
 const shopifyPageDelete = async (
   credsPayload,
   pageId,
@@ -11,22 +16,14 @@ const shopifyPageDelete = async (
   } = {},
 ) => {
 
-  if (!credsValidator(credsPayload)) {
+  const rejectArgsMessages = validateArgs(validatorsByArg, { credsPayload, pageId });
+  if (rejectArgsMessages.length > 0) {
     return {
       ok: false,
       error: {
         code: 'INVALID_ARGS',
-        message: 'Invalid creds',
-      },
-    };
-  }
-
-  if (!pageId) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_ARGS',
-        message: 'pageId is required',
+        ...(rejectArgsMessages.length === 1 ? { message: rejectArgsMessages[0] } : {}),
+        ...(rejectArgsMessages.length > 1 ? { details: rejectArgsMessages } : {}),
       },
     };
   }
@@ -49,10 +46,7 @@ const shopifyPageDelete = async (
 
 const funcApiConfig = {
   argNames: ['credsPayload', 'pageId'],
-  validatorsByArg: {
-    credsPayload: credsValidator,
-    pageId: Boolean,
-  },
+  validatorsByArg,
 };
 
 module.exports = {
