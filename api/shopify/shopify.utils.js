@@ -15,8 +15,6 @@ const handleMutationUserErrors = async (state) => {
     return {};
   }
 
-  const primaryData = Object.values(mutationResult).find((value) => value != null);
-
   if (userErrors.length) {
     const message = userErrors
       .map((userError) => userError?.message)
@@ -31,19 +29,9 @@ const handleMutationUserErrors = async (state) => {
           message: message || 'Mutation failed',
           details: userErrors,
         },
-        ...(primaryData !== undefined ? { data: primaryData } : {}),
+        ...(Object.keys(mutationResult).length ? { data: mutationResult } : {}),
       },
       breakChain: true,
-    };
-  }
-
-  const resultKeys = Object.keys(mutationResult).filter((key) => mutationResult[key] != null);
-
-  if (resultKeys.length === 1) {
-    return {
-      response: {
-        data: mutationResult[resultKeys[0]],
-      },
     };
   }
 
