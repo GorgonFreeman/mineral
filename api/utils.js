@@ -576,10 +576,13 @@ const fetchClientCommonSteps = {
   },
 };
 
+const valueProvided = (value) => value !== undefined && value !== null;
+
 const validateArgs = async (validatorsByArg, args) => {
   const rejectArgsMessages = [];
 
-  for (const [argName, validator] of Object.entries(validatorsByArg)) {
+  for (const argName of Object.keys(args)) {
+    const validator = validatorsByArg[argName] || valueProvided;
     const valid = await validator(args[argName], args);
 
     if (!valid) {
