@@ -1,15 +1,17 @@
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs } = require('../utils');
+const { responseIfRejectingArgs, actionSingleOrMultiple, everyIfArray } = require('../utils');
 const { shopifyGetSingle } = require('../shopify/shopifyGetSingle');
 
 const defaultAttrs = 'id name createdAt displayFinancialStatus displayFulfillmentStatus';
 
+const orderIdentifierValidator = ({ orderId, orderName } = {}) => Boolean(orderId) || Boolean(orderName);
+
 const validatorsByArg = {
   credsPayload: credsValidator,
-  orderIdentifier: ({ orderId, orderName } = {}) => Boolean(orderId) || Boolean(orderName),
+  orderIdentifier: (i) => everyIfArray(orderIdentifierValidator, i),
 };
 
-const shopifyOrderGet = async (
+const shopifyOrderGetSingle = async (
   credsPayload,
   orderIdentifier,
   {
@@ -17,11 +19,6 @@ const shopifyOrderGet = async (
     attrs = defaultAttrs,
   } = {},
 ) => {
-
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, orderIdentifier });
-  if (rejectResponse) {
-    return rejectResponse;
-  }
 
   const { orderId, orderName } = orderIdentifier;
 
@@ -48,6 +45,33 @@ const shopifyOrderGet = async (
 
   // return singleResponse;
   /* /orderName */
+};
+
+const shopifyOrderGet = async (
+  credsPayload,
+  orderIdentifier,
+  {
+    queueRunOptions,
+    apiVersion,
+    attrs = defaultAttrs,
+  } = {},
+) => {
+
+  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, orderIdentifier });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  return actionSingleOrMultiple(
+    orderIdentifier,
+    shopifyOrderGetSingle,
+    (identifier) => ({
+      args: [credsPayload, identifier, { apiVersion, attrs }],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
+    },
+  );
 };
 
 const funcApiConfig = {
@@ -84,5 +108,17 @@ curl -X POST "http://localhost:8000/shopifyOrderGet" \
     "orderIdentifier": {
       "orderId": "7015155466312"
     }
+  }'
+
+curl -X POST "http://localhost:8000/shopifyOrderGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "shopify.au"
+    },
+    "orderIdentifier": [
+      { "orderId": "7015155466312" },
+      { "orderId": "7697048109128" }
+    ]
   }'
 */
