@@ -10,6 +10,88 @@ const excludedDirs = new Set([
   'node_modules',
 ]);
 
+const printHelp = () => {
+  console.log(`
+Usage:
+  npm run new
+  npm run new -- --dir <apiSubdir> --name <name> [--template <exampleTemplate>] [--commit]
+
+Options:
+  --dir, -d       api subdirectory (e.g. peoplevox, shopify)
+  --name, -n      function name suffix (e.g. orderGet → peoplevoxOrderGet)
+  --template, -t  example template to copy (default: _example.js in dir, else api/_example.js)
+                  examples: _example.js, getsingle, _example.getsingle.js
+  --commit        auto-commit the stub after creation
+  --help, -h      show this help
+
+Examples:
+  npm run new -- --dir peoplevox --name orderGet
+  npm run new -- --dir peoplevox --name orderGet --template _example.js
+  npm run new -- --dir shopify --name pageGet --template getsingle
+`);
+};
+
+const parseCliArgs = (argv) => {
+  const args = {
+    dir: null,
+    name: null,
+    template: null,
+    commit: false,
+    help: false,
+  };
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+
+    if (arg === 'commit') {
+      args.commit = true;
+      continue;
+    }
+
+    if (arg === '--help' || arg === '-h') {
+      args.help = true;
+      continue;
+    }
+
+    if (arg === '--commit') {
+      args.commit = true;
+      continue;
+    }
+
+    if (arg === '--dir' || arg === '-d') {
+      args.dir = argv[++i];
+      continue;
+    }
+
+    if (arg === '--name' || arg === '-n') {
+      args.name = argv[++i];
+      continue;
+    }
+
+    if (arg === '--template' || arg === '-t') {
+      args.template = argv[++i];
+      continue;
+    }
+
+    if (arg.startsWith('--dir=')) {
+      args.dir = arg.slice('--dir='.length);
+      continue;
+    }
+
+    if (arg.startsWith('--name=')) {
+      args.name = arg.slice('--name='.length);
+      continue;
+    }
+
+    if (arg.startsWith('--template=')) {
+      args.template = arg.slice('--template='.length);
+      continue;
+    }
+  }
+
+  return args;
+};
+
 const gitCommitAll = (message) => {
   console.log('Committing in background (2 second delay)...');
 
@@ -42,20 +124,63 @@ const findExampleFiles = async (dirPath) => {
   }
 };
 
-const scriptFileContents = async (name, dir, selectedTemplate) => {
-  let exampleFileContents;
+const sortExampleFiles = (exampleFiles) => {
+  return [...exampleFiles].sort((a, b) => {
+    if (a.displayName === '_example.js') return -1;
+    if (b.displayName === '_example.js') return 1;
+    return a.displayName.localeCompare(b.displayName);
+  });
+};
 
-  if (selectedTemplate) {
-    exampleFileContents = await fs.readFile(selectedTemplate, 'utf-8');
-  } else {
-    try {
-      exampleFileContents = await fs.readFile(path.join(apiDirectory, dir, '_example.js'), 'utf-8');
-    } catch (err) {
-      console.warn('Falling back to default api/_example.js');
-      exampleFileContents = await fs.readFile(rootExampleJsPath, 'utf-8');
-    }
+const normalizeTemplateArg = (templateArg) => {
+  if (!templateArg) {
+    return null;
   }
 
+  if (templateArg.endsWith('.js')) {
+    return templateArg;
+  }
+
+  if (templateArg.startsWith('_example')) {
+    return `${ templateArg }.js`;
+  }
+
+  return `_example.${ templateArg }.js`;
+};
+
+const resolveTemplateFromArg = async (exampleFiles, templateArg, dir) => {
+  if (!templateArg) {
+    const defaultInDir = exampleFiles.find(file => file.displayName === '_example.js');
+    if (defaultInDir) {
+      return defaultInDir.fullPath;
+    }
+
+    await fs.access(rootExampleJsPath);
+    return rootExampleJsPath;
+  }
+
+  const normalizedFilename = normalizeTemplateArg(templateArg);
+
+  const matchInDir = exampleFiles.find(file => {
+    return file.filename === normalizedFilename
+      || file.displayName === templateArg
+      || file.displayName === normalizedFilename;
+  });
+
+  if (matchInDir) {
+    return matchInDir.fullPath;
+  }
+
+  if (normalizedFilename === '_example.js') {
+    await fs.access(rootExampleJsPath);
+    return rootExampleJsPath;
+  }
+
+  throw new Error(`Template not found: ${ templateArg } (looked for ${ normalizedFilename } in api/${ dir })`);
+};
+
+const scriptFileContents = async (name, selectedTemplate) => {
+  const exampleFileContents = await fs.readFile(selectedTemplate, 'utf-8');
   return exampleFileContents.replace(/FUNC/g, name);
 };
 
@@ -68,101 +193,168 @@ const getDirs = async () => {
     .filter(name => !excludedDirs.has(name));
 };
 
-const createNewFunction = async () => {
-  const dirs = await getDirs();
+const buildFuncName = (dir, name) => {
+  const hasUnderscore = dir?.includes('_');
+  const separator = hasUnderscore ? '_' : '';
+  const formattedName = hasUnderscore ? name : capitaliseString(name);
+  return dir ? `${ dir }${ separator }${ formattedName }` : name;
+};
 
+const selectDirInteractive = async (dirs) => {
   const dirIndex = await askQuestion(`Where does your new function live? \n${
     dirs.map((dir, index) => {
       return `[${ index + 1 }] ${ dir }`;
     }).join('\n')
   }\n`);
+
   const dir = dirs[dirIndex - 1];
 
   if (!dir) {
-    console.error(`${ dirIndex } not a valid option.`);
-    return;
+    throw new Error(`${ dirIndex } not a valid option.`);
   }
 
-  const exampleFiles = await findExampleFiles(path.join(apiDirectory, dir));
-  let selectedTemplate = null;
+  return dir;
+};
 
-  if (exampleFiles.length > 0) {
-    exampleFiles.sort((a, b) => {
-      if (a.displayName === '_example.js') return -1;
-      if (b.displayName === '_example.js') return 1;
-      return a.displayName.localeCompare(b.displayName);
-    });
+const selectTemplateInteractive = async (exampleFiles, dir) => {
+  if (exampleFiles.length === 0) {
+    await fs.access(rootExampleJsPath);
+    console.log('\nUsing template: api/_example.js');
+    return rootExampleJsPath;
+  }
 
-    if (exampleFiles.length === 1) {
-      selectedTemplate = exampleFiles[0].fullPath;
-      console.log(`\nUsing template: ${ exampleFiles[0].displayName }`);
-    } else {
-      console.log(`\nFound ${ exampleFiles.length } template(s) in api/${ dir }:`);
-      const templateIndex = await askQuestion(`Which template would you like to use? (press enter for _example.js) \n${
-        exampleFiles.map((file, index) => {
-          return `[${ index + 1 }] ${ file.displayName }`;
-        }).join('\n')
-      }\n`);
+  if (exampleFiles.length === 1) {
+    console.log(`\nUsing template: ${ exampleFiles[0].displayName }`);
+    return exampleFiles[0].fullPath;
+  }
 
-      let selectedFile;
-      if (!templateIndex || templateIndex.trim() === '') {
-        selectedFile = exampleFiles.find(file => file.displayName === '_example.js');
-      } else {
-        selectedFile = exampleFiles[templateIndex - 1];
-      }
+  console.log(`\nFound ${ exampleFiles.length } template(s) in api/${ dir }:`);
+  const templateIndex = await askQuestion(`Which template would you like to use? (press enter for _example.js) \n${
+    exampleFiles.map((file, index) => {
+      return `[${ index + 1 }] ${ file.displayName }`;
+    }).join('\n')
+  }\n`);
 
-      if (selectedFile) {
-        selectedTemplate = selectedFile.fullPath;
-      } else if (!templateIndex || templateIndex.trim() === '') {
-        try {
-          await fs.access(rootExampleJsPath);
-          selectedTemplate = rootExampleJsPath;
-          console.log('\nUsing template: api/_example.js');
-        } catch {
-          console.error('No _example.js template in this folder or at api/_example.js.');
-          return;
-        }
-      } else {
-        console.error(`${ templateIndex } not a valid option.`);
-        return;
-      }
+  if (!templateIndex || templateIndex.trim() === '') {
+    const defaultFile = exampleFiles.find(file => file.displayName === '_example.js');
+    if (defaultFile) {
+      return defaultFile.fullPath;
     }
+
+    await fs.access(rootExampleJsPath);
+    console.log('\nUsing template: api/_example.js');
+    return rootExampleJsPath;
   }
 
+  const selectedFile = exampleFiles[templateIndex - 1];
+  if (!selectedFile) {
+    throw new Error(`${ templateIndex } not a valid option.`);
+  }
+
+  return selectedFile.fullPath;
+};
+
+const selectNameInteractive = async (dir) => {
   const promptSuffix = dir?.includes('_') ? `${ dir }_` : dir;
   const name = await askQuestion(`What do you want to call it? ${ promptSuffix }`);
 
   if (!name) {
-    console.error('Error getting script name');
+    throw new Error('Error getting script name');
+  }
+
+  return name;
+};
+
+const writeNewFunction = async ({
+  dir,
+  name,
+  selectedTemplate,
+  shouldAutoCommit,
+}) => {
+  const funcName = buildFuncName(dir, name);
+  const outputPath = path.join(apiDirectory, dir, `${ funcName }.js`);
+
+  try {
+    await fs.access(outputPath);
+    throw new Error(`File already exists: ${ outputPath }`);
+  } catch (err) {
+    if (err.code !== 'ENOENT') {
+      throw err;
+    }
+  }
+
+  const script = await scriptFileContents(funcName, selectedTemplate);
+  await fs.writeFile(outputPath, script);
+
+  console.log(`\nCreated ${ outputPath }`);
+
+  if (shouldAutoCommit) {
+    gitCommitAll(`${ funcName } stub`);
+  }
+
+  return outputPath;
+};
+
+const createNewFunction = async () => {
+  const cliArgs = parseCliArgs(process.argv.slice(2));
+
+  if (cliArgs.help) {
+    printHelp();
+    return;
+  }
+
+  const dirs = await getDirs();
+  const nonInteractive = Boolean(cliArgs.dir || cliArgs.name);
+
+  if (nonInteractive) {
+    if (!cliArgs.dir || !cliArgs.name) {
+      console.error('Non-interactive mode requires both --dir and --name.');
+      printHelp();
+      process.exitCode = 1;
+      return;
+    }
+
+    if (!dirs.includes(cliArgs.dir)) {
+      console.error(`Invalid --dir "${ cliArgs.dir }". Available: ${ dirs.join(', ') }`);
+      process.exitCode = 1;
+      return;
+    }
+
+    const exampleFiles = sortExampleFiles(await findExampleFiles(path.join(apiDirectory, cliArgs.dir)));
+
+    try {
+      const selectedTemplate = await resolveTemplateFromArg(exampleFiles, cliArgs.template, cliArgs.dir);
+      console.log(`Using template: ${ path.relative(path.join(__dirname, '..'), selectedTemplate) }`);
+
+      await writeNewFunction({
+        dir: cliArgs.dir,
+        name: cliArgs.name,
+        selectedTemplate,
+        shouldAutoCommit: process.env.AUTO_COMMIT_STUBS === 'true' || cliArgs.commit,
+      });
+    } catch (err) {
+      console.error(err.message || err);
+      process.exitCode = 1;
+    }
+
     return;
   }
 
   try {
-    const hasUnderscore = dir?.includes('_');
-    const separator = hasUnderscore ? '_' : '';
-    const formattedName = hasUnderscore ? name : capitaliseString(name);
-    const funcName = dir ? `${ dir }${ separator }${ formattedName }` : name;
-    const outputPath = path.join(apiDirectory, dir, `${ funcName }.js`);
+    const dir = await selectDirInteractive(dirs);
+    const exampleFiles = sortExampleFiles(await findExampleFiles(path.join(apiDirectory, dir)));
+    const selectedTemplate = await selectTemplateInteractive(exampleFiles, dir);
+    const name = await selectNameInteractive(dir);
 
-    try {
-      await fs.access(outputPath);
-      console.error(`File already exists: ${ outputPath }`);
-      return;
-    } catch {
-      // file does not exist — good
-    }
-
-    const script = await scriptFileContents(funcName, dir, selectedTemplate);
-    await fs.writeFile(outputPath, script);
-
-    console.log(`\nCreated ${ outputPath }`);
-
-    const shouldAutoCommit = process.env.AUTO_COMMIT_STUBS === 'true' || process.argv.includes('commit');
-    if (shouldAutoCommit) {
-      gitCommitAll(`${ funcName } stub`);
-    }
+    await writeNewFunction({
+      dir,
+      name,
+      selectedTemplate,
+      shouldAutoCommit: process.env.AUTO_COMMIT_STUBS === 'true' || cliArgs.commit,
+    });
   } catch (err) {
-    console.error(err);
+    console.error(err.message || err);
+    process.exitCode = 1;
   }
 };
 
