@@ -4,13 +4,11 @@ const { responseIfRejectingArgs, ensureArray, everyIfArray } = require('../utils
 const { peoplevoxClient } = require('../peoplevox/peoplevox.utils');
 const { MAX_REQUEST_ITEMS } = require('../peoplevox/peoplevox.constants');
 
-const orderPayloadValidator = (orderPayload) => {
-  return everyIfArray(i => i?.SalesOrderNumber, orderPayload);
-};
+const orderPayloadValidator = (orderPayload) => orderPayload?.SalesOrderNumber;
 
 const validatorsByArg = {
   credsPayload: credsValidator,
-  orderPayload: orderPayloadValidator,
+  orderPayload: (i) => everyIfArray(orderPayloadValidator, i),
 };
 
 const peoplevoxOrderEdit = async (
