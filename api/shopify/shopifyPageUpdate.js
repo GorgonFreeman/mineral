@@ -62,33 +62,7 @@ const shopifyPageUpdate = async (
     },
   );
 
-  if (!response.ok) {
-    return response;
-  }
-
-  const { userErrors, page: updatedPage } = response.data ?? {};
-
-  if (userErrors?.length) {
-    const message = userErrors
-      .map((userError) => userError?.message)
-      .filter(Boolean)
-      .join('; ');
-
-    return {
-      ok: false,
-      error: {
-        code: 'USER_ERROR',
-        message: message || 'Page update failed',
-        details: userErrors,
-      },
-      ...(updatedPage ? { data: updatedPage } : {}),
-    };
-  }
-
-  return {
-    ok: true,
-    data: updatedPage,
-  };
+  return response;
 };
 
 const funcApiConfig = {
