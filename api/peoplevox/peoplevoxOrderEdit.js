@@ -70,4 +70,16 @@ curl -X POST "http://localhost:8000/peoplevoxOrderEdit" \
     "credsPayload": { "credsPath": "peoplevox" },
     "orderPayload": { "SalesOrderNumber": "7696610951240", "Attribute1": "Whatever" }
   }'
+
+Take order off hold:
+curl -X POST "http://localhost:8000/peoplevoxOrderEdit" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "peoplevox" },
+    "orderPayload": {
+      "SalesOrderNumber": "7696610951240",
+      "OnHold": false,
+      "StopShip": false
+    }
+  }'
 */
