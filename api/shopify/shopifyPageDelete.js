@@ -17,7 +17,7 @@ const shopifyPageDelete = async (
   } = {},
 ) => {
 
-  const argsRejectResponse = responseIfRejectingArgs(validatorsByArg, { credsPayload, pageId });
+  const argsRejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, pageId });
   if (argsRejectResponse) {
     return argsRejectResponse;
   }

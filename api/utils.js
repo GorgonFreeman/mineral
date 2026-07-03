@@ -576,31 +576,36 @@ const fetchClientCommonSteps = {
   },
 };
 
-const validateArgs = (validatorsByArg, args) => {
+const validateArgs = async (validatorsByArg, args) => {
   const rejectArgsMessages = [];
+
   for (const [argName, validator] of Object.entries(validatorsByArg)) {
-    if (!validator(args[argName])) {
+    const valid = await validator(args[argName], args);
+
+    if (!valid) {
       rejectArgsMessages.push(`Invalid '${ argName }'`);
     }
   }
+
   return rejectArgsMessages;
 };
 
-const responseIfRejectingArgs = (...args) => {
-  const rejectArgsMessages = validateArgs(...args);
+const responseIfRejectingArgs = async (...validateArgsParams) => {
+  const rejectArgsMessages = await validateArgs(...validateArgsParams);
+
   if (rejectArgsMessages.length > 0) {
     return {
       ok: false,
       error: {
         code: 'INVALID_ARGS',
-        ...(rejectArgsMessages.length === 1 ? { message: rejectArgsMessages[0] } : {}),
+        message: rejectArgsMessages.join('; '),
         ...(rejectArgsMessages.length > 1 ? { details: rejectArgsMessages } : {}),
       },
     };
   }
 
   return false;
-}
+};
 
 module.exports = {
   wait,
