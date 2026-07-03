@@ -219,6 +219,13 @@ const funcApi = (func, config = {}) => {
       callArgs = [modifiedBody];
     } else if (argNames?.length) {
       callArgs = argNames.map((argName) => modifiedBody?.[argName]);
+
+      if (
+        !argNames.includes('options')
+        && modifiedBody?.options !== undefined
+      ) {
+        callArgs.push(modifiedBody.options);
+      }
     }
 
     return await func(...callArgs);

@@ -62,7 +62,7 @@ const shopifyMutationDo = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'mutationName', 'options'],
+  argNames: ['credsPayload', 'mutationName'],
   validatorsByArg: {
     credsPayload: credsValidator,
     mutationName: Boolean,

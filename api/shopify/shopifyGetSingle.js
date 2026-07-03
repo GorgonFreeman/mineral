@@ -59,7 +59,7 @@ const shopifyGetSingle = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'resource', 'id', 'options'],
+  argNames: ['credsPayload', 'resource', 'id'],
   validatorsByArg: {
     credsPayload: (credsPayload) => credsValidator(credsPayload),
     resource: (resource) => Boolean(resource),

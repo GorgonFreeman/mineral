@@ -66,7 +66,7 @@ const shopifyPageUpdate = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'pageId', 'updatePayload', 'options'],
+  argNames: ['credsPayload', 'pageId', 'updatePayload'],
   validatorsByArg: {
     credsPayload: credsValidator,
     pageId: Boolean,
