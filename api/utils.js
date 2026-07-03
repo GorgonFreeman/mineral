@@ -622,11 +622,173 @@ const everyIfArray = (func, value) => {
     if (value.length === 0) {
       return false;
     }
-    
+
     // Validators should always return truthy values, right?
     return value.map(func).every(i => i);
   }
   return func(value);
+};
+
+const seconds = (number) => number * 1000;
+
+const responseArrayToResponse = (responses, { flatten = false } = {}) => {
+  if (responses.length === 1) {
+    return responses[0];
+  }
+
+  const succeeded = responses.filter(r => r?.ok).length;
+  const failed = responses.length - succeeded;
+
+  const response = {
+    ok: failed === 0,
+    results: responses,
+    meta: {
+      total: responses.length,
+      succeeded,
+      failed,
+    },
+  };
+
+  if (flatten) {
+    const data = responses
+      .map(r => r?.data)
+      .filter(d => d !== undefined);
+
+    if (data.length) {
+      response.data = data.flat();
+    }
+  }
+
+  return response;
+};
+
+class Operation {
+  constructor(func, { args = [], options = {} } = {}) {
+    this.func = func;
+    this.args = args;
+    this.options = options;
+  }
+
+  async run() {
+    return this.func(...this.args, this.options);
+  }
+}
+
+class OperationQueue {
+  constructor(operations) {
+
+    if (operations && operations.some(op => !(op instanceof Operation))) {
+      throw new Error('OperationQueue only takes Operations');
+    }
+
+    this.queue = operations || [];
+  }
+
+  add(operation) {
+    if (!(operation instanceof Operation)) {
+      throw new Error('OperationQueue only takes Operations');
+    }
+
+    this.queue.push(operation);
+  }
+
+  async run({
+    interval = false,
+    verbose = true,
+  } = {}) {
+
+    // Run at interval
+    if (interval) {
+      const results = new Array(this.queue.length);
+      let completedCount = 0;
+
+      // For each operation, run it without awaiting, and await the interval
+      for (const [i, op] of this.queue.entries()) {
+        (async () => {
+          const result = await op.run();
+          // Preserve result order
+          results[i] = result;
+          completedCount++;
+
+          if (verbose) {
+            console.log(`${ completedCount } / ${ this.queue.length }`);
+          }
+        })();
+
+        await wait(interval);
+      }
+
+      // Wait for all operations to complete
+      while (completedCount < this.queue.length) {
+        await wait(seconds(1));
+      }
+
+      this.queue.length = 0;
+      return results;
+    }
+
+    // Run in sequence
+    const results = [];
+    for (const op of this.queue) {
+      const result = await op.run();
+      results.push(result);
+      if (verbose) {
+        console.log(`${ results.length } / ${ this.queue.length }`);
+      }
+    }
+
+    this.queue.length = 0;
+    return results;
+  }
+}
+
+const arraysToCartesianProduct = (arrayOfMixed) => {
+  return arrayOfMixed
+    .map(ensureArray)
+    .reduce((acc, curr) => {
+      return acc.flatMap(a => curr.map(b => [...a, b]));
+    }, [[]]);
+};
+
+const actionSingleOrMultiple = async (input, func, buildOpArgs, { queueRunOptions = {} } = {}) => {
+
+  /* How different inputs are handled:
+  1. Single input
+  Pass directly to args builder function, and return result.
+  2. Single array
+  Action one operation per value in the array.
+  3. Array of arrays
+  Action all permutations of all values in the arrays.
+  */
+
+  // #1: Single input
+  // Pass directly to args builder function, and return result.
+  if (!Array.isArray(input)) {
+    return new Operation(func, buildOpArgs(input)).run();
+  }
+
+  let queue;
+
+  const argsBuilderArgsCount = buildOpArgs.length;
+  if (argsBuilderArgsCount <= 1) {
+    // #2: One input, as array
+    // Action one operation per value in the array.
+    queue = new OperationQueue(input.map(inputItem => new Operation(
+      func,
+      buildOpArgs(inputItem),
+    )));
+  } else {
+    // #3: Multiple inputs
+    // Action all combinations of all values in the arrays.
+    const combinations = arraysToCartesianProduct(input);
+    queue = new OperationQueue(combinations.map(combo => new Operation(
+      func,
+      buildOpArgs(...combo),
+    )));
+  }
+
+  const queueResponses = await queue.run(queueRunOptions);
+  return responseArrayToResponse(queueResponses);
 };
 
 module.exports = {
@@ -646,4 +808,8 @@ module.exports = {
   responseIfRejectingArgs,
   ensureArray,
   everyIfArray,
+  responseArrayToResponse,
+  Operation,
+  OperationQueue,
+  actionSingleOrMultiple,
 };
