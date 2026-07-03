@@ -1,5 +1,4 @@
 const csvtojson = require('csvtojson');
-const { json2csv } = require('json-2-csv');
 const xml2js = require('xml2js');
 const { FetchClient, credsFromPayload, appendUrlToBase, logDeep, Chain } = require('../utils');
 const { peoplevoxAuthGet } = require('../peoplevox/peoplevoxAuthGet');
@@ -47,30 +46,7 @@ const buildSoapEnvelope = ({
 };
 
 // TODO: Split into multiple steps, allow mutating context
-const prepareSaveDataCsv = async (state) => {
-  const { requestPayload } = state;
-  const csvData = requestPayload?.body?.saveRequest?.CsvData;
-
-  if (typeof csvData === 'string' || csvData === undefined) {
-    return {};
-  }
-
-  const rows = Array.isArray(csvData) ? csvData : [csvData];
-  const csvString = await json2csv(rows);
-
-  return {
-    requestPayload: {
-      body: {
-        saveRequest: {
-          CsvData: csvString,
-        },
-      },
-    },
-  };
-};
-
-const peoplevoxSoapRequestPreparer = async (state) => {
-  const { requestPayload, context } = state;
+const peoplevoxRequestPreparer = async (requestPayload, context) => {
   const { headers, body } = requestPayload;
   const { credsPayload, action } = context;
   let { sessionId: localSessionId } = context;
@@ -80,10 +56,7 @@ const peoplevoxSoapRequestPreparer = async (state) => {
     const authResponse = await peoplevoxAuthGet(credsPayload);
 
     if (!authResponse.ok) {
-      return {
-        requestPayload: authResponse,
-        breakChain: true,
-      };
+      return { ...authResponse, breakChain: true };
     }
 
     const { Detail } = authResponse?.data?.['soap:Envelope']?.['soap:Body']?.['AuthenticateResponse']?.['AuthenticateResult'];
@@ -104,22 +77,16 @@ const peoplevoxSoapRequestPreparer = async (state) => {
   logDeep({ envelopeXml });
 
   return {
-    requestPayload: {
-      url: appendUrlToBase(baseUrl, requestPayload.url),
-      headers: {
-        ...headers,
-        'Content-Type': 'text/xml; charset=utf-8',
-        'SOAPAction': `http://www.peoplevox.net/${ action }`,
-      },
-      body: envelopeXml,
+    ...requestPayload,
+    url: appendUrlToBase(baseUrl, requestPayload.url),
+    headers: {
+      ...headers,
+      'Content-Type': 'text/xml; charset=utf-8',
+      'SOAPAction': `http://www.peoplevox.net/${ action }`,
     },
+    body: envelopeXml,
   };
 };
-
-const peoplevoxRequestPreparer = new Chain([
-  prepareSaveDataCsv,
-  peoplevoxSoapRequestPreparer,
-]);
 
 const stripEnvelope = (state) => {
   const { response, context } = state;
