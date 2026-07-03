@@ -1,4 +1,3 @@
-const { json2csv } = require('json-2-csv');
 const { credsValidator } = require('../validators');
 const { responseIfRejectingArgs } = require('../utils');
 const { peoplevoxClient } = require('../peoplevox/peoplevox.utils');
@@ -22,15 +21,12 @@ const peoplevoxOrderEdit = async (
     return rejectResponse;
   }
 
-  // TODO: Consider making CSV transformation a request preparer step
-  const csvData = await json2csv([orderPayload]);
-
   return peoplevoxClient.fetch({
     method: 'post',
     body: {
       saveRequest: {
         TemplateName: 'Sales orders',
-        CsvData: csvData,
+        CsvData: orderPayload,
       },
     },
     context: {
