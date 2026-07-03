@@ -7,3 +7,4 @@ Notes for AI assistants working in this directory. **Read this file at the start
 - funcApiConfig should not list `options` in `argNames` — it is optional. When present on the request body, `funcApi` appends it after the named args.
 - When implementing API functions that mirror official functions, include a link to the documentation at the top of the file as a comment.
 - Don't add to this file unless asked.
+- Use snake_case for package.json commands, with colon if appropriate.
