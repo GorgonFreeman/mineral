@@ -586,6 +586,22 @@ const validateArgs = (validatorsByArg, args) => {
   return rejectArgsMessages;
 };
 
+const responseIfRejectingArgs = (...args) => {
+  const rejectArgsMessages = validateArgs(...args);
+  if (rejectArgsMessages.length > 0) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_ARGS',
+        ...(rejectArgsMessages.length === 1 ? { message: rejectArgsMessages[0] } : {}),
+        ...(rejectArgsMessages.length > 1 ? { details: rejectArgsMessages } : {}),
+      },
+    };
+  }
+
+  return false;
+}
+
 module.exports = {
   wait,
   objHasAny,
@@ -600,5 +616,5 @@ module.exports = {
   Chain,
   FetchClient,
   fetchClientCommonSteps,
-  validateArgs,
+  responseIfRejectingArgs,
 };

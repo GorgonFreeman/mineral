@@ -1,6 +1,7 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/pageDelete
 
 const { credsValidator } = require('../validators');
+const { responseIfRejectingArgs } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
 const validatorsByArg = {
@@ -16,16 +17,9 @@ const shopifyPageDelete = async (
   } = {},
 ) => {
 
-  const rejectArgsMessages = validateArgs(validatorsByArg, { credsPayload, pageId });
-  if (rejectArgsMessages.length > 0) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_ARGS',
-        ...(rejectArgsMessages.length === 1 ? { message: rejectArgsMessages[0] } : {}),
-        ...(rejectArgsMessages.length > 1 ? { details: rejectArgsMessages } : {}),
-      },
-    };
+  const argsRejectResponse = responseIfRejectingArgs(validatorsByArg, { credsPayload, pageId });
+  if (argsRejectResponse) {
+    return argsRejectResponse;
   }
 
   return shopifyMutationDo(
