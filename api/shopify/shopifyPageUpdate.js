@@ -1,7 +1,14 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/pageUpdate
 
 const { credsValidator } = require('../validators');
+const { responseIfRejectingArgs } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
+
+const validatorsByArg = {
+  credsPayload: credsValidator,
+  pageId: Boolean,
+  updatePayload: Boolean,
+};
 
 const shopifyPageUpdate = async (
   credsPayload,
@@ -23,27 +30,12 @@ const shopifyPageUpdate = async (
   } = {},
 ) => {
 
-  if (!credsValidator(credsPayload)) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_ARGS',
-        message: 'Invalid creds',
-      },
-    };
+  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, pageId, updatePayload });
+  if (rejectResponse) {
+    return rejectResponse;
   }
 
-  if (!pageId) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_ARGS',
-        message: 'pageId is required',
-      },
-    };
-  }
-
-  const response = await shopifyMutationDo(
+  return shopifyMutationDo(
     credsPayload,
     'pageUpdate',
     {
@@ -61,17 +53,11 @@ const shopifyPageUpdate = async (
       apiVersion,
     },
   );
-
-  return response;
 };
 
 const funcApiConfig = {
   argNames: ['credsPayload', 'pageId', 'updatePayload'],
-  validatorsByArg: {
-    credsPayload: credsValidator,
-    pageId: Boolean,
-    updatePayload: Boolean,
-  },
+  validatorsByArg,
 };
 
 module.exports = {

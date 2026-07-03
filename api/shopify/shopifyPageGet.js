@@ -1,9 +1,15 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/queries/page
 
 const { credsValidator } = require('../validators');
+const { responseIfRejectingArgs } = require('../utils');
 const { shopifyGetSingle } = require('../shopify/shopifyGetSingle');
 
 const defaultAttrs = 'id title handle templateSuffix';
+
+const validatorsByArg = {
+  credsPayload: credsValidator,
+  pageId: Boolean,
+};
 
 const shopifyPageGet = async (
   credsPayload,
@@ -14,24 +20,9 @@ const shopifyPageGet = async (
   } = {},
 ) => {
 
-  if (!credsValidator(credsPayload)) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_ARGS',
-        message: 'Invalid creds',
-      },
-    };
-  }
-
-  if (!pageId) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_ARGS',
-        message: 'pageId is required',
-      },
-    };
+  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, pageId });
+  if (rejectResponse) {
+    return rejectResponse;
   }
 
   return shopifyGetSingle(
@@ -47,10 +38,7 @@ const shopifyPageGet = async (
 
 const funcApiConfig = {
   argNames: ['credsPayload', 'pageId'],
-  validatorsByArg: {
-    credsPayload: credsValidator,
-    pageId: Boolean,
-  },
+  validatorsByArg,
 };
 
 module.exports = {

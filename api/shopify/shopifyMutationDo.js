@@ -1,6 +1,11 @@
-const { credsFromPayload, logDeep } = require('../utils');
+const { credsFromPayload, logDeep, responseIfRejectingArgs } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
+
+const validatorsByArg = {
+  credsPayload: credsValidator,
+  mutationName: Boolean,
+};
 
 const shopifyMutationDo = async (
   credsPayload,
@@ -12,19 +17,14 @@ const shopifyMutationDo = async (
     ...clientOptions
   } = {},
 ) => {
-  
-  if (!returnSchema?.includes('userErrors')) {
-    returnSchema += ' userErrors { field message }';
+
+  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, mutationName });
+  if (rejectResponse) {
+    return rejectResponse;
   }
 
-  if (!credsValidator(credsPayload)) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_ARGS',
-        message: 'Invalid creds',
-      },
-    };
+  if (!returnSchema?.includes('userErrors')) {
+    returnSchema += ' userErrors { field message }';
   }
 
   const creds = await credsFromPayload(credsPayload);
@@ -63,10 +63,7 @@ const shopifyMutationDo = async (
 
 const funcApiConfig = {
   argNames: ['credsPayload', 'mutationName'],
-  validatorsByArg: {
-    credsPayload: credsValidator,
-    mutationName: Boolean,
-  },
+  validatorsByArg,
 };
 
 module.exports = {

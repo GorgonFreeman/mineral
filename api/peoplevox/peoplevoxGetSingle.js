@@ -1,41 +1,34 @@
 const { peoplevoxClient } = require('../peoplevox/peoplevox.utils');
 const { credsValidator } = require('../validators');
+const { responseIfRejectingArgs } = require('../utils');
 
 const searchParametersValidator = ({ searchClause, id, idName }) => {
   return searchClause || (id && idName);
 };
 
+const validatorsByArg = {
+  credsPayload: credsValidator,
+  templateName: Boolean,
+  searchParameters: searchParametersValidator,
+};
+
 const peoplevoxGetSingle = async (
   credsPayload,
   templateName,
-  {
-    searchClause,
-    id,
-    idName,
-  },
+  searchParameters = {},
   options = {},
 ) => {
 
-  if (!credsValidator(credsPayload)) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_ARGS',
-        message: 'Invalid creds',
-      },
-    };
+  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+    credsPayload,
+    templateName,
+    searchParameters,
+  });
+  if (rejectResponse) {
+    return rejectResponse;
   }
 
-  if (!searchParametersValidator({ searchClause, id, idName })) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_ARGS',
-        message: 'Missing searchClause or idName + id',
-      },
-    };
-  }
-
+  const { searchClause, id, idName } = searchParameters;
   const resolvedSearchClause = searchClause || `${ idName }.Equals("${ id }")`;
 
   const response = await peoplevoxClient.fetch({
@@ -57,13 +50,13 @@ const peoplevoxGetSingle = async (
   }
 
   const { data } = response;
-  
+
   const multipleResults = Array.isArray(data) && data.length > 1;
 
   if (!multipleResults) {
     return response;
   }
-  
+
   if (id && idName) {
     const targetResults = data.filter(result => result[idName] === id);
 
@@ -98,16 +91,14 @@ const peoplevoxGetSingle = async (
   return response;
 };
 
+const funcApiConfig = {
+  argNames: ['credsPayload', 'templateName', 'searchParameters'],
+  validatorsByArg,
+};
+
 module.exports = {
   peoplevoxGetSingle,
-  funcApiConfig: {
-    argNames: ['credsPayload', 'templateName', 'searchParameters'],
-    validatorsByArg: {
-      credsPayload: credsValidator,
-      templateName: Boolean,
-      searchParameters: searchParametersValidator,
-    },
-  },
+  funcApiConfig,
 };
 
 /*

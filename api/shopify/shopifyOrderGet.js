@@ -1,21 +1,32 @@
+const { credsValidator } = require('../validators');
+const { responseIfRejectingArgs } = require('../utils');
 const { shopifyGetSingle } = require('../shopify/shopifyGetSingle');
 
 const defaultAttrs = 'id name createdAt displayFinancialStatus displayFulfillmentStatus';
 
+const validatorsByArg = {
+  credsPayload: credsValidator,
+  orderIdentifier: ({ orderId, orderName } = {}) => Boolean(orderId) || Boolean(orderName),
+};
+
 const shopifyOrderGet = async (
   credsPayload,
-  {
-    orderId,
-    orderName,
-  },
+  orderIdentifier,
   {
     apiVersion,
     attrs = defaultAttrs,
   } = {},
 ) => {
 
+  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, orderIdentifier });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  const { orderId, orderName } = orderIdentifier;
+
   if (orderId) {
-    const response = await shopifyGetSingle(
+    return shopifyGetSingle(
       credsPayload,
       'order',
       orderId,
@@ -24,8 +35,6 @@ const shopifyOrderGet = async (
         attrs,
       },
     );
-
-    return response;
   }
 
   /* orderName */
@@ -41,31 +50,39 @@ const shopifyOrderGet = async (
   /* /orderName */
 };
 
+const funcApiConfig = {
+  argNames: ['credsPayload', 'orderIdentifier'],
+  validatorsByArg,
+};
+
 module.exports = {
   shopifyOrderGet,
+  funcApiConfig,
 };
 
 /*
 curl -X POST "http://localhost:8000/shopifyOrderGet" \
   -H "Content-Type: application/json" \
   -d '{
-    "args": [
-      {
-        "credsObject": {
-          "STORE_HANDLE": "arisawa-heavy-industries",
-          "API_KEY": "shpat_xxx"
-        }
-      },
-      { "orderId": "1234567890" }
-    ]
+    "credsPayload": {
+      "credsObject": {
+        "STORE_HANDLE": "arisawa-heavy-industries",
+        "API_KEY": "shpat_xxx"
+      }
+    },
+    "orderIdentifier": {
+      "orderId": "1234567890"
+    }
   }'
 
-  curl -X POST "http://localhost:8000/shopifyOrderGet" \
+curl -X POST "http://localhost:8000/shopifyOrderGet" \
   -H "Content-Type: application/json" \
   -d '{
-    "args": [
-      { "credsPath": "shopify.au" },
-      { "orderId": "7015155466312" }
-    ]
+    "credsPayload": {
+      "credsPath": "shopify.au"
+    },
+    "orderIdentifier": {
+      "orderId": "7015155466312"
+    }
   }'
-  */
+*/
