@@ -1,46 +1,60 @@
-// https://shopify.dev/docs/api/admin-graphql/latest/mutations/pageDelete
+// https://shopify.dev/docs/api/admin-graphql/latest/mutations/giftCardCreate
 
 const { credsValidator } = require('../validators');
 const { responseIfRejectingArgs } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
+const giftCardInputValidator = (giftCardInput) => {
+  if (!giftCardInput || typeof giftCardInput !== 'object') {
+    return false;
+  }
+
+  const initialValue = parseFloat(giftCardInput.initialValue);
+  return !isNaN(initialValue) && initialValue > 0;
+};
+
 const validatorsByArg = {
   credsPayload: credsValidator,
-  thingId: Boolean,
+  giftCardInput: giftCardInputValidator,
 };
+
+const defaultReturnGiftCardAttrs = 'id initialValue { amount } customer { id }';
 
 const shopifyGiftCardCreate = async (
   credsPayload,
-  thingId,
+  giftCardInput,
   {
     apiVersion,
-    returnSchema = 'deletedThingId',
+    returnGiftCardAttrs = defaultReturnGiftCardAttrs,
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, thingId });
+  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, giftCardInput });
   if (rejectResponse) {
     return rejectResponse;
   }
 
   return shopifyMutationDo(
     credsPayload,
-    'thingDelete',
+    'giftCardCreate',
     {
       mutationVariables: {
-        id: {
-          type: 'ID!',
-          value: `gid://shopify/Thing/${ thingId }`,
+        input: {
+          type: 'GiftCardCreateInput!',
+          value: giftCardInput,
         },
       },
-      returnSchema,
+      returnSchema: `
+        giftCardCode
+        giftCard { ${ returnGiftCardAttrs } }
+      `.trim(),
       apiVersion,
     },
   );
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'thingId'],
+  argNames: ['credsPayload', 'giftCardInput'],
   validatorsByArg,
 };
 
