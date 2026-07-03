@@ -610,6 +610,25 @@ const responseIfRejectingArgs = async (...validateArgsParams) => {
   return false;
 };
 
+const ensureArray = (value) => {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  return [value];
+};
+
+const everyIfArray = (func, value) => {
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return false;
+    }
+    
+    // Validators should always return truthy values, right?
+    return value.map(func).every(i => i);
+  }
+  return func(value);
+};
+
 module.exports = {
   wait,
   objHasAny,
@@ -625,4 +644,6 @@ module.exports = {
   FetchClient,
   fetchClientCommonSteps,
   responseIfRejectingArgs,
+  ensureArray,
+  everyIfArray,
 };
