@@ -2,6 +2,7 @@ const { json2csv } = require('json-2-csv');
 const { credsValidator } = require('../validators');
 const { responseIfRejectingArgs, ensureArray, everyIfArray } = require('../utils');
 const { peoplevoxClient } = require('../peoplevox/peoplevox.utils');
+const { MAX_REQUEST_ITEMS } = require('../peoplevox/peoplevox.constants');
 
 const orderPayloadValidator = (orderPayload) => {
   return everyIfArray(i => i?.SalesOrderNumber, orderPayload);
@@ -24,6 +25,16 @@ const peoplevoxOrderEdit = async (
 
   // TODO: Consider making CSV transformation a request preparer step
   const csvData = await json2csv(ensureArray(orderPayload));
+
+  if (csvData.length > MAX_REQUEST_ITEMS) {
+    return {
+      ok: false,
+      error: {
+        code: 'MAX_REQUEST_ITEMS_EXCEEDED',
+        message: `Max request items exceeded. Max is ${ MAX_REQUEST_ITEMS }.`,
+      },
+    };
+  }
 
   return peoplevoxClient.fetch({
     method: 'post',
