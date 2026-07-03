@@ -10,6 +10,10 @@ const shouldSkipApiFile = (fileName) => {
     return true;
   }
 
+  if (fileName.startsWith('_')) {
+    return true;
+  }
+
   if (fileName.endsWith('.utils.js')) {
     return true;
   }

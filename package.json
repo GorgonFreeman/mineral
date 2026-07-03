@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "node --watch --watch-path=./api --watch-path=./server.js --watch-path=./server.utils.js --watch-path=./.creds.yml server.js",
+    "new": "node _build_scripts/createNewFunction.js",
     "serve": "PORT=8100 node server.js",
     "start": "node server.js"
   },
