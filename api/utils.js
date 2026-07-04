@@ -161,8 +161,7 @@ const customFetch = async (url, {
       }
 
       const { status } = response;
-      const { data } = parsedResponse;
-      verbose && console.error(status, data);
+      verbose && console.error(status, parsedResponse);
 
       if (retryStatuses.has(status)) {
         if (retryAttempt >= maxRetries) {
@@ -171,7 +170,7 @@ const customFetch = async (url, {
             ok: false, 
             error: {
               code: 'RETRIES_EXHAUSTED',
-              details: data,
+              details: parsedResponse,
             },
           };
         }
@@ -188,7 +187,7 @@ const customFetch = async (url, {
       return { 
         ok: false, 
         error: {
-          details: data,
+          details: parsedResponse,
         },
       };
 
