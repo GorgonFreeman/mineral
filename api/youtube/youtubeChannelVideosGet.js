@@ -5,33 +5,14 @@ const { credsValidator } = require('../validators');
 
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
 
-const parseChannelIdentifier = (channelIdentifier) => {
-  const trimmed = channelIdentifier.trim();
-
-  if (trimmed.startsWith('http')) {
-    const url = new URL(trimmed);
-    const handleMatch = url.pathname.match(/^\/@([^/]+)/);
-
-    if (handleMatch) {
-      return { handle: handleMatch[1] };
-    }
-
-    const channelMatch = url.pathname.match(/^\/channel\/([^/]+)/);
-
-    if (channelMatch) {
-      return { channelId: channelMatch[1] };
-    }
-  }
+const parseChannelHandle = (channelHandle) => {
+  const trimmed = channelHandle.trim();
 
   if (trimmed.startsWith('@')) {
-    return { handle: trimmed.slice(1) };
+    return trimmed.slice(1);
   }
 
-  if (trimmed.startsWith('UC')) {
-    return { channelId: trimmed };
-  }
-
-  return { handle: trimmed };
+  return trimmed;
 };
 
 const youtubeClient = new FetchClient({
@@ -105,12 +86,12 @@ const formatVideo = (video) => {
 
 const validatorsByArg = {
   credsPayload: credsValidator,
-  channelIdentifier: Boolean,
+  channelHandle: Boolean,
 };
 
 const youtubeChannelVideosGet = async (
   credsPayload,
-  channelIdentifier,
+  channelHandle,
   {
     maxVideos,
     inspect = false,
@@ -119,7 +100,7 @@ const youtubeChannelVideosGet = async (
 
   const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
     credsPayload,
-    channelIdentifier,
+    channelHandle,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -127,57 +108,34 @@ const youtubeChannelVideosGet = async (
 
   const creds = await credsFromPayload(credsPayload);
   const fetchContext = { creds };
+  const handle = parseChannelHandle(channelHandle);
 
-  const { handle, channelId: parsedChannelId } = parseChannelIdentifier(channelIdentifier);
-  let channelId = parsedChannelId;
-  let uploadsPlaylistId;
+  const channelResponse = await youtubeClient.fetch({
+    url: `${ YOUTUBE_API_BASE }/channels`,
+    params: {
+      part: 'contentDetails',
+      forHandle: handle,
+    },
+    context: fetchContext,
+    inspect,
+  });
 
-  if (!channelId) {
-    const channelResponse = await youtubeClient.fetch({
-      url: `${ YOUTUBE_API_BASE }/channels`,
-      params: {
-        part: 'contentDetails',
-        forHandle: handle,
-      },
-      context: fetchContext,
-      inspect,
-    });
-
-    if (!channelResponse.ok) {
-      return channelResponse;
-    }
-
-    const channel = channelResponse.data?.items?.[0];
-    channelId = channel?.id;
-    uploadsPlaylistId = channel?.contentDetails?.relatedPlaylists?.uploads;
-
-    if (!channelId) {
-      return {
-        ok: false,
-        error: {
-          code: 'CHANNEL_NOT_FOUND',
-          message: `No channel found for handle @${ handle }`,
-        },
-      };
-    }
+  if (!channelResponse.ok) {
+    return channelResponse;
   }
 
-  if (!uploadsPlaylistId) {
-    const channelDetailsResponse = await youtubeClient.fetch({
-      url: `${ YOUTUBE_API_BASE }/channels`,
-      params: {
-        part: 'contentDetails',
-        id: channelId,
+  const channel = channelResponse.data?.items?.[0];
+  const channelId = channel?.id;
+  const uploadsPlaylistId = channel?.contentDetails?.relatedPlaylists?.uploads;
+
+  if (!channelId) {
+    return {
+      ok: false,
+      error: {
+        code: 'CHANNEL_NOT_FOUND',
+        message: `No channel found for handle @${ handle }`,
       },
-      context: fetchContext,
-      inspect,
-    });
-
-    if (!channelDetailsResponse.ok) {
-      return channelDetailsResponse;
-    }
-
-    uploadsPlaylistId = channelDetailsResponse.data?.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+    };
   }
 
   if (!uploadsPlaylistId) {
@@ -272,7 +230,7 @@ const youtubeChannelVideosGet = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'channelIdentifier'],
+  argNames: ['credsPayload', 'channelHandle'],
   validatorsByArg,
 };
 
@@ -286,7 +244,7 @@ curl -X POST "http://localhost:8000/youtubeChannelVideosGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "youtube" },
-    "channelIdentifier": "https://www.youtube.com/________",
+    "channelHandle": "garyseconomics",
     "options": { "maxVideos": 5 }
   }'
 */
