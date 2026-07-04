@@ -817,6 +817,21 @@ const actionSingleOrMultiple = async (input, func, buildOpArgs, { queueRunOption
   return responseArrayToResponse(queueResponses);
 };
 
+const responseResultsByOutcome = (results) => {
+  const successes = [];
+  const failures = [];
+
+  for (const result of results) {
+    if (result?.ok) {
+      successes.push(result);
+    } else {
+      failures.push(result);
+    }
+  }
+
+  return { successes, failures };
+};
+
 module.exports = {
   wait,
   timeMs,
@@ -836,6 +851,7 @@ module.exports = {
   ensureArray,
   everyIfArray,
   responseArrayToResponse,
+  responseResultsByOutcome,
   Operation,
   OperationQueue,
   actionSingleOrMultiple,
