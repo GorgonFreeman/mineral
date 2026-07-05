@@ -42,7 +42,12 @@ const yotpoClient = new FetchClient({
 });
 
 const customerIdentifierValidator = (customerIdentifier) => {
-  return objHasAny(customerIdentifier, ['customerId', 'customerEmail', 'customerPhone', 'posAccountId']);
+  return objHasAny(customerIdentifier, [
+    'customerId', 
+    'customerEmail', 
+    'customerPhone', 
+    'posAccountId',
+  ]);
 };
 
 const validatorsByArg = {
@@ -61,7 +66,10 @@ const yotpoCustomerGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, customerIdentifier });
+  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { 
+    credsPayload, 
+    customerIdentifier, 
+  });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -98,7 +106,10 @@ const yotpoCustomerGet = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'customerIdentifier'],
+  argNames: [
+    'credsPayload', 
+    'customerIdentifier',
+  ],
   validatorsByArg,
 };
 
