@@ -8,3 +8,4 @@ Notes for AI assistants working in this directory. **Read this file at the start
 - When implementing API functions that mirror official functions, include a link to the documentation at the top of the file as a comment.
 - Don't add to this file unless asked.
 - Use snake_case for package.json commands, with colon if appropriate.
+- Use newlines and trailing commas where appropriate to minimise future diffs, e.g. in function args.
