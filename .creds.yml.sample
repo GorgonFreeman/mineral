@@ -12,7 +12,6 @@ youtube:
   API_KEY: _______________________________
 
 yotpo:
-  BASE_URL: https://loyalty.yotpo.com/api
   au:
     API_KEY: _____________________________
     GUID: ________________________________

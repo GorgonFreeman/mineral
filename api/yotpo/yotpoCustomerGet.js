@@ -12,13 +12,14 @@ const {
 const { credsValidator } = require('../validators');
 
 const DEFAULT_API_VERSION = 'v2';
+const BASE_URL = 'https://loyalty.yotpo.com/api';
 
 const yotpoClient = new FetchClient({
   requestPreparer: new Chain([
     async (state) => {
       const { requestPayload, context } = state;
       const { creds, apiVersion = DEFAULT_API_VERSION } = context;
-      const { BASE_URL, API_KEY, GUID } = creds;
+      const { API_KEY, GUID } = creds;
 
       return {
         requestPayload: {
@@ -113,7 +114,6 @@ curl -X POST "http://localhost:8000/yotpoCustomerGet" \
   -d '{
     "credsPayload": {
       "credsObject": {
-        "BASE_URL": "https://loyalty.yotpo.com/api",
         "API_KEY": "xxx",
         "GUID": "xxx"
       }
