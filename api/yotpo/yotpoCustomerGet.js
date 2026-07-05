@@ -1,51 +1,14 @@
 // https://loyaltyapi.yotpo.com/reference/fetch-customer-details
 
-const {
-  FetchClient,
-  Chain,
-  appendUrlToBase,
-  credsFromPayload,
-  objHasAny,
-  responseIfRejectingArgs,
-  fetchClientCommonSteps,
-} = require('../utils');
+const { credsFromPayload, objHasAny, responseIfRejectingArgs } = require('../utils');
 const { credsValidator } = require('../validators');
-
-const DEFAULT_API_VERSION = 'v2';
-const BASE_URL = 'https://loyalty.yotpo.com/api';
-
-const yotpoClient = new FetchClient({
-  requestPreparer: new Chain([
-    async (state) => {
-      const { requestPayload, context } = state;
-      const { creds, apiVersion = DEFAULT_API_VERSION } = context;
-      const { API_KEY, GUID } = creds;
-
-      return {
-        requestPayload: {
-          ...requestPayload,
-          url: appendUrlToBase(`${ BASE_URL }/${ apiVersion }`, requestPayload.url),
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': API_KEY,
-            'x-guid': GUID,
-            ...requestPayload.headers,
-          },
-        },
-      };
-    },
-  ]),
-  responseInterpreter: new Chain([
-    fetchClientCommonSteps.exitEarlyOnNotOk,
-    fetchClientCommonSteps.digToPath,
-  ]),
-});
+const { yotpoClient } = require('../yotpo/yotpo.utils');
 
 const customerIdentifierValidator = (customerIdentifier) => {
   return objHasAny(customerIdentifier, [
-    'customerId', 
-    'customerEmail', 
-    'customerPhone', 
+    'customerId',
+    'customerEmail',
+    'customerPhone',
     'posAccountId',
   ]);
 };
@@ -66,9 +29,9 @@ const yotpoCustomerGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { 
-    credsPayload, 
-    customerIdentifier, 
+  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+    credsPayload,
+    customerIdentifier,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -107,7 +70,7 @@ const yotpoCustomerGet = async (
 
 const funcApiConfig = {
   argNames: [
-    'credsPayload', 
+    'credsPayload',
     'customerIdentifier',
   ],
   validatorsByArg,
