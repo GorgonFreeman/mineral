@@ -91,7 +91,6 @@ const yotpoCustomerGet = async (
     context: {
       creds,
       apiVersion,
-      resultPath: 'customer',
     },
   });
 
