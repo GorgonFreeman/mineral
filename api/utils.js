@@ -832,6 +832,8 @@ const responseResultsByOutcome = (results) => {
   return { successes, failures };
 };
 
+const ifTextThenSpace = (text) => text ? `${ text } ` : '';
+
 class Processor extends EventEmitter {
   constructor(
     pile, 
