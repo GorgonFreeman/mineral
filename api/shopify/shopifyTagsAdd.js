@@ -1,9 +1,7 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/tagsAdd
 
-// TODO: Implement multiple or single functionality
-
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs } = require('../utils');
+const { responseIfRejectingArgs, actionSingleOrMultiple } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
 const validatorsByArg = {
@@ -14,7 +12,7 @@ const validatorsByArg = {
 
 const defaultAttrs = 'id';
 
-const shopifyTagsAdd = async (
+const shopifyTagsAddSingle = async (
   credsPayload,
   gid,
   tags,
@@ -23,15 +21,6 @@ const shopifyTagsAdd = async (
     returnAttrs = defaultAttrs,
   } = {},
 ) => {
-
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { 
-    credsPayload, 
-    gid, 
-    tags,
-  });
-  if (rejectResponse) {
-    return rejectResponse;
-  }
 
   return shopifyMutationDo(
     credsPayload,
@@ -53,10 +42,42 @@ const shopifyTagsAdd = async (
   );
 };
 
+const shopifyTagsAdd = async (
+  credsPayload,
+  gid,
+  tags,
+  {
+    queueRunOptions,
+    apiVersion,
+    returnAttrs = defaultAttrs,
+  } = {},
+) => {
+
+  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+    credsPayload,
+    gid,
+    tags,
+  });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  return actionSingleOrMultiple(
+    gid,
+    shopifyTagsAddSingle,
+    (gidItem) => ({
+      args: [credsPayload, gidItem, tags, { apiVersion, returnAttrs }],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
+    },
+  );
+};
+
 const funcApiConfig = {
   argNames: [
-    'credsPayload', 
-    'gid', 
+    'credsPayload',
+    'gid',
     'tags',
   ],
   validatorsByArg,
