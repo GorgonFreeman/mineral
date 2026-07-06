@@ -69,6 +69,9 @@ const shopifyCustomersGetPaginator = async (args, response) => {
 
 const shopifyCustomersGet = async (
   credsPayload,
+  {
+    ...getterOptions // e.g. limit
+  } = {},
 ) => {
 
   const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { 
@@ -98,6 +101,7 @@ const shopifyCustomersGet = async (
         return data;
       },
       paginator: shopifyCustomersGetPaginator,
+      ...getterOptions,
     },
   );
 
@@ -135,5 +139,14 @@ curl -X POST "http://localhost:8000/shopifyCustomersGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" }
+  }'
+
+curl -X POST "http://localhost:8000/shopifyCustomersGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "shopify.au" },
+    "options": {
+      "limit": 10
+    }
   }'
 */

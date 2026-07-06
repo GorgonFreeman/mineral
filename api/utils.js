@@ -1014,11 +1014,23 @@ class Getter extends EventEmitter {
         items = ensureArray(response);
       }
 
+      if (this.limit) {
+        const itemsLeft = this.limit - resultsCount;
+        items = items.slice(0, itemsLeft);
+      }
+
       this.emit('items', items);
+      resultsCount += items.length;
+
+      if (this.limit && resultsCount >= this.limit) {
+        done = true;
+        break;
+      }
 
       [done, paginatedArgs] = await paginator(paginatedArgs, response);
     }
 
+    console.log('resultsCount', resultsCount);
     this.emit('done');
   }
 }
