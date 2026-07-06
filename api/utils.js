@@ -965,6 +965,7 @@ class Getter extends EventEmitter {
       fetchClientArgs,
 
       limit,
+      // TODO: returnAllItems option or runAsFunction option
 
       onItems,
       onDone,
