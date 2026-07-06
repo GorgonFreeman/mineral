@@ -1006,8 +1006,9 @@ class Getter extends EventEmitter {
     let done = false;
     let paginatedParams = this.startingParams;
 
+    let allResults;
     if (returnAll) {
-      const allResults = [];
+      allResults = [];
     }
 
     while (!done) {
