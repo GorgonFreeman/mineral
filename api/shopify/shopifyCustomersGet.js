@@ -52,13 +52,15 @@ const shopifyCustomersGet = async (
     }],
     {
       fetchClient: shopifyClient,
-      // digester: (response) => {
-      //   if (!response?.ok) {
-      //     return null;
-      //   }
+      digester: (response) => {
+        const { ok, data } = response;
+        
+        if (!ok) {
+          return null; // TODO: Consider a way to break out as this is an error
+        }
 
-      //   return response.data;
-      // },
+        return data;
+      },
     },
   );
 
