@@ -57,11 +57,18 @@ const loadHandlers = () => {
       continue;
     }
 
+    const fileBaseName = path.basename(filePath, '.js');
+    const exportedValue = moduleExports[fileBaseName];
+
+    if (typeof exportedValue !== 'function') {
+      continue;
+    }
+
     const {
       funcApiConfig,
     } = moduleExports;
     const functionExportNames = Object.entries(moduleExports)
-      .filter(([exportName, exportedValue]) => exportName !== 'funcApiConfig' && typeof exportedValue === 'function')
+      .filter(([exportName, exportValue]) => exportName !== 'funcApiConfig' && typeof exportValue === 'function')
       .map(([exportName]) => exportName);
 
     const getFuncApiConfigForExport = (exportName) => {
@@ -74,41 +81,31 @@ const loadHandlers = () => {
         return configByExportName;
       }
 
-      // If there's only one function export and config isn't keyed by function names,
+      // If config isn't keyed by function names and this export matches the filename,
       // treat funcApiConfig as the config for that function.
       const configIsKeyedByFunctionName = functionExportNames.some((functionExportName) => funcApiConfig[functionExportName] !== undefined);
-      if (!configIsKeyedByFunctionName && functionExportNames.length === 1) {
+      if (!configIsKeyedByFunctionName && exportName === fileBaseName) {
         return funcApiConfig;
       }
     };
 
-    for (const [exportName, exportedValue] of Object.entries(moduleExports)) {
-      if (exportName === 'funcApiConfig') {
-        continue;
-      }
+    const exportFuncApiConfig = getFuncApiConfigForExport(fileBaseName);
+    const handler = exportFuncApiConfig
+      ? funcApi(exportedValue, exportFuncApiConfig)
+      : exportedValue;
 
-      if (typeof exportedValue !== 'function') {
-        continue;
-      }
-
-      const exportFuncApiConfig = getFuncApiConfigForExport(exportName);
-      const handler = exportFuncApiConfig
-        ? funcApi(exportedValue, exportFuncApiConfig)
-        : exportedValue;
-
-      const routePath = `/${ exportName }`;
-      if (routeToHandler.has(routePath)) {
-        const existing = routeToHandler.get(routePath);
-        throw new Error(`Duplicate handler route '${ routePath }' from ${ filePath } and ${ existing.filePath }`);
-      }
-
-      routeToHandler.set(routePath, {
-        filePath,
-        exportName,
-        handler,
-        usesFuncApi: Boolean(exportFuncApiConfig),
-      });
+    const routePath = `/${ fileBaseName }`;
+    if (routeToHandler.has(routePath)) {
+      const existing = routeToHandler.get(routePath);
+      throw new Error(`Duplicate handler route '${ routePath }' from ${ filePath } and ${ existing.filePath }`);
     }
+
+    routeToHandler.set(routePath, {
+      filePath,
+      exportName: fileBaseName,
+      handler,
+      usesFuncApi: Boolean(exportFuncApiConfig),
+    });
   }
 
   return routeToHandler;
