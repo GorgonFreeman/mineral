@@ -55,7 +55,8 @@ const shopifyGetPacket = async (
 const shopifyGetPaginator = async (currentParams, response) => {
 
   const { args, options } = currentParams;
-
+  
+  // Extract pagination info
   const { ok, meta } = response;
   const { pageInfo } = meta || {};
   const { hasNextPage, endCursor } = pageInfo || {};
@@ -63,18 +64,22 @@ const shopifyGetPaginator = async (currentParams, response) => {
   if (!ok) {
     return [true];
   }
-
+  
+  // Check if done
   if (!hasNextPage) {
     return [true];
   }
-
-  return [false, {
+  
+  // Supplement params with pagination info
+  const paginatedParams = {
     args,
     options: { 
       ...options,
       cursor: endCursor,
     },
-  }];
+  };
+
+  return [false, paginatedParams];
 };
 
 const shopifyGetDigester = (response) => {
