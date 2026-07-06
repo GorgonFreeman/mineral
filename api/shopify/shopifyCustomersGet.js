@@ -1,4 +1,4 @@
-const { credsFromPayload, responseIfRejectingArgs, Getter } = require('../utils');
+const { credsFromPayload, responseIfRejectingArgs, Getter, logDeep, askQuestion } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 
@@ -54,12 +54,17 @@ const shopifyCustomersGet = async (
       fetchClient: shopifyClient,
       digester: (response) => {
         const { ok, data } = response;
-        
+
         if (!ok) {
           return null; // TODO: Consider a way to break out as this is an error
         }
 
         return data;
+      },
+      paginator: async (paginatedArgs, response) => {
+        logDeep(paginatedArgs, response);
+        await askQuestion('?');
+        return [true, paginatedArgs];
       },
     },
   );

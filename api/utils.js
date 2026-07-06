@@ -1018,7 +1018,7 @@ class Getter extends EventEmitter {
 
       this.emit('items', items);
 
-      done = true;
+      [done, paginatedArgs] = await paginator(paginatedArgs, response);
     }
 
     this.emit('done');
