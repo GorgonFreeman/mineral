@@ -842,7 +842,7 @@ class Processor extends EventEmitter {
       pileSizeCheck = () => pile?.length,
       
       logFlavourText,
-      maxInFlightRequests = 10,
+      maxInFlightRequests = 10, // Prevent interval-mode hung actions from piling up
       runOptions = {},
       
       canFinish = true,
