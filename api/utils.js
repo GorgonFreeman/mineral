@@ -992,7 +992,36 @@ class Getter extends EventEmitter {
   }
 
   async run() {
-    
+
+    const { paginator, digester } = this;
+
+    const customFetchClient = this.fetchClient || new FetchClient();
+
+    let resultsCount = 0;
+    let done = false;
+    let paginatedRequestPayload;
+
+    while (!done) {
+      const response = await customFetchClient.fetch(
+        ...(paginatedRequestPayload ?? this.requestPayload),
+        ...(this.fetchClientArgs ?? {}),
+      );
+
+      logDeep(response);
+
+      const items = digester 
+        ? await digester(response) 
+        : (Array.isArray(response) 
+          ? response 
+          : [response]
+        );
+
+      this.emit('items', items);
+
+      done = true;
+    }
+
+    this.emit('done');
   }
 }
 
