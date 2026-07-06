@@ -1,6 +1,7 @@
 const { credsFromPayload, responseIfRejectingArgs, Getter, capitaliseString } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
+const { MAX_PER_PAGE } = require('./shopify.constants');
 
 const validatorsByArg = {
   credsPayload: credsValidator,
@@ -16,7 +17,7 @@ const shopifyGetPacket = async (
   {
     apiVersion,
 
-    perPage = 250,
+    perPage = MAX_PER_PAGE,
     cursor,
     queries,
     reverse,
