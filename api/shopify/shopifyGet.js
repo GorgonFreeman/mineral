@@ -77,6 +77,16 @@ const shopifyGetPaginator = async (currentParams, response) => {
   }];
 };
 
+const shopifyGetDigester = (response) => {
+  const { ok, data } = response;
+
+  if (!ok) {
+    return null; // TODO: Consider a way to break out as this is an error
+  }
+
+  return data;
+};
+
 const shopifyGet = async (
   credsPayload,
   resource,
@@ -105,20 +115,12 @@ const shopifyGet = async (
         creds, 
         resource, 
         resources, 
-        attrs,
+        attrs
       ],
     },
     {
       func: shopifyGetPacket,
-      digester: (response) => {
-        const { ok, data } = response;
-
-        if (!ok) {
-          return null; // TODO: Consider a way to break out as this is an error
-        }
-
-        return data;
-      },
+      digester: shopifyGetDigester,
       paginator: shopifyGetPaginator,
       ...getterOptions,
     },
