@@ -996,13 +996,19 @@ class Getter extends EventEmitter {
     }
   }
 
-  async run() {
+  async run({
+    returnAll = false,
+  } = {}) {
 
     const { paginator, digester } = this;
 
     let resultsCount = 0;
     let done = false;
     let paginatedParams = this.startingParams;
+
+    if (returnAll) {
+      const allResults = [];
+    }
 
     while (!done) {
       const response = await this.func(
@@ -1027,6 +1033,10 @@ class Getter extends EventEmitter {
       this.emit('items', items);
       resultsCount += items.length;
 
+      if (returnAll) {
+        allResults.push(...items);
+      }
+
       if (this.limit && resultsCount >= this.limit) {
         done = true;
         break;
@@ -1037,6 +1047,10 @@ class Getter extends EventEmitter {
 
     console.log('resultsCount', resultsCount);
     this.emit('done');
+    
+    if (returnAll) {
+      return allResults;
+    }
   }
 }
 
