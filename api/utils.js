@@ -1009,12 +1009,12 @@ class Getter extends EventEmitter {
 
       logDeep(response);
 
-      const items = digester 
-        ? await digester(response) 
-        : (Array.isArray(response) 
-          ? response 
-          : [response]
-        );
+      let items;
+      if (digester) {
+        items = await digester(response);
+      } else {
+        items = ensureArray(response);
+      }
 
       this.emit('items', items);
 
