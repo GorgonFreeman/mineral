@@ -1000,11 +1000,11 @@ class Getter extends EventEmitter {
 
     let resultsCount = 0;
     let done = false;
-    let paginatedArgs;
+    let paginatedArgs = this.initialArgs;
 
     while (!done) {
       const response = await customFetchClient.fetch(
-        ...(paginatedArgs ?? this.initialArgs),
+        ...paginatedArgs,
       );
 
       logDeep(response);
