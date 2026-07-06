@@ -53,8 +53,13 @@ const shopifyGetPacket = async (
 };
 
 const shopifyGetPaginator = async (args, response) => {
-  let [options, ...untouchedArgs] = args.reverse();
-  untouchedArgs = untouchedArgs.reverse();
+  let [
+    creds,
+    resource,
+    resources,
+    attrs,
+    options = {},
+  ] = args;
 
   const { ok, meta } = response;
   const { pageInfo } = meta || {};
@@ -69,11 +74,14 @@ const shopifyGetPaginator = async (args, response) => {
   }
 
   return [false, [
-    ...untouchedArgs, 
+    creds,
+    resource,
+    resources,
+    attrs,
     { 
       ...options, 
       cursor: endCursor, 
-    },
+    }, 
   ]];
 };
 
