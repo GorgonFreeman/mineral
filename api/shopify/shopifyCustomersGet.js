@@ -6,6 +6,35 @@ const validatorsByArg = {
   credsPayload: credsValidator,
 };
 
+const shopifyCustomersGetPage = async (
+  creds,
+) => {
+  return await shopifyClient.fetch({
+    method: 'post',
+    body: {
+      query: `
+        query CustomersGetPage($first: Int!) {
+          customers(first: $first) {
+            edges {
+              node {
+                id
+                email
+              }
+            }
+          }
+        }
+      `,
+      variables: {
+        first: 250,
+      },
+    },
+    context: {
+      creds,
+      resultPath: 'data.customers',
+    },
+  });
+};
+
 const shopifyCustomersGet = async (
   credsPayload,
 ) => {
@@ -22,36 +51,11 @@ const shopifyCustomersGet = async (
   const customers = [];
 
   const getter = new Getter(
-    [{
-      method: 'post',
-      body: {
-        query: `
-          query CustomersGet(
-            $first: Int!,
-          ) {
-            customers(
-              first: $first,
-            ) {
-              edges {
-                node {
-                  id
-                  email
-                }
-              }
-            }
-          }
-        `,
-        variables: {
-          first: 250,
-        },
-      },
-      context: {
-        creds,
-        resultPath: 'data.customers',
-      },
-    }],
+    [
+      creds,
+    ],
     {
-      fetchClient: shopifyClient,
+      func: shopifyCustomersGetPage,
       digester: (response) => {
         const { ok, data } = response;
 
@@ -64,7 +68,7 @@ const shopifyCustomersGet = async (
       paginator: async (paginatedArgs, response) => {
         logDeep(paginatedArgs, response);
         await askQuestion('?');
-        return [true, paginatedArgs];
+        return [false, paginatedArgs];
       },
     },
   );
