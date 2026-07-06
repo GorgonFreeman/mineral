@@ -4,6 +4,8 @@ const xml2js = require('xml2js');
 const readline = require('readline');
 const fs = require('fs').promises;
 const yaml = require('yaml');
+const { EventEmitter } = require('events');
+
 const { HOSTED } = require('./constants');
 
 const wait = (ms) => new Promise((resolve, reject) => setTimeout(resolve, ms));
