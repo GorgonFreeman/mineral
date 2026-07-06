@@ -87,7 +87,7 @@ const shopifyGetDigester = (response) => {
   return data;
 };
 
-const shopifyGet = async (
+const shopifyGetter = async (
   credsPayload,
   resource,
   {
@@ -126,21 +126,12 @@ const shopifyGet = async (
     },
   );
 
-  getter.on('items', (items) => {
-    console.log('items', items.length);
-    resourceItems.push(...items);
-  });
+  return getter;
+};
 
-  getter.on('done', () => {
-    console.log('done', resourceItems.length);
-  });
-
-  await getter.run();
-
-  return {
-    ok: true,
-    data: resourceItems,
-  };
+const shopifyGet = async (...args) => {
+  const getter = await shopifyGetter(...args);
+  return getter.run({ returnAll: true });
 };
 
 const funcApiConfig = {
@@ -153,6 +144,7 @@ const funcApiConfig = {
 
 module.exports = {
   shopifyGet,
+  shopifyGetter,
   funcApiConfig,
 };
 
