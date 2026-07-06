@@ -11,18 +11,23 @@ const shopifyGetPacket = async (
   // TODO: Consider where defaults should lie
   creds,
   resource,
-  resourcePlural,
+  resources,
   attrs,
   {
     cursor,
   } = {},
 ) => {
+
+  // Forgive me, this is a capital for legibility
+  const Resource = capitaliseString(resource);
+  const Resources = capitaliseString(resources);
+
   return await shopifyClient.fetch({
     method: 'post',
     body: {
       query: `
-        query ${ resourcePlural }Get($first: Int!, $after: String) {
-          ${ resourcePlural }(first: $first, after: $after) {
+        query ${ Resources }Get($first: Int!, $after: String) {
+          ${ resources }(first: $first, after: $after) {
             edges {
               node {
                 ${ attrs }
@@ -42,7 +47,7 @@ const shopifyGetPacket = async (
     },
     context: {
       creds,
-      resultPath: `data.${ resourcePlural }`,
+      resultPath: `data.${ resources }`,
     },
   });
 };
@@ -76,7 +81,7 @@ const shopifyGet = async (
   credsPayload,
   resource,
   {
-    resourcePlural,
+    resources = `${ resource }s`,
     attrs = 'id',
     ...getterOptions // e.g. limit
   } = {},
@@ -92,13 +97,13 @@ const shopifyGet = async (
 
   const creds = await credsFromPayload(credsPayload);
 
-  const resources = [];
+  const resourceItems = [];
 
   const getter = new Getter(
     [
       creds,
       resource,
-      resourcePlural,
+      resources,
       attrs,
     ],
     {
@@ -119,18 +124,18 @@ const shopifyGet = async (
 
   getter.on('items', (items) => {
     console.log('items', items.length);
-    resources.push(...items);
+    resourceItems.push(...items);
   });
 
   getter.on('done', () => {
-    console.log('done', resources.length);
+    console.log('done', resourceItems.length);
   });
 
   await getter.run();
 
   return {
     ok: true,
-    data: resources,
+    data: resourceItems,
   };
 };
 
@@ -152,14 +157,14 @@ curl -X POST "http://localhost:8000/shopifyGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
-    "resource": "customers"
+    "resource": "customer"
   }'
 
 curl -X POST "http://localhost:8000/shopifyGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
-    "resource": "customers",
+    "resource": "customer",
     "options": {
       "limit": 10
     }
