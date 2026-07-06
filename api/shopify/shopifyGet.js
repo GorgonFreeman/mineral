@@ -142,8 +142,8 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  shopifyGet: shopifyGet.bind(null, false),
-  shopifyGetter: shopifyGet.bind(null, true),
+  shopifyGet: (...args) => shopifyGet(false, ...args),
+  shopifyGetter: (...args) => shopifyGet(true, ...args),
   funcApiConfig,
 };
 
