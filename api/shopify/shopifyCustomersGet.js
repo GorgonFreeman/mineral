@@ -1,4 +1,4 @@
-const { credsFromPayload, responseIfRejectingArgs, Getter, logDeep, askQuestion } = require('../utils');
+const { credsFromPayload, responseIfRejectingArgs, Getter } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 
@@ -8,13 +8,16 @@ const validatorsByArg = {
 
 const shopifyCustomersGetPage = async (
   creds,
+  {
+    cursor,
+  } = {},
 ) => {
   return await shopifyClient.fetch({
     method: 'post',
     body: {
       query: `
-        query CustomersGetPage($first: Int!) {
-          customers(first: $first) {
+        query CustomersGetPage($first: Int!, $after: String) {
+          customers(first: $first, after: $after) {
             edges {
               node {
                 id
@@ -30,6 +33,7 @@ const shopifyCustomersGetPage = async (
       `,
       variables: {
         first: 250,
+        ...(cursor ? { after: cursor } : {}),
       },
     },
     context: {
@@ -37,6 +41,30 @@ const shopifyCustomersGetPage = async (
       resultPath: 'data.customers',
     },
   });
+};
+
+const shopifyCustomersGetPaginator = async (args, response) => {
+  const [creds, options] = args;
+
+  const { ok, meta } = response;
+  const { pageInfo } = meta || {};
+  const { hasNextPage, endCursor } = pageInfo || {};
+
+  if (!ok) {
+    return [true];
+  }
+
+  if (!hasNextPage) {
+    return [true];
+  }
+
+  return [false, [
+    creds, 
+    { 
+      ...options, 
+      cursor: endCursor, 
+    },
+  ]];
 };
 
 const shopifyCustomersGet = async (
@@ -69,11 +97,7 @@ const shopifyCustomersGet = async (
 
         return data;
       },
-      paginator: async (paginatedArgs, response) => {
-        logDeep(paginatedArgs, response);
-        await askQuestion('?');
-        return [false, paginatedArgs];
-      },
+      paginator: shopifyCustomersGetPaginator,
     },
   );
 
