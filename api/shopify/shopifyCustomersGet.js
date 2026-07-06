@@ -6,7 +6,7 @@ const validatorsByArg = {
   credsPayload: credsValidator,
 };
 
-const shopifyCustomersGetPage = async (
+const shopifyCustomersGetPacket = async (
   creds,
   {
     cursor,
@@ -16,7 +16,7 @@ const shopifyCustomersGetPage = async (
     method: 'post',
     body: {
       query: `
-        query CustomersGetPage($first: Int!, $after: String) {
+        query CustomersGet($first: Int!, $after: String) {
           customers(first: $first, after: $after) {
             edges {
               node {
@@ -90,7 +90,7 @@ const shopifyCustomersGet = async (
       creds,
     ],
     {
-      func: shopifyCustomersGetPage,
+      func: shopifyCustomersGetPacket,
       digester: (response) => {
         const { ok, data } = response;
 
