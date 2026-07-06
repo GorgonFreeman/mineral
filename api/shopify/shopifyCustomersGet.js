@@ -22,11 +22,43 @@ const shopifyCustomersGet = async (
   const customers = [];
 
   const getter = new Getter(
-    // {
-    //   url: '/customers',
-    // },
+    [{
+      method: 'post',
+      body: {
+        query: `
+          query CustomersGet(
+            $first: Int!,
+          ) {
+            customers(
+              first: $first,
+            ) {
+              edges {
+                node {
+                  id
+                  email
+                }
+              }
+            }
+          }
+        `,
+        variables: {
+          first: 250,
+        },
+      },
+      context: {
+        creds,
+        resultPath: 'data.customers',
+      },
+    }],
     {
       fetchClient: shopifyClient,
+      // digester: (response) => {
+      //   if (!response?.ok) {
+      //     return null;
+      //   }
+
+      //   return response.data;
+      // },
     },
   );
 
