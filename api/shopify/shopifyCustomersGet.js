@@ -1,70 +1,9 @@
 const { credsFromPayload, responseIfRejectingArgs, Getter } = require('../utils');
 const { credsValidator } = require('../validators');
-const { shopifyClient } = require('./shopify.utils');
+const { shopifyGet } = require('./shopifyGet');
 
 const validatorsByArg = {
   credsPayload: credsValidator,
-};
-
-const shopifyCustomersGetPacket = async (
-  creds,
-  {
-    cursor,
-  } = {},
-) => {
-  return await shopifyClient.fetch({
-    method: 'post',
-    body: {
-      query: `
-        query CustomersGet($first: Int!, $after: String) {
-          customers(first: $first, after: $after) {
-            edges {
-              node {
-                id
-                email
-              }
-            }
-            pageInfo {
-              hasNextPage
-              endCursor
-            }
-          }
-        }
-      `,
-      variables: {
-        first: 250,
-        ...(cursor ? { after: cursor } : {}),
-      },
-    },
-    context: {
-      creds,
-      resultPath: 'data.customers',
-    },
-  });
-};
-
-const shopifyCustomersGetPaginator = async (args, response) => {
-  const [creds, options] = args;
-
-  const { ok, meta } = response;
-  const { pageInfo } = meta || {};
-  const { hasNextPage, endCursor } = pageInfo || {};
-
-  if (!ok) {
-    return [true];
-  }
-
-  if (!hasNextPage) {
-    return [true];
-  }
-
-  return [false, [
-    creds, 
-    { 
-      ...options, 
-      cursor: endCursor, 
-    },
-  ]];
 };
 
 const shopifyCustomersGet = async (
@@ -81,45 +20,7 @@ const shopifyCustomersGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
-  const customers = [];
-
-  const getter = new Getter(
-    [
-      creds,
-    ],
-    {
-      func: shopifyCustomersGetPacket,
-      digester: (response) => {
-        const { ok, data } = response;
-
-        if (!ok) {
-          return null; // TODO: Consider a way to break out as this is an error
-        }
-
-        return data;
-      },
-      paginator: shopifyCustomersGetPaginator,
-      ...getterOptions,
-    },
-  );
-
-  getter.on('items', (items) => {
-    console.log('items', items.length);
-    customers.push(...items);
-  });
-
-  getter.on('done', () => {
-    console.log('done', customers.length);
-  });
-
-  await getter.run();
-
-  return {
-    ok: true,
-    data: customers,
-  };
+  return await shopifyGet(credsPayload, 'customer', { ...getterOptions });
 };
 
 const funcApiConfig = {
