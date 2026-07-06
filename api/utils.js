@@ -425,7 +425,7 @@ class FetchClient {
   async fetch({
     url,
 
-    // customAxios payload
+    // customFetch payload
     method,
     headers,
     params,
@@ -906,7 +906,7 @@ class Processor extends EventEmitter {
       if (pileExhausted) {
         
         // If interval, wait for all results to be in
-        if (this.canFinish &&interval && (startedCount !== completedCount)) {
+        if (this.canFinish && interval && (startedCount !== completedCount)) {
           verbose && console.log(`${ ifTextThenSpace(this.logFlavourText) }waiting for all operations to complete`);
           await wait(1000);
           continue;
