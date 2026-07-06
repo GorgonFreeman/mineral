@@ -1,4 +1,4 @@
-const { credsFromPayload, responseIfRejectingArgs, Getter } = require('../utils');
+const { credsFromPayload, responseIfRejectingArgs, Getter, capitaliseString } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 

@@ -14,7 +14,8 @@ const objHasAny = (obj, keys) => {
   return keys.some((key) => obj[key] !== undefined);
 };
 
-const capitaliseString = (value) => `${ value[0].toUpperCase() }${ value.slice(1) }`;
+const capitaliseString = (string) => `${ string[0].toUpperCase() }${ string.slice(1) }`;
+const sentenceCaseString = (string) => `${ string[0].toLowerCase() }${ string.slice(1) }`;
 
 const credsByPath = (credsPath, credsObject) => {
   const pathNodes = pathAsArray(credsPath);
