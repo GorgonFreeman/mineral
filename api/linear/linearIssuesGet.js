@@ -1,51 +1,8 @@
 // https://linear.app/developers/graphql
 
-const { FetchClient, credsFromPayload, responseIfRejectingArgs } = require('../utils');
+const { credsFromPayload, responseIfRejectingArgs } = require('../utils');
 const { credsValidator } = require('../validators');
-
-const LINEAR_GRAPHQL_URL = 'https://api.linear.app/graphql';
-
-const linearClient = new FetchClient({
-  requestPreparer: async (requestPayload, context) => {
-    const { creds } = context;
-    const { API_KEY } = creds;
-
-    return {
-      ...requestPayload,
-      method: requestPayload.method || 'post',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: API_KEY,
-        ...requestPayload.headers,
-      },
-    };
-  },
-  responseInterpreter: async (response) => {
-    if (!response.ok) {
-      return response;
-    }
-
-    const errors = response.data?.errors;
-
-    if (Array.isArray(errors) && errors.length) {
-      const message = errors
-        .map((error) => error?.message)
-        .filter(Boolean)
-        .join('; ');
-
-      return {
-        ok: false,
-        error: {
-          code: 'GRAPHQL_ERROR',
-          message: message || 'GraphQL request failed',
-          details: errors,
-        },
-      };
-    }
-
-    return response;
-  },
-});
+const { linearClient } = require('../linear/linear.utils');
 
 const validatorsByArg = {
   credsPayload: credsValidator,
@@ -74,8 +31,6 @@ const linearIssuesGet = async (
     : undefined;
 
   const response = await linearClient.fetch({
-    url: LINEAR_GRAPHQL_URL,
-    method: 'post',
     body: {
       query: `
         query IssuesGet($first: Int!, $filter: IssueFilter) {
