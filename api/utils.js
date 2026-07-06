@@ -832,6 +832,126 @@ const responseResultsByOutcome = (results) => {
   return { successes, failures };
 };
 
+class Processor extends EventEmitter {
+  constructor(
+    pile, 
+    action,
+    {
+      // defaults work for arrays
+      pileExhaustedCheck = () => pile?.length === 0,
+      pileSizeCheck = () => pile?.length,
+      
+      logFlavourText,
+      maxInFlightRequests = 10,
+      runOptions = {},
+      
+      canFinish = true,
+      onDone,
+    } = {},
+  ) {
+    super();
+    
+    this.pile = pile;
+    this.action = action;
+    this.pileExhaustedCheck = pileExhaustedCheck;
+    this.canFinish = canFinish;
+    this.pileSizeCheck = pileSizeCheck;
+    this.logFlavourText = logFlavourText;
+    this.maxInFlightRequests = maxInFlightRequests;
+    this.runOptions = runOptions;
+    
+    if (onDone) { 
+      this.on('done', onDone);
+    }
+  }
+  
+  getPileSize() {
+    return this.pileSizeCheck(this.pile);
+  }
+
+  getPileExhausted() {
+    return this.pileExhaustedCheck(this.pile);
+  }
+  
+  async run(
+    options = {},
+  ) {
+
+    const {
+      interval = false,
+      verbose = true,
+    } = { ...this.runOptions, ...options };
+    
+    let finished = false;
+    let results = [];
+    
+    let startedCount = 0;
+    let completedCount = 0;
+
+    const initialSize = this.getPileSize();
+
+    const executeAction = async () => {
+      const actionResult = await this.action(this.pile);
+      results.push(actionResult);
+      completedCount++;
+      
+      const pileSize = this.getPileSize();
+      verbose && console.log(`${ ifTextThenSpace(this.logFlavourText) }${ completedCount }/${ typeof initialSize === 'number' && initialSize > 0 ? `${ initialSize } > ` : '' }${ typeof pileSize === 'number' ? `${ pileSize }` : '?' }`);
+    };
+    
+    while (!finished) {
+      
+      const pileExhausted = this.getPileExhausted();
+      
+      if (pileExhausted) {
+        
+        // If interval, wait for all results to be in
+        if (this.canFinish &&interval && (startedCount !== completedCount)) {
+          verbose && console.log(`${ ifTextThenSpace(this.logFlavourText) }waiting for all operations to complete`);
+          await wait(1000);
+          continue;
+        }
+
+        if (this.canFinish) {
+          finished = true;
+          break;
+        }
+        
+        verbose && console.log(`${ ifTextThenSpace(this.logFlavourText) }waiting for permission to finish`);
+        await wait(3000);
+        continue;
+      }
+      
+      if (this.maxInFlightRequests) {
+        const requestsInFlight = startedCount - completedCount;
+        // console.log('requestsInFlight', requestsInFlight);
+        if (requestsInFlight >= this.maxInFlightRequests) {
+          verbose && console.log(`${ ifTextThenSpace(this.logFlavourText) }hitting max in flight requests, waiting for some to complete`);
+          await wait(3000);
+          continue;
+        }
+      }
+      
+      startedCount++;
+      
+      if (interval) {
+        (async () => {
+          await executeAction();
+        })();
+        
+        await wait(interval);
+        continue;
+      }
+      
+      await executeAction();
+    }
+    
+    verbose && console.log(`${ ifTextThenSpace(this.logFlavourText) }finished`);
+    this.emit('done');
+    return results;
+  }
+}
+
 module.exports = {
   wait,
   timeMs,
@@ -855,4 +975,5 @@ module.exports = {
   Operation,
   OperationQueue,
   actionSingleOrMultiple,
+  Processor,
 };
