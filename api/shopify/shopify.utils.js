@@ -1,5 +1,12 @@
 const { DEFAULT_API_VERSION } = require('../shopify/shopify.constants');
-const { FetchClient, Chain, appendUrlToBase, fetchClientCommonSteps } = require('../utils');
+const {
+  FetchClient,
+  Chain,
+  appendUrlToBase,
+  fetchClientCommonSteps,
+  pathAsArray,
+  objectDigNodeAtPath,
+} = require('../utils');
 
 const handleMutationUserErrors = async (state) => {
   const { response } = state;
@@ -69,11 +76,35 @@ const addUrlAndAuthHeaders = async (state) => {
   };
 };
 
+const movePageInfoToMeta = async (state) => {
+  const { response, context } = state;
+  const { resultPath } = context ?? {};
+
+  if (!response?.ok || !response?.data || !resultPath) {
+    return {};
+  }
+
+  const connection = objectDigNodeAtPath(response.data, pathAsArray(resultPath));
+
+  if (!connection?.pageInfo) {
+    return {};
+  }
+
+  return {
+    response: {
+      meta: {
+        pageInfo: connection.pageInfo,
+      },
+    },
+  };
+};
+
 const shopifyClientRequestPreparer = new Chain([
   addUrlAndAuthHeaders,
 ]);
 
 const shopifyClientResponseInterpreter = new Chain([
+  movePageInfoToMeta,
   fetchClientCommonSteps.stripEdgesAndNodes,
   fetchClientCommonSteps.collapseDataWithOneValue,
   fetchClientCommonSteps.exitEarlyOnNotOk,

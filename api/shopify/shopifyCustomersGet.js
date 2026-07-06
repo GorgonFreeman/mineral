@@ -21,6 +21,10 @@ const shopifyCustomersGetPage = async (
                 email
               }
             }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
           }
         }
       `,
