@@ -958,6 +958,7 @@ class Processor extends EventEmitter {
 
 class Getter extends EventEmitter {
   constructor(
+    // TODO: Rename to fetch client args as we're not really passing a payload anymore
     requestPayload,
     {
       paginator,
