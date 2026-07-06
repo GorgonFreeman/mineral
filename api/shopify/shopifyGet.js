@@ -48,7 +48,8 @@ const shopifyGetPacket = async (
 };
 
 const shopifyGetPaginator = async (args, response) => {
-  const [creds, options] = args;
+  let [options, ...untouchedArgs] = args.reverse();
+  untouchedArgs = untouchedArgs.reverse();
 
   const { ok, meta } = response;
   const { pageInfo } = meta || {};
@@ -63,7 +64,7 @@ const shopifyGetPaginator = async (args, response) => {
   }
 
   return [false, [
-    creds, 
+    ...untouchedArgs, 
     { 
       ...options, 
       cursor: endCursor, 
