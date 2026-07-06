@@ -954,6 +954,9 @@ class Processor extends EventEmitter {
   }
 }
 
+class Getter extends EventEmitter {
+}
+
 module.exports = {
   wait,
   timeMs,
@@ -978,4 +981,5 @@ module.exports = {
   OperationQueue,
   actionSingleOrMultiple,
   Processor,
+  Getter,
 };
