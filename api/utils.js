@@ -963,7 +963,7 @@ class Getter extends EventEmitter {
       paginator,
       digester,
       
-      fetchClient,
+      func = customFetch,
 
       limit,
       // TODO: returnAllItems option or runAsFunction option
@@ -978,8 +978,8 @@ class Getter extends EventEmitter {
     
     this.paginator = paginator;
     this.digester = digester;
-    
-    this.fetchClient = fetchClient;
+
+    this.func = func;
 
     this.limit = limit;
 
@@ -996,14 +996,12 @@ class Getter extends EventEmitter {
 
     const { paginator, digester } = this;
 
-    const customFetchClient = this.fetchClient || new FetchClient();
-
     let resultsCount = 0;
     let done = false;
     let paginatedArgs = this.initialArgs;
 
     while (!done) {
-      const response = await customFetchClient.fetch(
+      const response = await this.func(
         ...paginatedArgs,
       );
 
