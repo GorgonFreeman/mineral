@@ -959,7 +959,7 @@ class Processor extends EventEmitter {
 
 class Getter extends EventEmitter {
   constructor(
-    initialArgs,
+    startingParams,
     {
       paginator,
       digester,
@@ -975,7 +975,10 @@ class Getter extends EventEmitter {
   ) {
     super();
 
-    this.initialArgs = initialArgs;
+    this.startingParams = {
+      args: startingParams?.args || [],
+      options: startingParams?.options || {},
+    };
     
     this.paginator = paginator;
     this.digester = digester;
@@ -999,11 +1002,12 @@ class Getter extends EventEmitter {
 
     let resultsCount = 0;
     let done = false;
-    let paginatedArgs = this.initialArgs;
+    let paginatedParams = this.startingParams;
 
     while (!done) {
       const response = await this.func(
-        ...paginatedArgs,
+        ...paginatedParams.args,
+        paginatedParams.options,
       );
 
       logDeep(response);
@@ -1028,7 +1032,7 @@ class Getter extends EventEmitter {
         break;
       }
 
-      [done, paginatedArgs] = await paginator(paginatedArgs, response);
+      [done, paginatedParams] = await paginator(paginatedParams, response);
     }
 
     console.log('resultsCount', resultsCount);

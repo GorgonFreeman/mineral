@@ -52,14 +52,9 @@ const shopifyGetPacket = async (
   });
 };
 
-const shopifyGetPaginator = async (args, response) => {
-  let [
-    creds,
-    resource,
-    resources,
-    attrs,
-    options = {},
-  ] = args;
+const shopifyGetPaginator = async (currentParams, response) => {
+
+  const { args, options } = currentParams;
 
   const { ok, meta } = response;
   const { pageInfo } = meta || {};
@@ -73,16 +68,13 @@ const shopifyGetPaginator = async (args, response) => {
     return [true];
   }
 
-  return [false, [
-    creds,
-    resource,
-    resources,
-    attrs,
-    { 
-      ...options, 
-      cursor: endCursor, 
-    }, 
-  ]];
+  return [false, {
+    args,
+    options: { 
+      ...options,
+      cursor: endCursor,
+    },
+  }];
 };
 
 const shopifyGet = async (
@@ -108,12 +100,14 @@ const shopifyGet = async (
   const resourceItems = [];
 
   const getter = new Getter(
-    [
-      creds,
-      resource,
-      resources,
-      attrs,
-    ],
+    {
+      args: [
+        creds, 
+        resource, 
+        resources, 
+        attrs,
+      ],
+    },
     {
       func: shopifyGetPacket,
       digester: (response) => {
