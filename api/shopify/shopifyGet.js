@@ -7,7 +7,12 @@ const validatorsByArg = {
 };
 
 const shopifyGetPacket = async (
+  // options on the main function can become args on the packet get if they have defaults
+  // TODO: Consider where defaults should lie
   creds,
+  resource,
+  resourcePlural,
+  attrs,
   {
     cursor,
   } = {},
@@ -16,12 +21,11 @@ const shopifyGetPacket = async (
     method: 'post',
     body: {
       query: `
-        query CustomersGet($first: Int!, $after: String) {
-          customers(first: $first, after: $after) {
+        query ${ resourcePlural }Get($first: Int!, $after: String) {
+          ${ resourcePlural }(first: $first, after: $after) {
             edges {
               node {
-                id
-                email
+                ${ attrs }
               }
             }
             pageInfo {
@@ -38,7 +42,7 @@ const shopifyGetPacket = async (
     },
     context: {
       creds,
-      resultPath: 'data.customers',
+      resultPath: `data.${ resourcePlural }`,
     },
   });
 };
@@ -69,13 +73,17 @@ const shopifyGetPaginator = async (args, response) => {
 
 const shopifyGet = async (
   credsPayload,
+  resource,
   {
+    resourcePlural,
+    attrs = 'id',
     ...getterOptions // e.g. limit
   } = {},
 ) => {
 
   const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { 
     credsPayload,
+    resource,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -83,11 +91,14 @@ const shopifyGet = async (
 
   const creds = await credsFromPayload(credsPayload);
 
-  const customers = [];
+  const resources = [];
 
   const getter = new Getter(
     [
       creds,
+      resource,
+      resourcePlural,
+      attrs,
     ],
     {
       func: shopifyGetPacket,
@@ -107,24 +118,25 @@ const shopifyGet = async (
 
   getter.on('items', (items) => {
     console.log('items', items.length);
-    customers.push(...items);
+    resources.push(...items);
   });
 
   getter.on('done', () => {
-    console.log('done', customers.length);
+    console.log('done', resources.length);
   });
 
   await getter.run();
 
   return {
     ok: true,
-    data: customers,
+    data: resources,
   };
 };
 
 const funcApiConfig = {
   argNames: [
     'credsPayload',
+    'resource',
   ],
   validatorsByArg,
 };
@@ -138,13 +150,15 @@ module.exports = {
 curl -X POST "http://localhost:8000/shopifyGet" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "shopify.au" }
+    "credsPayload": { "credsPath": "shopify.au" },
+    "resource": "customers"
   }'
 
 curl -X POST "http://localhost:8000/shopifyGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
+    "resource": "customers",
     "options": {
       "limit": 10
     }
