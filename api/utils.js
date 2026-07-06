@@ -958,14 +958,12 @@ class Processor extends EventEmitter {
 
 class Getter extends EventEmitter {
   constructor(
-    // TODO: Rename to fetch client args as we're not really passing a payload anymore
-    requestPayload,
+    initialArgs,
     {
       paginator,
       digester,
       
       fetchClient,
-      fetchClientArgs,
 
       limit,
       // TODO: returnAllItems option or runAsFunction option
@@ -976,13 +974,12 @@ class Getter extends EventEmitter {
   ) {
     super();
 
-    this.requestPayload = requestPayload;
+    this.initialArgs = initialArgs;
     
     this.paginator = paginator;
     this.digester = digester;
     
     this.fetchClient = fetchClient;
-    this.fetchClientArgs = fetchClientArgs;
 
     this.limit = limit;
 
@@ -1003,12 +1000,11 @@ class Getter extends EventEmitter {
 
     let resultsCount = 0;
     let done = false;
-    let paginatedRequestPayload;
+    let paginatedArgs;
 
     while (!done) {
       const response = await customFetchClient.fetch(
-        ...(paginatedRequestPayload ?? this.requestPayload),
-        ...(this.fetchClientArgs ?? {}),
+        ...(paginatedArgs ?? this.initialArgs),
       );
 
       logDeep(response);
