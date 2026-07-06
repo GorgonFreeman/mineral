@@ -955,6 +955,45 @@ class Processor extends EventEmitter {
 }
 
 class Getter extends EventEmitter {
+  constructor(
+    requestPayload,
+    {
+      paginator,
+      digester,
+      
+      fetchClient,
+      fetchClientArgs,
+
+      limit,
+
+      onItems,
+      onDone,
+    } = {},
+  ) {
+    super();
+
+    this.requestPayload = requestPayload;
+    
+    this.paginator = paginator;
+    this.digester = digester;
+    
+    this.fetchClient = fetchClient;
+    this.fetchClientArgs = fetchClientArgs;
+
+    this.limit = limit;
+
+    if (onItems) {
+      this.on('items', onItems);
+    }
+
+    if (onDone) {
+      this.on('done', onDone);
+    }
+  }
+
+  async run() {
+    
+  }
 }
 
 module.exports = {
