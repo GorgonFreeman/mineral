@@ -8,7 +8,7 @@ const defaultAttrs = 'id';
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['resource', Boolean],
+  ['resource'],
   ['id', (id, context) => resourcesNotRequiringId.includes(context.resource) || Boolean(id)],
 ]);
 
