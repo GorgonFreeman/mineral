@@ -1101,6 +1101,77 @@ class Getter extends EventEmitter {
   }
 }
 
+const valueProvided = (value) => value !== undefined && value !== null;
+
+class ArgsWarden {
+  constructor(argValidatorTuples) {
+    this.config = {};
+    for (const [arg, validator] of argValidatorTuples) {
+      this.config[arg] = validator || valueProvided;
+    }
+  }
+
+  argNames() {
+    return Object.keys(this.config);
+  }
+
+  async validate(
+    args, 
+    { // options
+      context = {},
+    } = {},
+  ) {
+
+    for (const [argName, argValue] of Object.entries(args)) {
+      const validator = this.config[argName];
+      const valid = await validator(argValue, context);
+
+      if (!valid) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  async validateToMessages(
+    args, 
+    { // options
+      context = {},
+    } = {},
+  ) {
+    const rejectArgsMessages = [];
+
+    for (const [argName, argValue] of Object.entries(args)) {
+      const validator = this.config[argName];
+      const valid = await validator(argValue, context);
+
+      if (!valid) {
+        rejectArgsMessages.push(`Invalid '${ argName }'`);
+      }
+    }
+
+    return rejectArgsMessages;
+  }
+
+  async responseIfRejectingArgs(...args) {
+    const rejectArgsMessages = await this.validateToMessages(...args);
+
+    if (rejectArgsMessages.length > 0) {
+      return {
+        ok: false,
+        error: {
+          code: 'INVALID_ARGS',
+          message: rejectArgsMessages.join('; '),
+          ...(rejectArgsMessages.length > 1 ? { details: rejectArgsMessages } : {}),
+        },
+      };
+    }
+  
+    return false;
+  }
+}
+
 module.exports = {
   wait,
   timeMs,
@@ -1130,4 +1201,5 @@ module.exports = {
   Getter,
   capitaliseString,
   sentenceCaseString,
+  ArgsWarden,
 };
