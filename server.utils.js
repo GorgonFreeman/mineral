@@ -80,8 +80,6 @@ const argsFromBody = (body) => {
   return [body];
 };
 
-const valueProvided = (value) => value !== undefined && value !== null;
-
 const mergeRequestContext = (requestContext, update) => {
   if (!update || typeof update !== 'object') {
     return requestContext;
@@ -122,8 +120,6 @@ const funcApi = (func, config = {}) => {
   const {
     requestHandler,
     argsWarden,
-    argNames,
-    validatorsByArg = {},
     validators = [],
     requestVerifiers = [],
     bodyModifiers = [],
@@ -131,7 +127,7 @@ const funcApi = (func, config = {}) => {
     passThroughBody = false,
   } = config;
 
-  const resolvedArgNames = argsWarden?.argNames() ?? argNames;
+  const argNames = argsWarden?.argNames();
 
   return async ({
     req,
@@ -177,31 +173,11 @@ const funcApi = (func, config = {}) => {
 
     if (argsWarden) {
       const rejectResponse = await argsWarden.responseIfRejectingArgs(
-        Object.fromEntries(resolvedArgNames.map((argName) => [argName, modifiedBody?.[argName]])),
+        Object.fromEntries(argNames.map((argName) => [argName, modifiedBody?.[argName]])),
         { context: modifiedBody },
       );
       if (rejectResponse) {
         return rejectResponse;
-      }
-    } else if (argNames?.length) {
-      for (const argName of argNames) {
-        const validator = validatorsByArg[argName] || valueProvided;
-        const valid = await validator(
-          modifiedBody?.[argName],
-          modifiedBody,
-          requestContext.req,
-          requestContext.res,
-          requestContext,
-        );
-        if (!valid) {
-          return {
-            ok: false,
-            error: {
-              code: 'INVALID_ARGS',
-              message: `Invalid arg: ${ argName }`,
-            },
-          };
-        }
       }
     }
 
@@ -228,11 +204,11 @@ const funcApi = (func, config = {}) => {
       callArgs = [requestContext.req];
     } else if (passThroughBody) {
       callArgs = [modifiedBody];
-    } else if (resolvedArgNames?.length) {
-      callArgs = resolvedArgNames.map((argName) => modifiedBody?.[argName]);
+    } else if (argNames?.length) {
+      callArgs = argNames.map((argName) => modifiedBody?.[argName]);
 
       if (
-        !resolvedArgNames.includes('options')
+        !argNames.includes('options')
         && modifiedBody?.options !== undefined
       ) {
         callArgs.push(modifiedBody.options);
