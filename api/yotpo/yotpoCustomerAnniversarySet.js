@@ -9,7 +9,7 @@ const monthValidator = Number;
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['customerEmail', Boolean],
+  ['customerEmail'],
   ['day', dayValidator],
   ['month', monthValidator],
 ]);

@@ -6,7 +6,7 @@ const { yotpoClient } = require('../yotpo/yotpo.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['customerEmail', Boolean],
+  ['customerEmail'],
 ]);
 
 const yotpoCustomerAnniversaryGet = async (

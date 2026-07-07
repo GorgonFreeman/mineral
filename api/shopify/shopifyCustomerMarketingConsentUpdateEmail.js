@@ -15,7 +15,7 @@ const consentPayloadValidator = (consentPayload) => {
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['customerId', Boolean],
+  ['customerId'],
   ['consentPayload', consentPayloadValidator],
 ]);
 

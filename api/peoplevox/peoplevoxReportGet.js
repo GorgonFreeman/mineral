@@ -4,7 +4,7 @@ const { peoplevoxClient } = require('../peoplevox/peoplevox.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['reportName', Boolean],
+  ['reportName'],
 ]);
 
 const peoplevoxReportGet = async (

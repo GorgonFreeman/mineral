@@ -6,7 +6,7 @@ const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['gid', Boolean],
+  ['gid'],
   ['tags', Array],
 ]);
 

@@ -6,7 +6,7 @@ const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['pageId', Boolean],
+  ['pageId'],
 ]);
 
 const shopifyPageDelete = async (

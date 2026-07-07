@@ -8,7 +8,7 @@ const defaultAttrs = 'id title handle';
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['thingId', Boolean],
+  ['thingId'],
 ]);
 
 const FUNC = async (

@@ -6,7 +6,7 @@ const { yotpoClient } = require('../yotpo/yotpo.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['email', Boolean],
+  ['email'],
 ]);
 
 const yotpoCustomerUpsert = async (

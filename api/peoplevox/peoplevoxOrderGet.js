@@ -4,7 +4,7 @@ const { peoplevoxGetSingle } = require('../peoplevox/peoplevoxGetSingle');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['salesOrderNumber', Boolean],
+  ['salesOrderNumber'],
 ]);
 
 const peoplevoxOrderGet = async (

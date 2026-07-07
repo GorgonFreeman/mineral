@@ -3,7 +3,7 @@ const { ArgsWarden } = require('./utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['arg', Boolean],
+  ['arg'],
 ]);
 
 const FUNC = async (

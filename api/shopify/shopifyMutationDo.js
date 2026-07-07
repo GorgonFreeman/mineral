@@ -4,7 +4,7 @@ const { shopifyClient } = require('./shopify.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['mutationName', Boolean],
+  ['mutationName'],
 ]);
 
 const shopifyMutationDo = async (

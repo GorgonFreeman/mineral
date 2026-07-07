@@ -86,7 +86,7 @@ const formatVideo = (video) => {
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['channelHandle', Boolean],
+  ['channelHandle'],
 ]);
 
 const youtubeChannelVideosGet = async (

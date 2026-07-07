@@ -8,7 +8,7 @@ const searchParametersValidator = ({ searchClause, id, idName }) => {
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['templateName', Boolean],
+  ['templateName'],
   ['searchParameters', searchParametersValidator],
 ]);
 
