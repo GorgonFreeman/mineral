@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/create-redemption
 
-const { credsFromPayload, objHasAny, responseIfRejectingArgs } = require('../utils');
+const { credsFromPayload, objHasAny, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -15,11 +15,11 @@ const customerIdentifierValidator = (customerIdentifier) => {
 
 const redemptionOptionIdValidator = Number;
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  customerIdentifier: customerIdentifierValidator,
-  redemptionOptionId: redemptionOptionIdValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['customerIdentifier', customerIdentifierValidator],
+  ['redemptionOptionId', redemptionOptionIdValidator],
+]);
 
 const yotpoRedemptionCreate = async (
   credsPayload,
@@ -34,7 +34,7 @@ const yotpoRedemptionCreate = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     customerIdentifier,
     redemptionOptionId,
@@ -77,12 +77,7 @@ const yotpoRedemptionCreate = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload',
-    'customerIdentifier',
-    'redemptionOptionId',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

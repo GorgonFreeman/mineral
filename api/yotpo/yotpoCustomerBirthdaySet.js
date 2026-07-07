@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/set-customer-birthday
 
-const { credsFromPayload, objHasAny, responseIfRejectingArgs } = require('../utils');
+const { credsFromPayload, objHasAny, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -14,12 +14,12 @@ const customerIdentifierValidator = (customerIdentifier) => {
 const dayValidator = Number;
 const monthValidator = Number;
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  customerIdentifier: customerIdentifierValidator,
-  day: dayValidator,
-  month: monthValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['customerIdentifier', customerIdentifierValidator],
+  ['day', dayValidator],
+  ['month', monthValidator],
+]);
 
 const yotpoCustomerBirthdaySet = async (
   credsPayload,
@@ -32,7 +32,7 @@ const yotpoCustomerBirthdaySet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     customerIdentifier,
     day,
@@ -71,13 +71,7 @@ const yotpoCustomerBirthdaySet = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload',
-    'customerIdentifier',
-    'day',
-    'month',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

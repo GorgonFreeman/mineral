@@ -1,15 +1,15 @@
-const { credsFromPayload, customFetch, responseIfRejectingArgs } = require('../utils');
+const { credsFromPayload, customFetch, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+]);
 
 const peoplevoxAuthGet = async (
   credsPayload,
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -70,8 +70,7 @@ const peoplevoxAuthGet = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload'],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

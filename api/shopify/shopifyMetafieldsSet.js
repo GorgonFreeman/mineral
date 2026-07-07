@@ -1,7 +1,7 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/metafieldsset
 
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs, actionSingleOrMultiple, arrayToChunks } = require('../utils');
+const { actionSingleOrMultiple, arrayToChunks, ArgsWarden } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 const { MAX_METAFIELDS_PER_SET } = require('../shopify/shopify.constants');
 
@@ -9,10 +9,10 @@ const metafieldsValidator = (metafields) => {
   return Array.isArray(metafields) && metafields.length > 0;
 };
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  metafields: metafieldsValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['metafields', metafieldsValidator],
+]);
 
 const defaultAttrs = 'id namespace key type value';
 
@@ -53,7 +53,7 @@ const shopifyMetafieldsSet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     metafields,
   });
@@ -76,11 +76,7 @@ const shopifyMetafieldsSet = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload',
-    'metafields',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

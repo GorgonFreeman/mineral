@@ -1,15 +1,15 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/queries/page
 
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { shopifyGetSingle } = require('../shopify/shopifyGetSingle');
 
 const defaultAttrs = 'id title handle templateSuffix';
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  pageId: Boolean,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['pageId', Boolean],
+]);
 
 const shopifyPageGet = async (
   credsPayload,
@@ -20,7 +20,7 @@ const shopifyPageGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, pageId });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, pageId });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -37,8 +37,7 @@ const shopifyPageGet = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'pageId'],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

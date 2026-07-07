@@ -1,13 +1,13 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/pageDelete
 
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  thingId: Boolean,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['thingId', Boolean],
+]);
 
 const FUNC = async (
   credsPayload,
@@ -18,7 +18,7 @@ const FUNC = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, thingId });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, thingId });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -40,8 +40,7 @@ const FUNC = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'thingId'],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

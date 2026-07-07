@@ -1,18 +1,18 @@
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs, logDeep } = require('../utils');
+const { logDeep, ArgsWarden } = require('../utils');
 const { peoplevoxGetSingle } = require('../peoplevox/peoplevoxGetSingle');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  salesOrderNumber: Boolean,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['salesOrderNumber', Boolean],
+]);
 
 const FUNC = async (
   credsPayload,
   salesOrderNumber,
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, salesOrderNumber });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, salesOrderNumber });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -31,8 +31,7 @@ const FUNC = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'salesOrderNumber'],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

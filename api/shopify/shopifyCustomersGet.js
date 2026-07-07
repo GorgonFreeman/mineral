@@ -1,10 +1,10 @@
-const { credsFromPayload, responseIfRejectingArgs, Getter } = require('../utils');
+const { credsFromPayload, Getter, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyGet } = require('./shopifyGet');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+]);
 
 const shopifyCustomersGet = async (
   credsPayload,
@@ -13,7 +13,7 @@ const shopifyCustomersGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { 
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
     credsPayload,
   });
   if (rejectResponse) {
@@ -24,10 +24,7 @@ const shopifyCustomersGet = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

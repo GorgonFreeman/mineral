@@ -1,7 +1,7 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/queries/customer
 
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs, objHasAny, credsFromPayload } = require('../utils');
+const { objHasAny, credsFromPayload, ArgsWarden } = require('../utils');
 const { shopifyGetSingle } = require('../shopify/shopifyGetSingle');
 const { shopifyClient } = require('../shopify/shopify.utils');
 
@@ -16,10 +16,10 @@ const customerIdentifierValidator = (customerIdentifier) => {
   ]);
 };
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  customerIdentifier: customerIdentifierValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['customerIdentifier', customerIdentifierValidator],
+]);
 
 const shopifyCustomerGet = async (
   credsPayload,
@@ -30,7 +30,7 @@ const shopifyCustomerGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, customerIdentifier });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, customerIdentifier });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -87,11 +87,7 @@ const shopifyCustomerGet = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload', 
-    'customerIdentifier',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

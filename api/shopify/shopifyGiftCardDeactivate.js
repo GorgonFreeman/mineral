@@ -1,12 +1,13 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/giftCardDeactivate
 
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['giftCardId'],
+]);
 
 const shopifyGiftCardDeactivate = async (
   credsPayload,
@@ -17,7 +18,7 @@ const shopifyGiftCardDeactivate = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, giftCardId });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, giftCardId });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -39,11 +40,7 @@ const shopifyGiftCardDeactivate = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload', 
-    'giftCardId',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

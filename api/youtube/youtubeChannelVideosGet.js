@@ -1,6 +1,6 @@
 // https://developers.google.com/youtube/v3/guides/implementation/videos
 
-const { FetchClient, credsFromPayload, responseIfRejectingArgs } = require('../utils');
+const { FetchClient, credsFromPayload, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
@@ -84,10 +84,10 @@ const formatVideo = (video) => {
   };
 };
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  channelHandle: Boolean,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['channelHandle', Boolean],
+]);
 
 const youtubeChannelVideosGet = async (
   credsPayload,
@@ -98,7 +98,7 @@ const youtubeChannelVideosGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     channelHandle,
   });
@@ -230,8 +230,7 @@ const youtubeChannelVideosGet = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'channelHandle'],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

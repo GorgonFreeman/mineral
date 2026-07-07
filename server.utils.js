@@ -174,7 +174,7 @@ const funcApi = (func, config = {}) => {
     if (argsWarden) {
       const rejectResponse = await argsWarden.responseIfRejectingArgs(
         Object.fromEntries(argNames.map((argName) => [argName, modifiedBody?.[argName]])),
-        { context: modifiedBody },
+        { body: modifiedBody },
       );
       if (rejectResponse) {
         return rejectResponse;

@@ -1,10 +1,10 @@
-const { credsFromPayload, logDeep, responseIfRejectingArgs } = require('../utils');
+const { credsFromPayload, logDeep, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+]);
 
 const shopifyOrdersGet = async (
   credsPayload,
@@ -16,7 +16,7 @@ const shopifyOrdersGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -71,8 +71,7 @@ const shopifyOrdersGet = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload'],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

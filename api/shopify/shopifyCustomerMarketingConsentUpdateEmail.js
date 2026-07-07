@@ -1,7 +1,7 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/customeremailmarketingconsentupdate
 
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs, objHasAny } = require('../utils');
+const { objHasAny, ArgsWarden } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
 const consentPayloadValidator = (consentPayload) => {
@@ -13,11 +13,11 @@ const consentPayloadValidator = (consentPayload) => {
   ]);
 };
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  customerId: Boolean,
-  consentPayload: consentPayloadValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['customerId', Boolean],
+  ['consentPayload', consentPayloadValidator],
+]);
 
 const defaultReturnCustomerAttrs = 'email emailMarketingConsent { marketingState consentUpdatedAt marketingOptInLevel }';
 
@@ -31,7 +31,7 @@ const shopifyCustomerMarketingConsentUpdateEmail = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     customerId,
     consentPayload,
@@ -62,12 +62,7 @@ const shopifyCustomerMarketingConsentUpdateEmail = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload',
-    'customerId',
-    'consentPayload',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

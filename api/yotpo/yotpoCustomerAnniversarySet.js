@@ -1,18 +1,18 @@
 // https://loyaltyapi.yotpo.com/reference/createupdate-customer-anniversary
 
-const { credsFromPayload, responseIfRejectingArgs } = require('../utils');
+const { credsFromPayload, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
 const dayValidator = Number;
 const monthValidator = Number;
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  customerEmail: Boolean,
-  day: dayValidator,
-  month: monthValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['customerEmail', Boolean],
+  ['day', dayValidator],
+  ['month', monthValidator],
+]);
 
 const yotpoCustomerAnniversarySet = async (
   credsPayload,
@@ -25,7 +25,7 @@ const yotpoCustomerAnniversarySet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     customerEmail,
     day,
@@ -58,13 +58,7 @@ const yotpoCustomerAnniversarySet = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload',
-    'customerEmail',
-    'day',
-    'month',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

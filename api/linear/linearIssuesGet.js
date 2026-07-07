@@ -1,12 +1,12 @@
 // https://linear.app/developers/graphql
 
-const { credsFromPayload, responseIfRejectingArgs } = require('../utils');
+const { credsFromPayload, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { linearClient } = require('../linear/linear.utils');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+]);
 
 const linearIssuesGet = async (
   credsPayload,
@@ -17,7 +17,7 @@ const linearIssuesGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
   });
   if (rejectResponse) {
@@ -80,8 +80,7 @@ const linearIssuesGet = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload'],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

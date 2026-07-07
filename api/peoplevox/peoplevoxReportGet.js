@@ -1,11 +1,11 @@
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { peoplevoxClient } = require('../peoplevox/peoplevox.utils');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  reportName: Boolean,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['reportName', Boolean],
+]);
 
 const peoplevoxReportGet = async (
   credsPayload,
@@ -19,7 +19,7 @@ const peoplevoxReportGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, reportName });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, reportName });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -46,8 +46,7 @@ const peoplevoxReportGet = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'reportName'],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

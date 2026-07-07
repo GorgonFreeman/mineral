@@ -1084,13 +1084,13 @@ class ArgsWarden {
   async validate(
     args, 
     { // options
-      context = {},
+      body,
     } = {},
   ) {
 
     for (const [argName, argValue] of Object.entries(args)) {
       const validator = this.config[argName];
-      const valid = await validator(argValue, context);
+      const valid = await validator(argValue, body);
 
       if (!valid) {
         return false;
@@ -1103,14 +1103,14 @@ class ArgsWarden {
   async validateToMessages(
     args, 
     { // options
-      context = {},
+      body,
     } = {},
   ) {
     const rejectArgsMessages = [];
 
     for (const [argName, argValue] of Object.entries(args)) {
       const validator = this.config[argName];
-      const valid = await validator(argValue, context);
+      const valid = await validator(argValue, body);
 
       if (!valid) {
         rejectArgsMessages.push(`Invalid '${ argName }'`);

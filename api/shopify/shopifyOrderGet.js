@@ -1,15 +1,15 @@
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs, actionSingleOrMultiple, everyIfArray } = require('../utils');
+const { actionSingleOrMultiple, everyIfArray, ArgsWarden } = require('../utils');
 const { shopifyGetSingle } = require('../shopify/shopifyGetSingle');
 
 const defaultAttrs = 'id name createdAt displayFinancialStatus displayFulfillmentStatus';
 
 const orderIdentifierValidator = ({ orderId, orderName } = {}) => Boolean(orderId) || Boolean(orderName);
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  orderIdentifier: (i) => everyIfArray(orderIdentifierValidator, i),
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['orderIdentifier', (i) => everyIfArray(orderIdentifierValidator, i)],
+]);
 
 const shopifyOrderGetSingle = async (
   credsPayload,
@@ -57,7 +57,7 @@ const shopifyOrderGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, orderIdentifier });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, orderIdentifier });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -75,8 +75,7 @@ const shopifyOrderGet = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'orderIdentifier'],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

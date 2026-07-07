@@ -1,12 +1,12 @@
 // https://loyaltyapi.yotpo.com/reference/fetch-all-recently-updated-customers
 
-const { credsFromPayload, responseIfRejectingArgs } = require('../utils');
+const { credsFromPayload, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+]);
 
 const yotpoCustomersRecentGet = async (
   credsPayload,
@@ -17,7 +17,7 @@ const yotpoCustomersRecentGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -42,10 +42,7 @@ const yotpoCustomersRecentGet = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

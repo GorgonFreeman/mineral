@@ -1,4 +1,4 @@
-const { credsFromPayload, capitaliseString, responseIfRejectingArgs } = require('../utils');
+const { credsFromPayload, capitaliseString, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 
@@ -6,11 +6,11 @@ const resourcesNotRequiringId = ['shop'];
 
 const defaultAttrs = 'id';
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  resource: Boolean,
-  id: (id, body) => resourcesNotRequiringId.includes(body?.resource) || Boolean(id),
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['resource', Boolean],
+  ['id', (id, body) => resourcesNotRequiringId.includes(body?.resource) || Boolean(id)],
+]);
 
 const shopifyGetSingle = async (
   credsPayload,
@@ -23,7 +23,10 @@ const shopifyGetSingle = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, resource, id });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs(
+    { credsPayload, resource, id },
+    { body: { credsPayload, resource, id } },
+  );
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -60,8 +63,7 @@ const shopifyGetSingle = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'resource', 'id'],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

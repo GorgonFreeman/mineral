@@ -1,12 +1,12 @@
 // https://loyaltyapi.yotpo.com/reference/get-active-campaigns
 
-const { credsFromPayload, responseIfRejectingArgs } = require('../utils');
+const { credsFromPayload, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+]);
 
 const yotpoCampaignsGet = async (
   credsPayload,
@@ -17,7 +17,7 @@ const yotpoCampaignsGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -48,10 +48,7 @@ const yotpoCampaignsGet = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

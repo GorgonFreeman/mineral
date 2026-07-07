@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/adjust-a-customers-point-balance
 
-const { credsFromPayload, objHasAny, responseIfRejectingArgs } = require('../utils');
+const { credsFromPayload, objHasAny, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -13,11 +13,11 @@ const customerIdentifierValidator = (customerIdentifier) => {
 
 const pointsAmountValidator = Number;
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  customerIdentifier: customerIdentifierValidator,
-  pointsAmount: pointsAmountValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['customerIdentifier', customerIdentifierValidator],
+  ['pointsAmount', pointsAmountValidator],
+]);
 
 const yotpoCustomerPointsAdjust = async (
   credsPayload,
@@ -31,7 +31,7 @@ const yotpoCustomerPointsAdjust = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     customerIdentifier,
     pointsAmount,
@@ -70,12 +70,7 @@ const yotpoCustomerPointsAdjust = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload', 
-    'customerIdentifier', 
-    'pointsAmount',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

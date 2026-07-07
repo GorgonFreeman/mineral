@@ -1,10 +1,10 @@
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs } = require('../utils');
+const { ArgsWarden } = require('../utils');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  arg: Boolean,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['arg', Boolean],
+]);
 
 const FUNC = async (
   credsPayload,
@@ -12,7 +12,7 @@ const FUNC = async (
   options = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, arg });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, arg });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -27,8 +27,7 @@ const FUNC = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'arg'],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

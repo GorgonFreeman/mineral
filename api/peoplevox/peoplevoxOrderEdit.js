@@ -1,22 +1,22 @@
 const { json2csv } = require('json-2-csv');
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs, ensureArray, everyIfArray } = require('../utils');
+const { ensureArray, everyIfArray, ArgsWarden } = require('../utils');
 const { peoplevoxClient } = require('../peoplevox/peoplevox.utils');
 const { MAX_REQUEST_ITEMS } = require('../peoplevox/peoplevox.constants');
 
 const orderPayloadValidator = (orderPayload) => orderPayload?.SalesOrderNumber;
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  orderPayload: (i) => everyIfArray(orderPayloadValidator, i),
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['orderPayload', (i) => everyIfArray(orderPayloadValidator, i)],
+]);
 
 const peoplevoxOrderEdit = async (
   credsPayload,
   orderPayload,
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, orderPayload });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, orderPayload });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -52,8 +52,7 @@ const peoplevoxOrderEdit = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'orderPayload'],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

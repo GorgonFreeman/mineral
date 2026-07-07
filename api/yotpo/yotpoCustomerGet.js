@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/fetch-customer-details
 
-const { credsFromPayload, objHasAny, responseIfRejectingArgs } = require('../utils');
+const { credsFromPayload, objHasAny, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -13,10 +13,10 @@ const customerIdentifierValidator = (customerIdentifier) => {
   ]);
 };
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  customerIdentifier: customerIdentifierValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['customerIdentifier', customerIdentifierValidator],
+]);
 
 const yotpoCustomerGet = async (
   credsPayload,
@@ -29,7 +29,7 @@ const yotpoCustomerGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     customerIdentifier,
   });
@@ -69,11 +69,7 @@ const yotpoCustomerGet = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload',
-    'customerIdentifier',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

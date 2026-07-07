@@ -1,14 +1,14 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/customerUpdate
 
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  customerId: Boolean,
-  updatePayload: Boolean,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['customerId', Boolean],
+  ['updatePayload', Boolean],
+]);
 
 const defaultReturnCustomerAttrs = 'id email firstName lastName phone';
 
@@ -22,7 +22,7 @@ const shopifyCustomerUpdate = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     customerId,
     updatePayload,
@@ -53,12 +53,7 @@ const shopifyCustomerUpdate = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload',
-    'customerId',
-    'updatePayload',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

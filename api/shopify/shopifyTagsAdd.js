@@ -1,14 +1,14 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/tagsAdd
 
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs, actionSingleOrMultiple } = require('../utils');
+const { actionSingleOrMultiple, ArgsWarden } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  gid: Boolean,
-  tags: Array,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['gid', Boolean],
+  ['tags', Array],
+]);
 
 const defaultAttrs = 'id';
 
@@ -53,7 +53,7 @@ const shopifyTagsAdd = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     gid,
     tags,
@@ -75,12 +75,7 @@ const shopifyTagsAdd = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload',
-    'gid',
-    'tags',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

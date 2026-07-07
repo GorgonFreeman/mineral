@@ -1,7 +1,7 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/giftCardCreate
 
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
 const giftCardInputValidator = (giftCardInput) => {
@@ -13,10 +13,10 @@ const giftCardInputValidator = (giftCardInput) => {
   return !isNaN(initialValue) && initialValue > 0;
 };
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  giftCardInput: giftCardInputValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['giftCardInput', giftCardInputValidator],
+]);
 
 const defaultReturnGiftCardAttrs = 'id initialValue { amount } customer { id }';
 
@@ -29,7 +29,7 @@ const shopifyGiftCardCreate = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { credsPayload, giftCardInput });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, giftCardInput });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -54,8 +54,7 @@ const shopifyGiftCardCreate = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'giftCardInput'],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

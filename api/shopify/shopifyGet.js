@@ -1,11 +1,12 @@
-const { credsFromPayload, responseIfRejectingArgs, Getter, capitaliseString } = require('../utils');
+const { credsFromPayload, Getter, capitaliseString, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 const { MAX_PER_PAGE } = require('./shopify.constants');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['resource'],
+]);
 
 const shopifyGetPacket = async (
   // options on the main function can become args on the packet get if they have defaults
@@ -222,7 +223,7 @@ const shopifyGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, { 
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
     credsPayload,
     resource,
   });
@@ -279,11 +280,7 @@ const shopifyGet = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload',
-    'resource',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

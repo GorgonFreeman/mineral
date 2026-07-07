@@ -1,16 +1,16 @@
 const { peoplevoxClient } = require('../peoplevox/peoplevox.utils');
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs } = require('../utils');
+const { ArgsWarden } = require('../utils');
 
 const searchParametersValidator = ({ searchClause, id, idName }) => {
   return searchClause || (id && idName);
 };
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  templateName: Boolean,
-  searchParameters: searchParametersValidator,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['templateName', Boolean],
+  ['searchParameters', searchParametersValidator],
+]);
 
 const peoplevoxGetSingle = async (
   credsPayload,
@@ -19,7 +19,7 @@ const peoplevoxGetSingle = async (
   options = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     templateName,
     searchParameters,
@@ -92,8 +92,7 @@ const peoplevoxGetSingle = async (
 };
 
 const funcApiConfig = {
-  argNames: ['credsPayload', 'templateName', 'searchParameters'],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {
