@@ -3,4 +3,5 @@ const DEFAULT_API_VERSION = '2026-04';
 module.exports = {
   DEFAULT_API_VERSION,
   MAX_PER_PAGE: 250,
+  MAX_METAFIELDS_PER_SET: 25,
 };
