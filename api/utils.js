@@ -1153,7 +1153,6 @@ module.exports = {
   Chain,
   FetchClient,
   fetchClientCommonSteps,
-  responseIfRejectingArgs,
   ensureArray,
   everyIfArray,
   simpleSort,
