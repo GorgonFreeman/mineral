@@ -1,13 +1,13 @@
 // https://loyaltyapi.yotpo.com/reference/createupdate-customer-records
 
-const { credsFromPayload, responseIfRejectingArgs } = require('../utils');
+const { credsFromPayload, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
-const validatorsByArg = {
-  credsPayload: credsValidator,
-  email: Boolean,
-};
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['email', Boolean],
+]);
 
 const yotpoCustomerUpsert = async (
   credsPayload,
@@ -29,7 +29,7 @@ const yotpoCustomerUpsert = async (
   } = {},
 ) => {
 
-  const rejectResponse = await responseIfRejectingArgs(validatorsByArg, {
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     email,
   });
@@ -68,11 +68,7 @@ const yotpoCustomerUpsert = async (
 };
 
 const funcApiConfig = {
-  argNames: [
-    'credsPayload',
-    'email',
-  ],
-  validatorsByArg,
+  argsWarden,
 };
 
 module.exports = {

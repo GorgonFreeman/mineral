@@ -1101,8 +1101,6 @@ class Getter extends EventEmitter {
   }
 }
 
-const valueProvided = (value) => value !== undefined && value !== null;
-
 class ArgsWarden {
   constructor(argValidatorTuples) {
     this.config = {};
