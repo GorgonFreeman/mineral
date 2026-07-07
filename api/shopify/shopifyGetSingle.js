@@ -9,7 +9,7 @@ const defaultAttrs = 'id';
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
   ['resource', Boolean],
-  ['id', (id, body) => resourcesNotRequiringId.includes(body?.resource) || Boolean(id)],
+  ['id', (id, context) => resourcesNotRequiringId.includes(context.resource) || Boolean(id)],
 ]);
 
 const shopifyGetSingle = async (
@@ -24,8 +24,12 @@ const shopifyGetSingle = async (
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs(
-    { credsPayload, resource, id },
-    { body: { credsPayload, resource, id } },
+    { 
+      credsPayload, 
+      resource, 
+      id, 
+    },
+    { resource },
   );
   if (rejectResponse) {
     return rejectResponse;
@@ -92,10 +96,7 @@ curl -X POST "http://localhost:8000/shopifyGetSingle" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": {
-      "credsObject": {
-        "STORE_HANDLE": "arisawa-heavy-industries",
-        "API_KEY": "shpat_xxx"
-      }
+      "credsPath": "shopify.au"
     },
     "resource": "shop",
     "options": {
