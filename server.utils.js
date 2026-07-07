@@ -121,6 +121,7 @@ const runRequestHandler = async (requestHandler, requestContext) => {
 const funcApi = (func, config = {}) => {
   const {
     requestHandler,
+    argsWarden,
     argNames,
     validatorsByArg = {},
     validators = [],
@@ -129,6 +130,8 @@ const funcApi = (func, config = {}) => {
     passThroughReq = false,
     passThroughBody = false,
   } = config;
+
+  const resolvedArgNames = argsWarden?.argNames() ?? argNames;
 
   return async ({
     req,
@@ -172,7 +175,15 @@ const funcApi = (func, config = {}) => {
     }
     requestContext.body = modifiedBody;
 
-    if (argNames?.length) {
+    if (argsWarden) {
+      const rejectResponse = await argsWarden.responseIfRejectingArgs(
+        Object.fromEntries(resolvedArgNames.map((argName) => [argName, modifiedBody?.[argName]])),
+        { context: modifiedBody },
+      );
+      if (rejectResponse) {
+        return rejectResponse;
+      }
+    } else if (argNames?.length) {
       for (const argName of argNames) {
         const validator = validatorsByArg[argName] || valueProvided;
         const valid = await validator(
@@ -217,11 +228,11 @@ const funcApi = (func, config = {}) => {
       callArgs = [requestContext.req];
     } else if (passThroughBody) {
       callArgs = [modifiedBody];
-    } else if (argNames?.length) {
-      callArgs = argNames.map((argName) => modifiedBody?.[argName]);
+    } else if (resolvedArgNames?.length) {
+      callArgs = resolvedArgNames.map((argName) => modifiedBody?.[argName]);
 
       if (
-        !argNames.includes('options')
+        !resolvedArgNames.includes('options')
         && modifiedBody?.options !== undefined
       ) {
         callArgs.push(modifiedBody.options);
