@@ -599,38 +599,6 @@ const fetchClientCommonSteps = {
 
 const valueProvided = (value) => value !== undefined && value !== null;
 
-const validateArgs = async (validatorsByArg, args) => {
-  const rejectArgsMessages = [];
-
-  for (const argName of Object.keys(args)) {
-    const validator = validatorsByArg[argName] || valueProvided;
-    const valid = await validator(args[argName], args);
-
-    if (!valid) {
-      rejectArgsMessages.push(`Invalid '${ argName }'`);
-    }
-  }
-
-  return rejectArgsMessages;
-};
-
-const responseIfRejectingArgs = async (...validateArgsParams) => {
-  const rejectArgsMessages = await validateArgs(...validateArgsParams);
-
-  if (rejectArgsMessages.length > 0) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_ARGS',
-        message: rejectArgsMessages.join('; '),
-        ...(rejectArgsMessages.length > 1 ? { details: rejectArgsMessages } : {}),
-      },
-    };
-  }
-
-  return false;
-};
-
 const ensureArray = (value) => {
   if (Array.isArray(value)) {
     return value;
