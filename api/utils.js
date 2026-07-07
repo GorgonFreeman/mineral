@@ -771,6 +771,52 @@ class OperationQueue {
   }
 }
 
+const simpleSort = (arr, prop, { reverse } = {}) => {
+  return [...arr].sort((a, b) =>
+    reverse ? b[prop] - a[prop] : a[prop] - b[prop],
+  );
+};
+
+const arrayToChunks = (array, chunkSize, { chunkBy } = {}) => {
+  if (isNaN(chunkSize) || !(chunkSize > 0)) {
+    throw new Error(`arrayToChunks: chunkSize of ${ chunkSize } is invalid`);
+  }
+
+  if (!chunkBy) {
+    const chunks = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+      chunks.push(array.slice(i, i + chunkSize));
+    }
+    return chunks;
+  }
+
+  const sortedArray = simpleSort(array, chunkBy);
+  const chunks = [];
+  let currentChunk = [];
+  let currentGroupValue = null;
+
+  for (const item of sortedArray) {
+    const itemGroupValue = item[chunkBy];
+
+    const shouldStartNewChunk =
+      currentChunk.length >= chunkSize && itemGroupValue !== currentGroupValue;
+
+    if (shouldStartNewChunk && currentChunk.length > 0) {
+      chunks.push(currentChunk);
+      currentChunk = [];
+    }
+
+    currentChunk.push(item);
+    currentGroupValue = itemGroupValue;
+  }
+
+  if (currentChunk.length > 0) {
+    chunks.push(currentChunk);
+  }
+
+  return chunks;
+};
+
 const arraysToCartesianProduct = (arrayOfMixed) => {
   return arrayOfMixed
     .map(ensureArray)
@@ -1073,6 +1119,8 @@ module.exports = {
   responseIfRejectingArgs,
   ensureArray,
   everyIfArray,
+  simpleSort,
+  arrayToChunks,
   responseArrayToResponse,
   responseResultsByOutcome,
   Operation,

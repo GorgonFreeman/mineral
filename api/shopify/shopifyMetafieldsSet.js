@@ -1,7 +1,7 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/metafieldsset
 
 const { credsValidator } = require('../validators');
-const { responseIfRejectingArgs, actionSingleOrMultiple } = require('../utils');
+const { responseIfRejectingArgs, actionSingleOrMultiple, arrayToChunks } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 const { MAX_METAFIELDS_PER_SET } = require('../shopify/shopify.constants');
 
@@ -14,24 +14,14 @@ const validatorsByArg = {
   metafields: metafieldsValidator,
 };
 
-const defaultReturnMetafieldAttrs = 'id namespace key type value';
-
-const metafieldsToChunks = (metafields, chunkSize = MAX_METAFIELDS_PER_SET) => {
-  const chunks = [];
-
-  for (let i = 0; i < metafields.length; i += chunkSize) {
-    chunks.push(metafields.slice(i, i + chunkSize));
-  }
-
-  return chunks;
-};
+const defaultAttrs = 'id namespace key type value';
 
 const shopifyMetafieldsSetChunk = async (
   credsPayload,
   metafields,
   {
     apiVersion,
-    returnMetafieldAttrs = defaultReturnMetafieldAttrs,
+    returnMetafieldAttrs = defaultAttrs,
   } = {},
 ) => {
 
@@ -59,7 +49,7 @@ const shopifyMetafieldsSet = async (
   {
     queueRunOptions,
     apiVersion,
-    returnMetafieldAttrs = defaultReturnMetafieldAttrs,
+    returnMetafieldAttrs = defaultAttrs,
   } = {},
 ) => {
 
@@ -71,7 +61,7 @@ const shopifyMetafieldsSet = async (
     return rejectResponse;
   }
 
-  const chunks = metafieldsToChunks(metafields);
+  const chunks = arrayToChunks(metafields, MAX_METAFIELDS_PER_SET);
 
   return actionSingleOrMultiple(
     chunks,
