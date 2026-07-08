@@ -1,0 +1,4 @@
+.DS_Store
+.creds.yml
+.env
+node_modules/
