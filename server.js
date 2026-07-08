@@ -170,11 +170,27 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-const { PORT = 8000 } = process.env;
-server.listen(PORT, () => {
-  console.log(`Mineral server running on port ${ PORT }`);
-  console.log('Registered routes:');
-  for (const route of Array.from(handlers.keys()).sort()) {
-    console.log(route);
-  }
-});
+const startServer = ({
+  port = process.env.PORT || 8000,
+} = {}) => {
+  server.listen(port, () => {
+    console.log(`Mineral server running on port ${ port }`);
+    console.log('Registered routes:');
+    for (const route of Array.from(handlers.keys()).sort()) {
+      console.log(route);
+    }
+  });
+
+  return server;
+};
+
+module.exports = {
+  server,
+  handlers,
+  loadHandlers,
+  startServer,
+};
+
+if (require.main === module) {
+  startServer();
+}

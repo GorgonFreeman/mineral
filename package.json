@@ -1,7 +1,7 @@
 {
   "name": "mineral",
   "version": "0.1.0",
-  "private": true,
+  "bin": { "mineral": "bin/mineral.js" },
   "main": "server.js",
   "scripts": {
     "creds_to_env": "node _build_scripts/copyCredsToEnv.js",
