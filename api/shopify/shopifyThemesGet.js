@@ -15,8 +15,6 @@ const shopifyThemesGet = async (
   {
     apiVersion,
     attrs = defaultAttrs,
-    roles,
-    names,
     ...getterOptions
   } = {},
 ) => {
@@ -32,8 +30,6 @@ const shopifyThemesGet = async (
     {
       apiVersion,
       attrs,
-      roles,
-      names,
       ...getterOptions,
     },
   );
