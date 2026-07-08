@@ -4,16 +4,6 @@ const { credsValidator } = require('../validators');
 const { ArgsWarden } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
-const normalizeThemeGid = (themeId) => {
-  const themeIdString = String(themeId);
-
-  if (themeIdString.startsWith('gid://')) {
-    return themeIdString;
-  }
-
-  return `gid://shopify/OnlineStoreTheme/${ themeIdString }`;
-};
-
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
   ['themeId'],
@@ -24,9 +14,6 @@ const shopifyThemeUpdate = async (
   credsPayload,
   themeId,
   updatePayload,
-  /*
-    name,
-  */
   {
     apiVersion,
     returnThemeAttrs = 'id name role createdAt updatedAt',
@@ -49,7 +36,7 @@ const shopifyThemeUpdate = async (
       mutationVariables: {
         id: {
           type: 'ID!',
-          value: normalizeThemeGid(themeId),
+          value: `gid://shopify/OnlineStoreTheme/${ themeId }`,
         },
         input: {
           type: 'OnlineStoreThemeInput!',
@@ -76,9 +63,9 @@ curl -X POST "http://localhost:8000/shopifyThemeUpdate" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
-    "themeId": "142724202556",
+    "themeId": "129840808008",
     "updatePayload": {
-      "name": "My Theme | B 2026-07-08"
+      "name": "The me theme"
     }
   }'
 */
