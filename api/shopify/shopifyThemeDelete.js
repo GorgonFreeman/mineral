@@ -1,7 +1,7 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/themeDelete
 
 const { credsValidator } = require('../validators');
-const { ArgsWarden } = require('../utils');
+const { actionSingleOrMultiple, ArgsWarden } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
 const argsWarden = new ArgsWarden([
@@ -9,7 +9,7 @@ const argsWarden = new ArgsWarden([
   ['themeId'],
 ]);
 
-const shopifyThemeDelete = async (
+const shopifyThemeDeleteSingle = async (
   credsPayload,
   themeId,
   {
@@ -17,11 +17,6 @@ const shopifyThemeDelete = async (
     returnSchema = 'deletedThemeId',
   } = {},
 ) => {
-
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, themeId });
-  if (rejectResponse) {
-    return rejectResponse;
-  }
 
   return shopifyMutationDo(
     credsPayload,
@@ -35,6 +30,33 @@ const shopifyThemeDelete = async (
       },
       returnSchema,
       apiVersion,
+    },
+  );
+};
+
+const shopifyThemeDelete = async (
+  credsPayload,
+  themeId,
+  {
+    queueRunOptions,
+    apiVersion,
+    returnSchema = 'deletedThemeId',
+  } = {},
+) => {
+
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, themeId });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  return actionSingleOrMultiple(
+    themeId,
+    shopifyThemeDeleteSingle,
+    (themeIdItem) => ({
+      args: [credsPayload, themeIdItem, { apiVersion, returnSchema }],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
     },
   );
 };
@@ -54,5 +76,12 @@ curl -X POST "http://localhost:8000/shopifyThemeDelete" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
     "themeId": "1234567890"
+  }'
+
+curl -X POST "http://localhost:8000/shopifyThemeDelete" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "shopify.au" },
+    "themeId": ["1234567890", "0987654321"]
   }'
 */
