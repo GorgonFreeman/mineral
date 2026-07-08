@@ -1,4 +1,4 @@
-// https://shopify.dev/docs/api/admin-graphql/latest/queries/page
+// https://shopify.dev/docs/api/admin-graphql/latest/queries/collection
 
 const { credsValidator } = require('../validators');
 const { ArgsWarden } = require('../utils');
@@ -8,27 +8,27 @@ const defaultAttrs = 'id title handle';
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['thingId'],
+  ['collectionId'],
 ]);
 
 const shopifyCollectionGet = async (
   credsPayload,
-  thingId,
+  collectionId,
   {
     apiVersion,
     attrs = defaultAttrs,
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, thingId });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, collectionId });
   if (rejectResponse) {
     return rejectResponse;
   }
 
   return shopifyGetSingle(
     credsPayload,
-    'thing',
-    thingId,
+    'collection',
+    collectionId,
     {
       apiVersion,
       attrs,
@@ -50,6 +50,6 @@ curl -X POST "http://localhost:8000/shopifyCollectionGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
-    "thingId": "104188477512"
+    "collectionId": "279980277832"
   }'
 */
