@@ -10,3 +10,4 @@ Notes for AI assistants working in this directory. **Read this file at the start
 - Use snake_case for package.json commands, with colon if appropriate.
 - Use newlines and trailing commas where appropriate to minimise future diffs, e.g. in function args.
 - If you make a new .env or .creds.yml variable, update the correlating .sample file.
+- In Shopify, don't normalise and take gids as inputs if you can just take the id - the non-gid number - instead.
