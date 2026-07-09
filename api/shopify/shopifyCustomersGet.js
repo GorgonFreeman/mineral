@@ -1,3 +1,5 @@
+// https://shopify.dev/docs/api/admin-graphql/latest/queries/customers
+
 const { credsFromPayload, Getter, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyGet } = require('./shopifyGet');
