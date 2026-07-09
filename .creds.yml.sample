@@ -8,6 +8,11 @@ peoplevox:
   USERNAME: ______________________________
   PASSWORD: ______________________________
 
+logiwa:
+  BASE_URL: https://myapi.logiwa.com
+  EMAIL: _________________________________
+  PASSWORD: ______________________________
+
 youtube:
   API_KEY: _______________________________
 
