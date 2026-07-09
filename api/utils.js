@@ -414,6 +414,8 @@ class Chain {
   }
 }
 
+// TODO: client wrapper enabling auth and retrying with different auth
+
 class FetchClient {
   constructor({
     context, // necessary data for preparer and interpreters to refer to    
