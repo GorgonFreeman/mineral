@@ -1,0 +1,15 @@
+google_cloud_info:
+  project:
+  region:
+
+# TODO: consider credsPayload in google_cloud_info instead of workspace .creds.yml
+
+functions:
+  exampleFunction:
+    max_instances: 1
+    timeout: 300s
+    # entry_point: otherExportName
+
+groups:
+  example_group:
+    - exampleFunction

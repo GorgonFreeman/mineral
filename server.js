@@ -2,47 +2,10 @@ const fs = require('fs');
 const http = require('http');
 const { respondJson, errorToReadable, getRequestBody, argsFromBody, funcApi } = require('./server.utils');
 const { getWorkspace, setWorkspace, loadWorkspaceEnv, toAbsolutePath } = require('./api/workspace');
+const { getApiDirs, readCliFlag } = require('./cli');
+const { getFuncApiConfig } = require('./hosting.utils');
 
 const MINERAL_API_DIR = `${ __dirname }/api`;
-
-// --- Config ---
-
-const splitCommaList = (value = '') => value
-  .split(',')
-  .map((item) => item.trim())
-  .filter(Boolean);
-
-const readCliFlag = (flag) => {
-  const args = process.argv.slice(2);
-  const equalsPrefix = `${ flag }=`;
-
-  for (let index = 0; index < args.length; index++) {
-    if (args[index].startsWith(equalsPrefix)) {
-      return args[index].slice(equalsPrefix.length);
-    }
-
-    if (args[index] === flag) {
-      return args[index + 1];
-    }
-  }
-};
-
-const getApiDirs = (options = {}) => {
-  if (options.api_dirs) {
-    return options.api_dirs;
-  }
-
-  const fromCli = readCliFlag('--api_dirs');
-  if (fromCli) {
-    return splitCommaList(fromCli);
-  }
-
-  if (process.env.MINERAL_API_DIRS) {
-    return splitCommaList(process.env.MINERAL_API_DIRS);
-  }
-
-  return [];
-};
 
 const getConfig = (options = {}) => ({
   port: Number(options.port ?? process.env.PORT ?? 8000),
@@ -53,6 +16,7 @@ const getConfig = (options = {}) => ({
       ?? process.cwd(),
   ),
   api_dirs: getApiDirs(options),
+  host_mode: Boolean(options.host_mode),
 });
 
 // --- Handler discovery ---
@@ -105,6 +69,7 @@ const listJsFiles = (directory) => {
 const directoriesToScan = ({
   workspace,
   api_dirs,
+  host_mode = false,
 }) => {
   const extraDirs = api_dirs.map((dir) => (
     dir.startsWith('/')
@@ -112,29 +77,14 @@ const directoriesToScan = ({
       : `${ workspace }/${ dir }`
   ));
 
+  if (host_mode && api_dirs.length) {
+    return extraDirs;
+  }
+
   return [MINERAL_API_DIR, ...extraDirs];
 };
 
-const getFuncApiConfig = ({
-  moduleExports,
-  routeName,
-}) => {
-  const { funcApiConfig } = moduleExports;
-  if (!funcApiConfig || typeof funcApiConfig !== 'object') {
-    return undefined;
-  }
-
-  if (funcApiConfig[routeName]) {
-    return funcApiConfig[routeName];
-  }
-
-  const exportNames = Object.keys(moduleExports).filter((key) => key !== 'funcApiConfig');
-  const configIsShared = !exportNames.some((name) => funcApiConfig[name]);
-
-  if (configIsShared) {
-    return funcApiConfig;
-  }
-};
+const getFuncApiConfigFromModule = getFuncApiConfig;
 
 const addHandlerFromFile = (filePath, handlers) => {
   const moduleExports = require(filePath);
@@ -148,7 +98,7 @@ const addHandlerFromFile = (filePath, handlers) => {
     return;
   }
 
-  const funcApiConfig = getFuncApiConfig({
+  const funcApiConfig = getFuncApiConfigFromModule({
     moduleExports,
     routeName,
   });

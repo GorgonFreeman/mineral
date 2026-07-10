@@ -50,3 +50,5 @@ The [bedrock](https://github.com/GorgonFreeman/bedrock) middleware, refactored f
   ```
 - **Monorepo structure**
 Mineral gets pushed to from a larger repo that can also contain private functions. Mineral should be strictly useful stuff for the public, and can be used standalone, but needs to be instantiated for serving, setting stuff like which creds file to use. This allows it to be used as part of another repo in the same HTTP/curl way as by itself. Pass `--workspace` to locate `.creds.yml` and `--api_dirs` to serve additional function directories.
+
+For cloud deploy, workspaces use `.hosting.yml` and `npm run host` (same `--workspace` / `--api_dirs` flags as dev/serve). See `.hosting.yml.sample`.
