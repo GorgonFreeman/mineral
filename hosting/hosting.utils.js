@@ -1,4 +1,6 @@
 const fs = require('fs');
+const path = require('path');
+const dotenv = require('dotenv');
 const { createRequire } = require('module');
 const yaml = require('yaml');
 const { getRequirePathForHandler } = require('./handlerPaths');
@@ -11,6 +13,10 @@ const {
   wrapFunction,
   statusCodeFromResult,
 } = require('../server.utils');
+
+dotenv.config({
+  path: path.join(process.cwd(), '.env'),
+});
 
 const MINERAL_WRAPPERS_MODULE = '@foxtware/mineral/hosting/wrappers.js';
 const WORKSPACE_WRAPPERS_MODULE = './hosting/wrappers.js';
@@ -185,33 +191,15 @@ const getCredsJsonForDeploy = (workspace) => {
   return JSON.stringify(yaml.parse(credsText));
 };
 
-const getEnvValueForDeploy = (workspace, envName) => {
-  const envPath = `${ workspace }/.env`;
+const ensureWorkspaceEnvForDeploy = (workspace) => {
+  const { copyCredsToEnv } = require('./copyCredsToEnv');
+  const envPath = `${ workspace.replace(/\/$/, '') }/.env`;
+
+  copyCredsToEnv(workspace);
 
   if (!fs.existsSync(envPath)) {
-    return '';
+    throw new Error(`Missing .env in workspace: ${ workspace }`);
   }
-
-  const envText = fs.readFileSync(envPath, 'utf8');
-  const match = envText.match(new RegExp(`^${ envName }=(.*)$`, 'm'));
-  return match ? match[1].trim() : '';
-};
-
-const getEnvVarsForDeploy = (workspace, envNames = []) => (
-  Object.fromEntries(
-    envNames.map((envName) => [envName, getEnvValueForDeploy(workspace, envName)]),
-  )
-);
-
-const validateEnvVarsForDeploy = (workspace, envNames = []) => {
-  const envVars = getEnvVarsForDeploy(workspace, envNames);
-  const missing = envNames.filter((envName) => !envVars[envName]);
-
-  if (missing.length) {
-    throw new Error(`Missing required .env values: ${ missing.join(', ') }`);
-  }
-
-  return envVars;
 };
 
 const resolveHostedHandlersForDeploy = ({
@@ -253,8 +241,7 @@ module.exports = {
   wrapHostedFunction,
   readHostingYml,
   getCredsJsonForDeploy,
-  getEnvVarsForDeploy,
-  validateEnvVarsForDeploy,
+  ensureWorkspaceEnvForDeploy,
   getHostedEntries,
   resolveHostedHandlersForDeploy,
   functionUsesWrapper,

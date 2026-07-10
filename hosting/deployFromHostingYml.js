@@ -1,11 +1,10 @@
 const readline = require('readline');
-const { toAbsolutePath, setWorkspace } = require('../api/workspace');
+const { toAbsolutePath, setWorkspace, loadWorkspaceEnv } = require('../api/workspace');
 const { getApiDirs, readCliFlag } = require('../cli');
 const { loadHandlers } = require('../server');
 const {
   readHostingYml,
-  getCredsJsonForDeploy,
-  validateEnvVarsForDeploy,
+  ensureWorkspaceEnvForDeploy,
   resolveHostedHandlersForDeploy,
   functionUsesWrapper,
 } = require('./hosting.utils');
@@ -91,8 +90,6 @@ const deployFunction = async ({
   functionConfig,
   googleCloudInfo,
   workspace,
-  credsJson,
-  deployEnvVars = {},
 }) => {
   const config = {
     ...googleCloudInfo,
@@ -112,14 +109,11 @@ const deployFunction = async ({
     groups,
     wrappers,
     source,
+    env,
     ...gcloudArgs
   } = config;
 
-  const envParts = [
-    'HOSTED=true',
-    `CREDS=${ credsJson }`,
-    ...Object.entries(deployEnvVars).map(([envName, envValue]) => `${ envName }=${ envValue }`),
-  ];
+  const envParts = ['HOSTED=true'];
 
   if (extraSetEnvVars) {
     envParts.push(extraSetEnvVars);
@@ -156,7 +150,7 @@ const deployFunction = async ({
   }
 
   const requiresHostedApiKey = functionUsesWrapper(functionConfig, 'requireHostedApiKey');
-  const hostedApiKey = deployEnvVars.HOSTED_API_KEY;
+  const hostedApiKey = process.env.HOSTED_API_KEY;
 
   for (const schedule of schedules) {
     const {
@@ -202,11 +196,12 @@ const deployFunction = async ({
 const deployFromHostingYml = async (options = {}) => {
   const config = getHostConfig(options);
   setWorkspace(config.workspace);
+  ensureWorkspaceEnvForDeploy(config.workspace);
+  loadWorkspaceEnv();
 
   const hostingConfig = readHostingYml(config.workspace);
   const {
     google_cloud_info: googleCloudInfo,
-    env: envNames = [],
     functions = {},
     groups = {},
   } = hostingConfig;
@@ -226,14 +221,11 @@ const deployFromHostingYml = async (options = {}) => {
     handlersByName,
   });
 
-  const deployEnvVars = validateEnvVarsForDeploy(config.workspace, envNames);
-
   writeHostedJs({
     workspace: config.workspace,
     hostedHandlers,
   });
 
-  const credsJson = getCredsJsonForDeploy(config.workspace);
   const deployArgs = getDeployArgs();
 
   const deployOne = async (functionName) => {
@@ -247,8 +239,6 @@ const deployFromHostingYml = async (options = {}) => {
       functionConfig: functions[functionName],
       googleCloudInfo,
       workspace: config.workspace,
-      credsJson,
-      deployEnvVars,
     });
   };
 
@@ -304,14 +294,3 @@ module.exports = {
   deployFromHostingYml,
   getHostConfig,
 };
-
-/*
-  Deploy everything:
-  mineral host all
-
-  Deploy a single function:
-  mineral host function
-
-  Deploy a group of functions:
-  mineral host group
-*/

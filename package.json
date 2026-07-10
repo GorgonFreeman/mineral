@@ -9,7 +9,7 @@
     "access": "public"
   },
   "scripts": {
-    "creds_to_env": "node _build_scripts/copyCredsToEnv.js",
+    "creds_to_env": "node hosting/copyCredsToEnv.js",
     "dev": "node --watch --watch-path=./api --watch-path=./server.js --watch-path=./server.utils.js --watch-path=./.creds.yml server.js",
     "new": "node _build_scripts/createNewFunction.js",
     "serve": "PORT=8100 node server.js",
