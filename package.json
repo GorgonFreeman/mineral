@@ -12,7 +12,7 @@
     "new": "node _build_scripts/createNewFunction.js",
     "serve": "PORT=8100 node server.js",
     "start": "node server.js",
-    "npm:publish": "npm publish"
+    "npm:publish": "node _build_scripts/publish.js"
   },
   "dependencies": {
     "csvtojson": "^2.0.14",
