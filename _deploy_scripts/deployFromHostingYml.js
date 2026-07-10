@@ -1,4 +1,3 @@
-const fs = require('fs');
 const readline = require('readline');
 const { toAbsolutePath, setWorkspace } = require('../api/workspace');
 const { getApiDirs, readCliFlag } = require('../cli');
@@ -79,18 +78,6 @@ const handlerByRouteName = (handlers) => {
   }
 
   return byName;
-};
-
-const ensureWorkspacePackageJson = (workspace) => {
-  const packageJsonPath = `${ workspace }/package.json`;
-
-  if (!fs.existsSync(packageJsonPath)) {
-    throw new Error(`Missing package.json in workspace: ${ workspace }`);
-  }
-
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-  packageJson.main = 'hosted.js';
-  fs.writeFileSync(packageJsonPath, `${ JSON.stringify(packageJson, null, 2) }\n`);
 };
 
 const deployFunction = async ({
@@ -248,7 +235,6 @@ const deployFromHostingYml = async (options = {}) => {
     hostedEntries,
     handlerByRouteName: handlersByName,
   });
-  ensureWorkspacePackageJson(config.workspace);
 
   const credsJson = getCredsJsonForDeploy(config.workspace);
   const hostedApiKey = getHostedApiKeyForDeploy(config.workspace);
