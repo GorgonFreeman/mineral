@@ -12,15 +12,27 @@ const {
   statusCodeFromResult,
 } = require('./server.utils');
 
-const MINERAL_WRAPPERS_MODULE = '@foxtware/mineral/server.utils';
+const MINERAL_WRAPPERS_MODULE = '@foxtware/mineral/wrappers.js';
 const WORKSPACE_WRAPPERS_MODULE = './wrappers.js';
+
+const getMineralWrappers = (workspaceRequire) => {
+  try {
+    return workspaceRequire(MINERAL_WRAPPERS_MODULE);
+  } catch (error) {
+    if (error.code !== 'MODULE_NOT_FOUND') {
+      throw error;
+    }
+
+    return require('./wrappers.js');
+  }
+};
 
 const resolveWrapperName = (wrapperName, workspaceRequire) => {
   if (typeof wrapperName !== 'string' || !wrapperName.trim()) {
     throw new Error(`Invalid wrapper name: ${ wrapperName }`);
   }
 
-  const mineralWrappers = workspaceRequire(MINERAL_WRAPPERS_MODULE);
+  const mineralWrappers = getMineralWrappers(workspaceRequire);
   if (typeof mineralWrappers[wrapperName] === 'function') {
     return {
       wrapperName,
