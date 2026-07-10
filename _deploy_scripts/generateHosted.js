@@ -1,17 +1,18 @@
 const fs = require('fs');
-const { wrapHostedFunction, parseWrapperRef } = require('../hosting.utils');
+const { wrapHostedFunction } = require('../hosting.utils');
 
-const formatWrapperRefForHostedJs = (wrapperRef) => {
-  const { modulePath, exportName } = parseWrapperRef(wrapperRef);
-  return `require('${ modulePath }').${ exportName }`;
-};
+const formatResolvedWrapperForHostedJs = ({ modulePath, wrapperName }) => (
+  `require('${ modulePath }').${ wrapperName }`
+);
 
-const formatWrappersArg = (wrappers = []) => {
-  if (!wrappers.length) {
+const formatWrappersArg = (resolvedWrappers = []) => {
+  if (!resolvedWrappers.length) {
     return '';
   }
 
-  const wrapperLines = wrappers.map((wrapperRef) => `    ${ formatWrapperRefForHostedJs(wrapperRef) },`);
+  const wrapperLines = resolvedWrappers.map((resolvedWrapper) => (
+    `    ${ formatResolvedWrapperForHostedJs(resolvedWrapper) },`
+  ));
   return `, [\n${ wrapperLines.join('\n') }\n  ]`;
 };
 
@@ -21,11 +22,11 @@ const generateHostedJs = ({
   const exportLines = [];
 
   for (const hostedHandler of hostedHandlers) {
-    const { entryPoint, wrappers = [], requirePath } = hostedHandler;
-    const wrappersArg = formatWrappersArg(wrappers);
+    const { hostedName, handlerName, resolvedWrappers = [], requirePath } = hostedHandler;
+    const wrappersArg = formatWrappersArg(resolvedWrappers);
 
     exportLines.push(
-      `  ${ entryPoint }: wrapHostedFunction(() => require('${ requirePath }'), '${ entryPoint }'${ wrappersArg }),`,
+      `  ${ hostedName }: wrapHostedFunction(() => require('${ requirePath }'), '${ handlerName }'${ wrappersArg }),`,
     );
   }
 

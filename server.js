@@ -4,8 +4,7 @@ const { respondJson, errorToReadable, getRequestBody, argsFromBody, funcApi, sta
 const { getWorkspace, setWorkspace, loadWorkspaceEnv, toAbsolutePath } = require('./api/workspace');
 const { getApiDirs, readCliFlag } = require('./cli');
 const { getFuncApiConfig } = require('./hosting.utils');
-
-const MINERAL_API_DIR = `${ __dirname }/api`;
+const { MINERAL_API_DIR, getRequirePathForHandler } = require('./handlerPaths');
 
 const getConfig = (options = {}) => ({
   port: Number(options.port ?? process.env.PORT ?? 8000),
@@ -69,17 +68,12 @@ const listJsFiles = (directory) => {
 const directoriesToScan = ({
   workspace,
   api_dirs,
-  host_mode = false,
 }) => {
   const extraDirs = api_dirs.map((dir) => (
     dir.startsWith('/')
       ? dir
       : `${ workspace }/${ dir }`
   ));
-
-  if (host_mode && api_dirs.length) {
-    return extraDirs;
-  }
 
   return [MINERAL_API_DIR, ...extraDirs];
 };
@@ -225,6 +219,8 @@ const startServer = (options = {}) => {
 module.exports = {
   startServer,
   loadHandlers,
+  getRequirePathForHandler,
+  MINERAL_API_DIR,
   get server() {
     if (!server) {
       startServer();

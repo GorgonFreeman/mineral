@@ -12,15 +12,14 @@ functions:
     max_instances: 1
     timeout: 300s
     wrappers:
-      - '@foxtware/mineral/server.utils#requireHostedApiKey'
-      - '@foxtware/mineral/server.utils#allowCrossOriginCallsAndHandleOptions'
     # entry_point: otherExportName
+      - requireHostedApiKey
+      - allowCrossOriginCallsAndHandleOptions
 
-  packagedFunction:
-    source: '@foxtware/mineral/api/pokemon/pokemonPokeballThrow.js'
+  pokemonPokeballThrow:
     max_instances: 1
     wrappers:
-      - '@foxtware/mineral/server.utils#checkTrainer'
+      - checkTrainer
 
 groups:
   example_group:

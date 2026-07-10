@@ -1,6 +1,7 @@
 const fs = require('fs');
 const { createRequire } = require('module');
 const yaml = require('yaml');
+const { getRequirePathForHandler } = require('./handlerPaths');
 const {
   respondJson,
   errorToReadable,
@@ -11,61 +12,51 @@ const {
   statusCodeFromResult,
 } = require('./server.utils');
 
-const parseWrapperRef = (wrapperRef) => {
-  const hashIndex = wrapperRef.lastIndexOf('#');
+const MINERAL_WRAPPERS_MODULE = '@foxtware/mineral/server.utils';
+const WORKSPACE_WRAPPERS_MODULE = './wrappers.js';
 
-  if (hashIndex === -1) {
-    throw new Error(`Invalid wrapper ref (expected path#export): ${ wrapperRef }`);
+const resolveWrapperName = (wrapperName, workspaceRequire) => {
+  if (typeof wrapperName !== 'string' || !wrapperName.trim()) {
+    throw new Error(`Invalid wrapper name: ${ wrapperName }`);
   }
 
-  return {
-    modulePath: wrapperRef.slice(0, hashIndex),
-    exportName: wrapperRef.slice(hashIndex + 1),
-  };
-};
-
-const validateWrapperRef = (wrapperRef, workspaceRequire) => {
-  const { modulePath, exportName } = parseWrapperRef(wrapperRef);
-  workspaceRequire.resolve(modulePath);
-  const moduleExports = workspaceRequire(modulePath);
-
-  if (typeof moduleExports[exportName] !== 'function') {
-    throw new Error(`Wrapper export not found: ${ exportName } in ${ modulePath }`);
+  const mineralWrappers = workspaceRequire(MINERAL_WRAPPERS_MODULE);
+  if (typeof mineralWrappers[wrapperName] === 'function') {
+    return {
+      wrapperName,
+      modulePath: MINERAL_WRAPPERS_MODULE,
+    };
   }
+
+  try {
+    const workspaceWrappers = workspaceRequire(WORKSPACE_WRAPPERS_MODULE);
+    if (typeof workspaceWrappers[wrapperName] === 'function') {
+      return {
+        wrapperName,
+        modulePath: WORKSPACE_WRAPPERS_MODULE,
+      };
+    }
+  } catch (error) {
+    if (error.code !== 'MODULE_NOT_FOUND') {
+      throw error;
+    }
+  }
+
+  throw new Error(
+    `Wrapper "${ wrapperName }" not found in ${ MINERAL_WRAPPERS_MODULE } or ${ WORKSPACE_WRAPPERS_MODULE }`,
+  );
 };
 
-const wrapperExportName = (wrapperRef) => (
-  parseWrapperRef(wrapperRef).exportName
+const getHostedEntries = (functions = {}) => (
+  Object.entries(functions).map(([hostedName, functionConfig = {}]) => ({
+    hostedName,
+    handlerName: functionConfig.entry_point || functionConfig.entryPoint || hostedName,
+    wrappers: Array.isArray(functionConfig.wrappers) ? functionConfig.wrappers : [],
+  }))
 );
 
-const getHostedEntries = (functions = {}) => {
-  const byEntryPoint = new Map();
-
-  for (const [functionName, functionConfig] of Object.entries(functions)) {
-    const entryPoint = functionConfig.entry_point || functionConfig.entryPoint || functionName;
-    const existing = byEntryPoint.get(entryPoint) || {
-      entryPoint,
-      wrappers: [],
-    };
-
-    if (Array.isArray(functionConfig.wrappers)) {
-      existing.wrappers.push(...functionConfig.wrappers);
-      existing.wrappers = [...new Set(existing.wrappers)];
-    }
-
-    if (functionConfig.source) {
-      existing.source = functionConfig.source;
-    }
-
-    byEntryPoint.set(entryPoint, existing);
-  }
-
-  return [...byEntryPoint.values()];
-};
-
-const functionUsesWrapper = (functionConfig = {}, exportName) => (
-  Array.isArray(functionConfig.wrappers)
-  && functionConfig.wrappers.some((wrapperRef) => wrapperExportName(wrapperRef) === exportName)
+const functionUsesWrapper = (functionConfig = {}, wrapperName) => (
+  Array.isArray(functionConfig.wrappers) && functionConfig.wrappers.includes(wrapperName)
 );
 
 const getFuncApiConfig = ({
@@ -218,35 +209,23 @@ const resolveHostedHandlersForDeploy = ({
   const hostedEntries = getHostedEntries(functions);
 
   return hostedEntries.map((hostedEntry) => {
-    const { entryPoint, source, wrappers = [] } = hostedEntry;
+    const { handlerName, wrappers = [] } = hostedEntry;
 
-    for (const wrapperRef of wrappers) {
-      validateWrapperRef(wrapperRef, workspaceRequire);
-    }
+    const resolvedWrappers = wrappers.map((wrapperName) => (
+      resolveWrapperName(wrapperName, workspaceRequire)
+    ));
 
-    if (source) {
-      workspaceRequire.resolve(source);
-      const moduleExports = workspaceRequire(source);
-      if (typeof moduleExports[entryPoint] !== 'function') {
-        throw new Error(`Hosted export not found: ${ entryPoint } in ${ source }`);
-      }
-
-      return {
-        ...hostedEntry,
-        requirePath: source,
-      };
-    }
-
-    const handler = handlersByName.get(entryPoint);
+    const handler = handlersByName.get(handlerName);
     if (!handler) {
       throw new Error(
-        `entry_point "${ entryPoint }" not found in workspace handlers — add api/ handler or source in .hosting.yml`,
+        `Function "${ handlerName }" not found — add a handler in workspace api dirs or mineral api`,
       );
     }
 
     return {
       ...hostedEntry,
-      requirePath: `./${ handler.filePath.slice(workspace.length + 1) }`,
+      resolvedWrappers,
+      requirePath: getRequirePathForHandler(handler, workspace),
     };
   });
 };
@@ -254,7 +233,7 @@ const resolveHostedHandlersForDeploy = ({
 // TODO: support credsPayload in google_cloud_info instead of full workspace .creds.yml
 
 module.exports = {
-  parseWrapperRef,
+  resolveWrapperName,
   getFuncApiConfig,
   wrapHostedFunction,
   readHostingYml,
@@ -264,5 +243,6 @@ module.exports = {
   getHostedEntries,
   resolveHostedHandlersForDeploy,
   functionUsesWrapper,
-  wrapperExportName,
+  MINERAL_WRAPPERS_MODULE,
+  WORKSPACE_WRAPPERS_MODULE,
 };
