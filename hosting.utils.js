@@ -6,7 +6,48 @@ const {
   getRequestBody,
   argsFromBody,
   funcApi,
+  wrapFunction,
+  requireHostedApiKey,
 } = require('./server.utils');
+
+const wrappersByName = {
+  requireHostedApiKey,
+};
+
+const resolveWrappers = (wrapperNames = []) => (
+  wrapperNames.map((wrapperName) => {
+    const wrapper = wrappersByName[wrapperName];
+    if (!wrapper) {
+      throw new Error(`Unknown wrapper: ${ wrapperName }`);
+    }
+    return wrapper;
+  })
+);
+
+const getHostedEntries = (functions = {}) => {
+  const byEntryPoint = new Map();
+
+  for (const [functionName, functionConfig] of Object.entries(functions)) {
+    const entryPoint = functionConfig.entry_point || functionConfig.entryPoint || functionName;
+    const existing = byEntryPoint.get(entryPoint) || {
+      entryPoint,
+      wrappers: [],
+    };
+
+    if (Array.isArray(functionConfig.wrappers)) {
+      existing.wrappers.push(...functionConfig.wrappers);
+      existing.wrappers = [...new Set(existing.wrappers)];
+    }
+
+    byEntryPoint.set(entryPoint, existing);
+  }
+
+  return [...byEntryPoint.values()];
+};
+
+const functionUsesWrapper = (functionConfig = {}, wrapperName) => (
+  Array.isArray(functionConfig.wrappers) && functionConfig.wrappers.includes(wrapperName)
+);
 
 const getFuncApiConfig = ({
   moduleExports,
@@ -29,11 +70,12 @@ const getFuncApiConfig = ({
   }
 };
 
-const wrapHostedFunction = (loader, exportName) => {
+const wrapHostedFunction = (loader, exportName, wrapperNames = []) => {
   let handler = null;
   let usesFuncApi = false;
+  const wrappers = resolveWrappers(wrapperNames);
 
-  return async (req, res) => {
+  const coreHandler = async (req, res) => {
     if (!handler) {
       const moduleExports = loader();
       const handlerFn = moduleExports[exportName];
@@ -51,12 +93,18 @@ const wrapHostedFunction = (loader, exportName) => {
       handler = usesFuncApi ? funcApi(handlerFn, funcApiConfig) : handlerFn;
     }
 
+    const body = await getRequestBody(req);
+    const args = argsFromBody(body);
+    return usesFuncApi
+      ? await handler({ req, res, body, args })
+      : await handler(...args);
+  };
+
+  const wrappedHandler = wrapFunction(coreHandler, wrappers);
+
+  return async (req, res) => {
     try {
-      const body = await getRequestBody(req);
-      const args = argsFromBody(body);
-      const result = usesFuncApi
-        ? await handler({ req, res, body, args })
-        : await handler(...args);
+      const result = await wrappedHandler(req, res);
 
       if (res.headersSent) {
         return;
@@ -67,7 +115,10 @@ const wrapHostedFunction = (loader, exportName) => {
         return;
       }
 
-      respondJson(res, 200, result);
+      const statusCode = result?.error?.code === 'UNAUTHORIZED' ? 401 : (
+        result?.ok === false ? 400 : 200
+      );
+      respondJson(res, statusCode, result);
     } catch (error) {
       if (res.headersSent) {
         return;
@@ -113,12 +164,26 @@ const getCredsJsonForDeploy = (workspace) => {
   return JSON.stringify(yaml.parse(credsText));
 };
 
+const getHostedApiKeyForDeploy = (workspace) => {
+  const envPath = `${ workspace }/.env`;
+
+  if (!fs.existsSync(envPath)) {
+    return '';
+  }
+
+  const envText = fs.readFileSync(envPath, 'utf8');
+  const match = envText.match(/^HOSTED_API_KEY=(.*)$/m);
+  return match ? match[1].trim() : '';
+};
+
 // TODO: support credsPayload in google_cloud_info instead of full workspace .creds.yml
-// TODO: implement requireHostedApiKey in funcApi for scheduled/hosted requests
 
 module.exports = {
   getFuncApiConfig,
   wrapHostedFunction,
   readHostingYml,
   getCredsJsonForDeploy,
+  getHostedApiKeyForDeploy,
+  getHostedEntries,
+  functionUsesWrapper,
 };

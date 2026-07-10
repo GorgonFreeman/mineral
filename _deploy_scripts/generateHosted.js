@@ -4,20 +4,23 @@ const { wrapHostedFunction } = require('../hosting.utils');
 
 const generateHostedJs = ({
   workspace,
-  entryPoints,
+  hostedEntries,
   handlerByRouteName,
 }) => {
   const exportLines = [];
 
-  for (const entryPoint of entryPoints) {
+  for (const hostedEntry of hostedEntries) {
+    const { entryPoint, wrappers = [] } = hostedEntry;
     const handler = handlerByRouteName.get(entryPoint);
     if (!handler) {
       throw new Error(`No handler found for entry_point: ${ entryPoint }`);
     }
 
     const relativePath = `./${ handler.filePath.slice(workspace.length + 1) }`;
+    const wrappersArg = wrappers.length ? `, ${ JSON.stringify(wrappers) }` : '';
+
     exportLines.push(
-      `  ${ entryPoint }: wrapHostedFunction(() => require('${ relativePath }'), '${ entryPoint }'),`,
+      `  ${ entryPoint }: wrapHostedFunction(() => require('${ relativePath }'), '${ entryPoint }'${ wrappersArg }),`,
     );
   }
 
@@ -32,13 +35,13 @@ ${ exportLines.join('\n') }
 
 const writeHostedJs = ({
   workspace,
-  entryPoints,
+  hostedEntries,
   handlerByRouteName,
 }) => {
   const hostedPath = path.join(workspace, 'hosted.js');
   const content = generateHostedJs({
     workspace,
-    entryPoints,
+    hostedEntries,
     handlerByRouteName,
   });
 

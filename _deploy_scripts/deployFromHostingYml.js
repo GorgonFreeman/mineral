@@ -3,7 +3,7 @@ const readline = require('readline');
 const { toAbsolutePath, setWorkspace } = require('../api/workspace');
 const { getApiDirs, readCliFlag } = require('../cli');
 const { loadHandlers } = require('../server');
-const { readHostingYml, getCredsJsonForDeploy } = require('../hosting.utils');
+const { readHostingYml, getCredsJsonForDeploy, getHostedEntries, getHostedApiKeyForDeploy, functionUsesWrapper } = require('../hosting.utils');
 const { writeHostedJs } = require('./generateHosted');
 const { execCommand } = require('./execCommand');
 const { formatSetEnvVarsForGcloud, shellQuoteSingle } = require('./setEnvVarsGcloud');
@@ -45,15 +45,9 @@ const chooseOption = async (prompt, options) => new Promise((resolve) => {
   });
 });
 
-const getEntryPoints = (functions) => {
-  const entryPoints = new Set();
-
-  for (const [functionName, functionConfig] of Object.entries(functions)) {
-    entryPoints.add(functionConfig.entry_point || functionConfig.entryPoint || functionName);
-  }
-
-  return [...entryPoints];
-};
+const anyHostedEntryUsesWrapper = (hostedEntries, wrapperName) => (
+  hostedEntries.some((hostedEntry) => hostedEntry.wrappers?.includes(wrapperName))
+);
 
 const getDeployArgs = () => {
   const args = process.argv.slice(2);
@@ -105,6 +99,7 @@ const deployFunction = async ({
   googleCloudInfo,
   workspace,
   credsJson,
+  hostedApiKey,
 }) => {
   const config = {
     ...googleCloudInfo,
@@ -122,11 +117,25 @@ const deployFunction = async ({
     entry_point: entryPoint,
     schedules,
     groups,
+    wrappers,
     ...gcloudArgs
   } = config;
 
   const resolvedEntryPoint = entryPoint || functionName;
-  const rawSetEnvVars = `HOSTED=true,CREDS=${ credsJson }${ extraSetEnvVars ? `,${ extraSetEnvVars }` : '' }`;
+  const envParts = [
+    'HOSTED=true',
+    `CREDS=${ credsJson }`,
+  ];
+
+  if (hostedApiKey) {
+    envParts.push(`HOSTED_API_KEY=${ hostedApiKey }`);
+  }
+
+  if (extraSetEnvVars) {
+    envParts.push(extraSetEnvVars);
+  }
+
+  const rawSetEnvVars = envParts.join(',');
   const setEnvVarsForGcloud = formatSetEnvVarsForGcloud(rawSetEnvVars);
 
   const deployCommand = [
@@ -156,7 +165,8 @@ const deployFunction = async ({
     return;
   }
 
-  // TODO: implement requireHostedApiKey and append x-api-key to scheduler headers
+  const requiresHostedApiKey = functionUsesWrapper(functionConfig, 'requireHostedApiKey');
+
   for (const schedule of schedules) {
     const {
       name: jobName,
@@ -166,6 +176,12 @@ const deployFunction = async ({
       message_body: jobMessageBody,
       ...schedulerArgs
     } = schedule;
+
+    let schedulerHeaders = jobHeaders;
+    if (requiresHostedApiKey && hostedApiKey) {
+      schedulerHeaders = schedulerHeaders ? `${ schedulerHeaders },` : '';
+      schedulerHeaders += `x-api-key=${ hostedApiKey }`;
+    }
 
     try {
       const checkCommand = `gcloud scheduler jobs describe ${ jobName } --project=${ project } --location=${ region } 2>/dev/null || echo "NOT_FOUND"`;
@@ -179,7 +195,7 @@ const deployFunction = async ({
         `--http-method=${ jobHttpMethod }`,
         `--project=${ project }`,
         `--location=${ region }`,
-        jobExists ? `--update-headers ${ jobHeaders }` : `--headers ${ jobHeaders }`,
+        jobExists ? `--update-headers ${ schedulerHeaders }` : `--headers ${ schedulerHeaders }`,
         ...(jobMessageBody ? [`--message-body '${ jobMessageBody }'`] : []),
         ...Object.entries(schedulerArgs).map(([key, value]) => `--${ key.replaceAll('_', '-') } ${ value }`),
       ].join(' ');
@@ -212,22 +228,30 @@ const deployFromHostingYml = async (options = {}) => {
     host_mode: true,
   });
   const handlersByName = handlerByRouteName(handlers);
-  const entryPoints = getEntryPoints(functions);
+  const hostedEntries = getHostedEntries(functions);
 
-  for (const entryPoint of entryPoints) {
-    if (!handlersByName.has(entryPoint)) {
-      throw new Error(`entry_point "${ entryPoint }" not found in workspace handlers`);
+  for (const hostedEntry of hostedEntries) {
+    if (!handlersByName.has(hostedEntry.entryPoint)) {
+      throw new Error(`entry_point "${ hostedEntry.entryPoint }" not found in workspace handlers`);
+    }
+  }
+
+  if (anyHostedEntryUsesWrapper(hostedEntries, 'requireHostedApiKey')) {
+    const hostedApiKey = getHostedApiKeyForDeploy(config.workspace);
+    if (!hostedApiKey) {
+      throw new Error('HOSTED_API_KEY is required in workspace .env when using requireHostedApiKey wrapper');
     }
   }
 
   writeHostedJs({
     workspace: config.workspace,
-    entryPoints,
+    hostedEntries,
     handlerByRouteName: handlersByName,
   });
   ensureWorkspacePackageJson(config.workspace);
 
   const credsJson = getCredsJsonForDeploy(config.workspace);
+  const hostedApiKey = getHostedApiKeyForDeploy(config.workspace);
   const deployArgs = getDeployArgs();
 
   const deployOne = async (functionName) => {
@@ -242,6 +266,7 @@ const deployFromHostingYml = async (options = {}) => {
       googleCloudInfo,
       workspace: config.workspace,
       credsJson,
+      hostedApiKey,
     });
   };
 
