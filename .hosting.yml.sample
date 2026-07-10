@@ -10,6 +10,7 @@ functions:
     timeout: 300s
     wrappers:
       - requireHostedApiKey
+      - allowCrossOriginCallsAndHandleOptions
     # entry_point: otherExportName
 
   packagedFunction:

@@ -149,6 +149,20 @@ const requireHostedApiKey = async (req) => {
   }
 };
 
+const allowCrossOriginCallsAndHandleOptions = async (req, res) => {
+  const { origin } = req.headers;
+
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return { handled: true };
+  }
+};
+
 const statusCodeFromResult = (result) => {
   if (result?.ok === false) {
     return result?.error?.statusCode ?? 400;
@@ -267,6 +281,7 @@ module.exports = {
   argsFromBody,
   wrapFunction,
   requireHostedApiKey,
+  allowCrossOriginCallsAndHandleOptions,
   statusCodeFromResult,
   funcApi,
 };

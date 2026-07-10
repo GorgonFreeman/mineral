@@ -9,11 +9,13 @@ const {
   funcApi,
   wrapFunction,
   requireHostedApiKey,
+  allowCrossOriginCallsAndHandleOptions,
   statusCodeFromResult,
 } = require('./server.utils');
 
 const wrappersByName = {
   requireHostedApiKey,
+  allowCrossOriginCallsAndHandleOptions,
 };
 
 const resolveWrappers = (wrapperNames = []) => (
