@@ -116,6 +116,17 @@ const runRequestHandler = async (requestHandler, requestContext) => {
   return mergeRequestContext(requestContext, handlerOutput);
 };
 
+const wrapFunction = (func, wrappers = []) => async (req, res, ...rest) => {
+  for (const wrapper of wrappers) {
+    const rejected = await wrapper(req, res);
+    if (rejected) {
+      return rejected;
+    }
+  }
+
+  return func(req, res, ...rest);
+};
+
 const funcApi = (func, config = {}) => {
   const {
     requestHandler,
@@ -224,5 +235,6 @@ module.exports = {
   errorToReadable,
   getRequestBody,
   argsFromBody,
+  wrapFunction,
   funcApi,
 };
