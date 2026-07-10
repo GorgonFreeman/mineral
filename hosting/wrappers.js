@@ -1,4 +1,4 @@
-const { HOSTED } = require('./api/constants');
+const { HOSTED } = require('../api/constants');
 
 const requireHostedApiKey = async (req) => {
   if (!HOSTED) {

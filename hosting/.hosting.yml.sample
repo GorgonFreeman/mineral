@@ -12,9 +12,9 @@ functions:
     max_instances: 1
     timeout: 300s
     wrappers:
-    # entry_point: otherExportName
       - requireHostedApiKey
       - allowCrossOriginCallsAndHandleOptions
+    # entry_point: otherHandlerName
 
   pokemonPokeballThrow:
     max_instances: 1

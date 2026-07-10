@@ -3,8 +3,8 @@ const http = require('http');
 const { respondJson, errorToReadable, getRequestBody, argsFromBody, funcApi, statusCodeFromResult } = require('./server.utils');
 const { getWorkspace, setWorkspace, loadWorkspaceEnv, toAbsolutePath } = require('./api/workspace');
 const { getApiDirs, readCliFlag } = require('./cli');
-const { getFuncApiConfig } = require('./hosting.utils');
-const { MINERAL_API_DIR, getRequirePathForHandler } = require('./handlerPaths');
+const { getFuncApiConfig } = require('./hosting/hosting.utils');
+const { MINERAL_API_DIR } = require('./hosting/handlerPaths');
 
 const getConfig = (options = {}) => ({
   port: Number(options.port ?? process.env.PORT ?? 8000),
@@ -219,7 +219,6 @@ const startServer = (options = {}) => {
 module.exports = {
   startServer,
   loadHandlers,
-  getRequirePathForHandler,
   MINERAL_API_DIR,
   get server() {
     if (!server) {

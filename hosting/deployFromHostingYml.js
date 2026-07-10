@@ -8,7 +8,7 @@ const {
   validateEnvVarsForDeploy,
   resolveHostedHandlersForDeploy,
   functionUsesWrapper,
-} = require('../hosting.utils');
+} = require('./hosting.utils');
 const { writeHostedJs } = require('./generateHosted');
 const { execCommand } = require('./execCommand');
 const { formatSetEnvVarsForGcloud, shellQuoteSingle } = require('./setEnvVarsGcloud');
@@ -107,7 +107,7 @@ const deployFunction = async ({
     allow_unauthenticated: allowUnauthenticated = true,
     gen2 = true,
     set_env_vars: extraSetEnvVars,
-    entry_point: entryPoint,
+    entry_point,
     schedules,
     groups,
     wrappers,
@@ -115,7 +115,6 @@ const deployFunction = async ({
     ...gcloudArgs
   } = config;
 
-  const resolvedEntryPoint = entryPoint || functionName;
   const envParts = [
     'HOSTED=true',
     `CREDS=${ credsJson }`,
@@ -134,7 +133,7 @@ const deployFunction = async ({
     `--project ${ project }`,
     `--region ${ region }`,
     `--source ${ shellQuoteSingle(workspace) }`,
-    `--entry-point ${ resolvedEntryPoint }`,
+    `--entry-point ${ functionName }`,
     `--trigger-${ trigger }`,
     `--runtime ${ runtime }`,
     `--set-env-vars ${ shellQuoteSingle(setEnvVarsForGcloud) }`,
@@ -213,7 +212,7 @@ const deployFromHostingYml = async (options = {}) => {
   } = hostingConfig;
 
   if (!googleCloudInfo?.project || !googleCloudInfo?.region) {
-    throw new Error('.hosting.yml requires google_cloud_info.project and google_cloud_info.region');
+    throw new Error('hosting/.hosting.yml requires google_cloud_info.project and google_cloud_info.region');
   }
 
   const handlers = loadHandlers({
@@ -239,7 +238,7 @@ const deployFromHostingYml = async (options = {}) => {
 
   const deployOne = async (functionName) => {
     if (!functions[functionName]) {
-      console.log(`Function ${ functionName } not found in .hosting.yml, skipping`);
+      console.log(`Function ${ functionName } not found in hosting/.hosting.yml, skipping`);
       return;
     }
 
@@ -256,7 +255,7 @@ const deployFromHostingYml = async (options = {}) => {
   if (deployArgs.includes('group')) {
     const groupNames = Object.keys(groups);
     if (!groupNames.length) {
-      console.log('No groups defined in .hosting.yml');
+      console.log('No groups defined in hosting/.hosting.yml');
       return;
     }
 
@@ -270,7 +269,7 @@ const deployFromHostingYml = async (options = {}) => {
   if (deployArgs.includes('function')) {
     const functionNames = Object.keys(functions);
     if (!functionNames.length) {
-      console.log('No functions defined in .hosting.yml');
+      console.log('No functions defined in hosting/.hosting.yml');
       return;
     }
 

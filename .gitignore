@@ -4,3 +4,5 @@
 node_modules/
 .hosting.yml
 hosted.js
+hosting/.hosting.yml
+hosting/hosted.js

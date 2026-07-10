@@ -1,4 +1,4 @@
-const MINERAL_ROOT = __dirname;
+const MINERAL_ROOT = `${ __dirname }/..`;
 const MINERAL_API_DIR = `${ MINERAL_ROOT }/api`;
 
 const getRequirePathForHandler = (handler, workspace) => {

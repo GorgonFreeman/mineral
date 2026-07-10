@@ -10,10 +10,12 @@ const {
   funcApi,
   wrapFunction,
   statusCodeFromResult,
-} = require('./server.utils');
+} = require('../server.utils');
 
-const MINERAL_WRAPPERS_MODULE = '@foxtware/mineral/wrappers.js';
-const WORKSPACE_WRAPPERS_MODULE = './wrappers.js';
+const MINERAL_WRAPPERS_MODULE = '@foxtware/mineral/hosting/wrappers.js';
+const WORKSPACE_WRAPPERS_MODULE = './hosting/wrappers.js';
+
+const getHostingDir = (workspace) => `${ workspace.replace(/\/$/, '') }/hosting`;
 
 const getMineralWrappers = (workspaceRequire) => {
   try {
@@ -156,17 +158,17 @@ const wrapHostedFunction = (loader, exportName, wrappers = []) => {
 };
 
 const readHostingYml = (workspace) => {
-  const hostingPath = `${ workspace }/.hosting.yml`;
+  const hostingPath = `${ getHostingDir(workspace) }/.hosting.yml`;
 
   if (!fs.existsSync(hostingPath)) {
-    throw new Error(`Missing .hosting.yml in workspace: ${ workspace }`);
+    throw new Error(`Missing hosting/.hosting.yml in workspace: ${ workspace }`);
   }
 
   const hostingText = fs.readFileSync(hostingPath, 'utf8');
   const hostingConfig = yaml.parse(hostingText);
 
   if (!hostingConfig || typeof hostingConfig !== 'object' || Array.isArray(hostingConfig)) {
-    throw new Error('Invalid .hosting.yml');
+    throw new Error('Invalid hosting/.hosting.yml');
   }
 
   return hostingConfig;
@@ -245,6 +247,7 @@ const resolveHostedHandlersForDeploy = ({
 // TODO: support credsPayload in google_cloud_info instead of full workspace .creds.yml
 
 module.exports = {
+  getHostingDir,
   resolveWrapperName,
   getFuncApiConfig,
   wrapHostedFunction,
