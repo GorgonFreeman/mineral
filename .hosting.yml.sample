@@ -8,6 +8,8 @@ functions:
   exampleFunction:
     max_instances: 1
     timeout: 300s
+    wrappers:
+      - requireHostedApiKey
     # entry_point: otherExportName
 
 groups:
