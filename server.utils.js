@@ -1,5 +1,6 @@
 const { logDeep } = require('./api/utils');
 const { StringDecoder } = require('string_decoder');
+const { HOSTED } = require('./api/constants');
 
 const respondJson = (res, statusCode, payload) => {
   logDeep(payload);
@@ -127,6 +128,22 @@ const wrapFunction = (func, wrappers = []) => async (req, res, ...rest) => {
   return func(req, res, ...rest);
 };
 
+const requireHostedApiKey = async (req) => {
+  if (!HOSTED) {
+    return;
+  }
+
+  if (req.headers['x-api-key'] !== process.env.HOSTED_API_KEY) {
+    return {
+      ok: false,
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Unauthorized',
+      },
+    };
+  }
+};
+
 const funcApi = (func, config = {}) => {
   const {
     requestHandler,
@@ -236,5 +253,6 @@ module.exports = {
   getRequestBody,
   argsFromBody,
   wrapFunction,
+  requireHostedApiKey,
   funcApi,
 };
