@@ -139,9 +139,18 @@ const requireHostedApiKey = async (req) => {
       error: {
         code: 'UNAUTHORIZED',
         message: 'Unauthorized',
+        statusCode: 401,
       },
     };
   }
+};
+
+const statusCodeFromResult = (result) => {
+  if (result?.ok === false) {
+    return result?.error?.statusCode ?? 400;
+  }
+
+  return 200;
 };
 
 const funcApi = (func, config = {}) => {
@@ -254,5 +263,6 @@ module.exports = {
   argsFromBody,
   wrapFunction,
   requireHostedApiKey,
+  statusCodeFromResult,
   funcApi,
 };

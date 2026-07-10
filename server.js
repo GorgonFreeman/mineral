@@ -1,6 +1,6 @@
 const fs = require('fs');
 const http = require('http');
-const { respondJson, errorToReadable, getRequestBody, argsFromBody, funcApi } = require('./server.utils');
+const { respondJson, errorToReadable, getRequestBody, argsFromBody, funcApi, statusCodeFromResult } = require('./server.utils');
 const { getWorkspace, setWorkspace, loadWorkspaceEnv, toAbsolutePath } = require('./api/workspace');
 const { getApiDirs, readCliFlag } = require('./cli');
 const { getFuncApiConfig } = require('./hosting.utils');
@@ -168,7 +168,7 @@ const createServer = (handlers) => http.createServer(async (req, res) => {
       return;
     }
 
-    respondJson(res, 200, result);
+    respondJson(res, statusCodeFromResult(result), result);
   } catch (error) {
     respondJson(res, 500, {
       ok: false,

@@ -8,6 +8,7 @@ const {
   funcApi,
   wrapFunction,
   requireHostedApiKey,
+  statusCodeFromResult,
 } = require('./server.utils');
 
 const wrappersByName = {
@@ -115,9 +116,7 @@ const wrapHostedFunction = (loader, exportName, wrapperNames = []) => {
         return;
       }
 
-      const statusCode = result?.error?.code === 'UNAUTHORIZED' ? 401 : (
-        result?.ok === false ? 400 : 200
-      );
+      const statusCode = statusCodeFromResult(result);
       respondJson(res, statusCode, result);
     } catch (error) {
       if (res.headersSent) {
