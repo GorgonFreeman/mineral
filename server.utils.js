@@ -37,6 +37,10 @@ const getRequestBody = async (req) => {
     return undefined;
   }
 
+  if (req.body !== undefined) {
+    return req.body;
+  }
+
   const decoder = new StringDecoder('utf8');
 
   return await new Promise((resolve, reject) => {
