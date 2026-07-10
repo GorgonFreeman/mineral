@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 const xml2js = require('xml2js');
 const readline = require('readline');
 const fs = require('fs').promises;
@@ -7,6 +5,7 @@ const yaml = require('yaml');
 const { EventEmitter } = require('events');
 
 const { HOSTED } = require('./constants');
+const { getWorkspace } = require('./workspace');
 
 const wait = (ms) => new Promise((resolve, reject) => setTimeout(resolve, ms));
 
@@ -73,7 +72,7 @@ const credsFromPayload = async (credsPayload) => {
         throw new Error(`Malformed CREDS environment variable: ${ err }`);
       }
     } else {
-      const credsText = await fs.readFile('.creds.yml', 'utf8');
+      const credsText = await fs.readFile(`${ getWorkspace() }/.creds.yml`, 'utf8');
       credsYmlAsObject = yaml.parse(credsText);
     }
 
