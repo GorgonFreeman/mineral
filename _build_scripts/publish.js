@@ -28,6 +28,18 @@ const getPublishedVersion = () => {
   }
 };
 
+const ensureLoggedIn = () => {
+  try {
+    execSync('npm whoami', {
+      cwd: mineralRoot,
+      encoding: 'utf8',
+      stdio: 'pipe',
+    });
+  } catch {
+    throw new Error('Not logged in to npm. Run `npm login` with an account that can publish @foxtware/mineral.');
+  }
+};
+
 const askWithDefault = async (question, defaultAnswer) => {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -43,6 +55,8 @@ const askWithDefault = async (question, defaultAnswer) => {
 };
 
 const publish = async () => {
+  ensureLoggedIn();
+
   const packageJson = readPackageJson();
   const localVersion = packageJson.version;
   const publishedVersion = getPublishedVersion();
