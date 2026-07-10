@@ -5,13 +5,6 @@ const { getWorkspace, setWorkspace, loadWorkspaceEnv, toAbsolutePath } = require
 
 const MINERAL_API_DIR = `${ __dirname }/api`;
 
-const SKIPPED_FILES = new Set([
-  'server.js',
-  'utils.js',
-  'validators.js',
-  'workspace.js',
-]);
-
 // --- Config ---
 
 const splitCommaList = (value = '') => value
@@ -77,7 +70,7 @@ const isHandlerFile = (fileName) => {
     return false;
   }
 
-  return !SKIPPED_FILES.has(fileName);
+  return true;
 };
 
 const routeNameFromFile = (filePath) => {
