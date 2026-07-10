@@ -8,24 +8,34 @@ const {
   argsFromBody,
   funcApi,
   wrapFunction,
-  requireHostedApiKey,
-  allowCrossOriginCallsAndHandleOptions,
   statusCodeFromResult,
 } = require('./server.utils');
 
-const wrappersByName = {
-  requireHostedApiKey,
-  allowCrossOriginCallsAndHandleOptions,
+const parseWrapperRef = (wrapperRef) => {
+  const hashIndex = wrapperRef.lastIndexOf('#');
+
+  if (hashIndex === -1) {
+    throw new Error(`Invalid wrapper ref (expected path#export): ${ wrapperRef }`);
+  }
+
+  return {
+    modulePath: wrapperRef.slice(0, hashIndex),
+    exportName: wrapperRef.slice(hashIndex + 1),
+  };
 };
 
-const resolveWrappers = (wrapperNames = []) => (
-  wrapperNames.map((wrapperName) => {
-    const wrapper = wrappersByName[wrapperName];
-    if (!wrapper) {
-      throw new Error(`Unknown wrapper: ${ wrapperName }`);
-    }
-    return wrapper;
-  })
+const validateWrapperRef = (wrapperRef, workspaceRequire) => {
+  const { modulePath, exportName } = parseWrapperRef(wrapperRef);
+  workspaceRequire.resolve(modulePath);
+  const moduleExports = workspaceRequire(modulePath);
+
+  if (typeof moduleExports[exportName] !== 'function') {
+    throw new Error(`Wrapper export not found: ${ exportName } in ${ modulePath }`);
+  }
+};
+
+const wrapperExportName = (wrapperRef) => (
+  parseWrapperRef(wrapperRef).exportName
 );
 
 const getHostedEntries = (functions = {}) => {
@@ -53,8 +63,9 @@ const getHostedEntries = (functions = {}) => {
   return [...byEntryPoint.values()];
 };
 
-const functionUsesWrapper = (functionConfig = {}, wrapperName) => (
-  Array.isArray(functionConfig.wrappers) && functionConfig.wrappers.includes(wrapperName)
+const functionUsesWrapper = (functionConfig = {}, exportName) => (
+  Array.isArray(functionConfig.wrappers)
+  && functionConfig.wrappers.some((wrapperRef) => wrapperExportName(wrapperRef) === exportName)
 );
 
 const getFuncApiConfig = ({
@@ -78,10 +89,9 @@ const getFuncApiConfig = ({
   }
 };
 
-const wrapHostedFunction = (loader, exportName, wrapperNames = []) => {
+const wrapHostedFunction = (loader, exportName, wrappers = []) => {
   let handler = null;
   let usesFuncApi = false;
-  const wrappers = resolveWrappers(wrapperNames);
 
   const coreHandler = async (req, res) => {
     if (!handler) {
@@ -170,7 +180,7 @@ const getCredsJsonForDeploy = (workspace) => {
   return JSON.stringify(yaml.parse(credsText));
 };
 
-const getHostedApiKeyForDeploy = (workspace) => {
+const getEnvValueForDeploy = (workspace, envName) => {
   const envPath = `${ workspace }/.env`;
 
   if (!fs.existsSync(envPath)) {
@@ -178,8 +188,25 @@ const getHostedApiKeyForDeploy = (workspace) => {
   }
 
   const envText = fs.readFileSync(envPath, 'utf8');
-  const match = envText.match(/^HOSTED_API_KEY=(.*)$/m);
+  const match = envText.match(new RegExp(`^${ envName }=(.*)$`, 'm'));
   return match ? match[1].trim() : '';
+};
+
+const getEnvVarsForDeploy = (workspace, envNames = []) => (
+  Object.fromEntries(
+    envNames.map((envName) => [envName, getEnvValueForDeploy(workspace, envName)]),
+  )
+);
+
+const validateEnvVarsForDeploy = (workspace, envNames = []) => {
+  const envVars = getEnvVarsForDeploy(workspace, envNames);
+  const missing = envNames.filter((envName) => !envVars[envName]);
+
+  if (missing.length) {
+    throw new Error(`Missing required .env values: ${ missing.join(', ') }`);
+  }
+
+  return envVars;
 };
 
 const resolveHostedHandlersForDeploy = ({
@@ -191,7 +218,11 @@ const resolveHostedHandlersForDeploy = ({
   const hostedEntries = getHostedEntries(functions);
 
   return hostedEntries.map((hostedEntry) => {
-    const { entryPoint, source } = hostedEntry;
+    const { entryPoint, source, wrappers = [] } = hostedEntry;
+
+    for (const wrapperRef of wrappers) {
+      validateWrapperRef(wrapperRef, workspaceRequire);
+    }
 
     if (source) {
       workspaceRequire.resolve(source);
@@ -223,12 +254,15 @@ const resolveHostedHandlersForDeploy = ({
 // TODO: support credsPayload in google_cloud_info instead of full workspace .creds.yml
 
 module.exports = {
+  parseWrapperRef,
   getFuncApiConfig,
   wrapHostedFunction,
   readHostingYml,
   getCredsJsonForDeploy,
-  getHostedApiKeyForDeploy,
+  getEnvVarsForDeploy,
+  validateEnvVarsForDeploy,
   getHostedEntries,
   resolveHostedHandlersForDeploy,
   functionUsesWrapper,
+  wrapperExportName,
 };

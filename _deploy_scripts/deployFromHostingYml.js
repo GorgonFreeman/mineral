@@ -2,7 +2,13 @@ const readline = require('readline');
 const { toAbsolutePath, setWorkspace } = require('../api/workspace');
 const { getApiDirs, readCliFlag } = require('../cli');
 const { loadHandlers } = require('../server');
-const { readHostingYml, getCredsJsonForDeploy, getHostedApiKeyForDeploy, resolveHostedHandlersForDeploy, functionUsesWrapper } = require('../hosting.utils');
+const {
+  readHostingYml,
+  getCredsJsonForDeploy,
+  validateEnvVarsForDeploy,
+  resolveHostedHandlersForDeploy,
+  functionUsesWrapper,
+} = require('../hosting.utils');
 const { writeHostedJs } = require('./generateHosted');
 const { execCommand } = require('./execCommand');
 const { formatSetEnvVarsForGcloud, shellQuoteSingle } = require('./setEnvVarsGcloud');
@@ -44,16 +50,16 @@ const chooseOption = async (prompt, options) => new Promise((resolve) => {
   });
 });
 
-const anyHostedEntryUsesWrapper = (hostedEntries, wrapperName) => (
-  hostedEntries.some((hostedEntry) => hostedEntry.wrappers?.includes(wrapperName))
-);
-
 const getDeployArgs = () => {
   const args = process.argv.slice(2);
   const deployArgs = [];
 
   for (let index = 0; index < args.length; index++) {
     const arg = args[index];
+
+    if (arg === 'host') {
+      continue;
+    }
 
     if (arg === '--workspace' || arg === '--api_dirs') {
       index++;
@@ -86,7 +92,7 @@ const deployFunction = async ({
   googleCloudInfo,
   workspace,
   credsJson,
-  hostedApiKey,
+  deployEnvVars = {},
 }) => {
   const config = {
     ...googleCloudInfo,
@@ -113,11 +119,8 @@ const deployFunction = async ({
   const envParts = [
     'HOSTED=true',
     `CREDS=${ credsJson }`,
+    ...Object.entries(deployEnvVars).map(([envName, envValue]) => `${ envName }=${ envValue }`),
   ];
-
-  if (hostedApiKey) {
-    envParts.push(`HOSTED_API_KEY=${ hostedApiKey }`);
-  }
 
   if (extraSetEnvVars) {
     envParts.push(extraSetEnvVars);
@@ -154,6 +157,7 @@ const deployFunction = async ({
   }
 
   const requiresHostedApiKey = functionUsesWrapper(functionConfig, 'requireHostedApiKey');
+  const hostedApiKey = deployEnvVars.HOSTED_API_KEY;
 
   for (const schedule of schedules) {
     const {
@@ -203,6 +207,7 @@ const deployFromHostingYml = async (options = {}) => {
   const hostingConfig = readHostingYml(config.workspace);
   const {
     google_cloud_info: googleCloudInfo,
+    env: envNames = [],
     functions = {},
     groups = {},
   } = hostingConfig;
@@ -222,12 +227,7 @@ const deployFromHostingYml = async (options = {}) => {
     handlersByName,
   });
 
-  if (anyHostedEntryUsesWrapper(hostedHandlers, 'requireHostedApiKey')) {
-    const hostedApiKey = getHostedApiKeyForDeploy(config.workspace);
-    if (!hostedApiKey) {
-      throw new Error('HOSTED_API_KEY is required in workspace .env when using requireHostedApiKey wrapper');
-    }
-  }
+  const deployEnvVars = validateEnvVarsForDeploy(config.workspace, envNames);
 
   writeHostedJs({
     workspace: config.workspace,
@@ -235,7 +235,6 @@ const deployFromHostingYml = async (options = {}) => {
   });
 
   const credsJson = getCredsJsonForDeploy(config.workspace);
-  const hostedApiKey = getHostedApiKeyForDeploy(config.workspace);
   const deployArgs = getDeployArgs();
 
   const deployOne = async (functionName) => {
@@ -250,7 +249,7 @@ const deployFromHostingYml = async (options = {}) => {
       googleCloudInfo,
       workspace: config.workspace,
       credsJson,
-      hostedApiKey,
+      deployEnvVars,
     });
   };
 
@@ -289,9 +288,9 @@ const deployFromHostingYml = async (options = {}) => {
 
   console.log(`
 Usage (from workspace repo):
-  npm run host --workspace . --api_dirs api all
-  npm run host --workspace . --api_dirs api function
-  npm run host --workspace . --api_dirs api group
+  mineral host --workspace . --api_dirs api all
+  mineral host --workspace . --api_dirs api function
+  mineral host --workspace . --api_dirs api group
 `);
 };
 
@@ -309,11 +308,11 @@ module.exports = {
 
 /*
   Deploy everything:
-  npm run host all
+  mineral host all
 
   Deploy a single function:
-  npm run host function
+  mineral host function
 
   Deploy a group of functions:
-  npm run host group
+  mineral host group
 */
