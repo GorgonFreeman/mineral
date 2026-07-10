@@ -12,8 +12,25 @@ const writePackageJson = (packageJson) => {
   fs.writeFileSync(packageJsonPath, `${ JSON.stringify(packageJson, null, 2) }\n`);
 };
 
+const parseVersion = (version) => version.split('.').map((part) => Number(part) || 0);
+
+const isVersionGreater = (left, right) => {
+  const [leftMajor, leftMinor, leftPatch] = parseVersion(left);
+  const [rightMajor, rightMinor, rightPatch] = parseVersion(right);
+
+  if (leftMajor !== rightMajor) {
+    return leftMajor > rightMajor;
+  }
+
+  if (leftMinor !== rightMinor) {
+    return leftMinor > rightMinor;
+  }
+
+  return leftPatch > rightPatch;
+};
+
 const bumpPatch = (version) => {
-  const [major, minor, patch] = version.split('.').map((part) => Number(part) || 0);
+  const [major, minor, patch] = parseVersion(version);
   return [major, minor, patch + 1].join('.');
 };
 
@@ -63,13 +80,16 @@ const publish = async () => {
 
   let version = localVersion;
 
-  if (localVersion === publishedVersion) {
-    const suggestedVersion = bumpPatch(localVersion);
-    version = await askWithDefault('What version should we use?', suggestedVersion);
+  const localIsAhead = publishedVersion && isVersionGreater(localVersion, publishedVersion);
 
-    packageJson.version = version;
-    writePackageJson(packageJson);
+  if (!localIsAhead) {
+    const latestVersion = publishedVersion || localVersion;
+    const suggestedVersion = bumpPatch(latestVersion);
+    version = await askWithDefault('What version should we use?', suggestedVersion);
   }
+
+  packageJson.version = version;
+  writePackageJson(packageJson);
 
   execSync('npm publish', {
     cwd: mineralRoot,
