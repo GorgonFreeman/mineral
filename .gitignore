@@ -2,3 +2,5 @@
 .creds.yml
 .env
 node_modules/
+.hosting.yml
+hosted.js

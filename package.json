@@ -1,8 +1,10 @@
 {
   "name": "@foxtware/mineral",
   "version": "0.1.1",
-  "bin": { "mineral": "bin/mineral.js" },
-  "main": "server.js",
+  "bin": {
+    "mineral": "bin/mineral.js"
+  },
+  "main": "hosted.js",
   "publishConfig": {
     "access": "public"
   },
