@@ -12,6 +12,12 @@ functions:
       - requireHostedApiKey
     # entry_point: otherExportName
 
+  packagedFunction:
+    source: '@foxtware/mineral/api/pokemon/pokemonPokeballThrow.js'
+    max_instances: 1
+    wrappers:
+      - checkTrainer
+
 groups:
   example_group:
     - exampleFunction

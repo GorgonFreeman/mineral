@@ -2,7 +2,7 @@ const readline = require('readline');
 const { toAbsolutePath, setWorkspace } = require('../api/workspace');
 const { getApiDirs, readCliFlag } = require('../cli');
 const { loadHandlers } = require('../server');
-const { readHostingYml, getCredsJsonForDeploy, getHostedEntries, getHostedApiKeyForDeploy, functionUsesWrapper } = require('../hosting.utils');
+const { readHostingYml, getCredsJsonForDeploy, getHostedApiKeyForDeploy, resolveHostedHandlersForDeploy, functionUsesWrapper } = require('../hosting.utils');
 const { writeHostedJs } = require('./generateHosted');
 const { execCommand } = require('./execCommand');
 const { formatSetEnvVarsForGcloud, shellQuoteSingle } = require('./setEnvVarsGcloud');
@@ -105,6 +105,7 @@ const deployFunction = async ({
     schedules,
     groups,
     wrappers,
+    source,
     ...gcloudArgs
   } = config;
 
@@ -215,15 +216,13 @@ const deployFromHostingYml = async (options = {}) => {
     host_mode: true,
   });
   const handlersByName = handlerByRouteName(handlers);
-  const hostedEntries = getHostedEntries(functions);
+  const hostedHandlers = resolveHostedHandlersForDeploy({
+    functions,
+    workspace: config.workspace,
+    handlersByName,
+  });
 
-  for (const hostedEntry of hostedEntries) {
-    if (!handlersByName.has(hostedEntry.entryPoint)) {
-      throw new Error(`entry_point "${ hostedEntry.entryPoint }" not found in workspace handlers`);
-    }
-  }
-
-  if (anyHostedEntryUsesWrapper(hostedEntries, 'requireHostedApiKey')) {
+  if (anyHostedEntryUsesWrapper(hostedHandlers, 'requireHostedApiKey')) {
     const hostedApiKey = getHostedApiKeyForDeploy(config.workspace);
     if (!hostedApiKey) {
       throw new Error('HOSTED_API_KEY is required in workspace .env when using requireHostedApiKey wrapper');
@@ -232,8 +231,7 @@ const deployFromHostingYml = async (options = {}) => {
 
   writeHostedJs({
     workspace: config.workspace,
-    hostedEntries,
-    handlerByRouteName: handlersByName,
+    hostedHandlers,
   });
 
   const credsJson = getCredsJsonForDeploy(config.workspace);

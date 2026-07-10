@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { createRequire } = require('module');
 const yaml = require('yaml');
 const {
   respondJson,
@@ -38,6 +39,10 @@ const getHostedEntries = (functions = {}) => {
     if (Array.isArray(functionConfig.wrappers)) {
       existing.wrappers.push(...functionConfig.wrappers);
       existing.wrappers = [...new Set(existing.wrappers)];
+    }
+
+    if (functionConfig.source) {
+      existing.source = functionConfig.source;
     }
 
     byEntryPoint.set(entryPoint, existing);
@@ -175,6 +180,44 @@ const getHostedApiKeyForDeploy = (workspace) => {
   return match ? match[1].trim() : '';
 };
 
+const resolveHostedHandlersForDeploy = ({
+  functions = {},
+  workspace,
+  handlersByName,
+}) => {
+  const workspaceRequire = createRequire(`${ workspace.replace(/\/$/, '') }/package.json`);
+  const hostedEntries = getHostedEntries(functions);
+
+  return hostedEntries.map((hostedEntry) => {
+    const { entryPoint, source } = hostedEntry;
+
+    if (source) {
+      workspaceRequire.resolve(source);
+      const moduleExports = workspaceRequire(source);
+      if (typeof moduleExports[entryPoint] !== 'function') {
+        throw new Error(`Hosted export not found: ${ entryPoint } in ${ source }`);
+      }
+
+      return {
+        ...hostedEntry,
+        requirePath: source,
+      };
+    }
+
+    const handler = handlersByName.get(entryPoint);
+    if (!handler) {
+      throw new Error(
+        `entry_point "${ entryPoint }" not found in workspace handlers — add api/ handler or source in .hosting.yml`,
+      );
+    }
+
+    return {
+      ...hostedEntry,
+      requirePath: `./${ handler.filePath.slice(workspace.length + 1) }`,
+    };
+  });
+};
+
 // TODO: support credsPayload in google_cloud_info instead of full workspace .creds.yml
 
 module.exports = {
@@ -184,5 +227,6 @@ module.exports = {
   getCredsJsonForDeploy,
   getHostedApiKeyForDeploy,
   getHostedEntries,
+  resolveHostedHandlersForDeploy,
   functionUsesWrapper,
 };

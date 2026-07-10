@@ -1,33 +1,18 @@
 const fs = require('fs');
-const path = require('path');
 const { wrapHostedFunction } = require('../hosting.utils');
 
-const hostingUtilsRequirePath = (workspace) => (
-  fs.existsSync(path.join(workspace, 'hosting.utils.js'))
-    ? './hosting.utils'
-    : '@foxtware/mineral/hosting.utils'
-);
-
 const generateHostedJs = ({
-  workspace,
-  hostedEntries,
-  handlerByRouteName,
+  hostedHandlers,
 }) => {
   const exportLines = [];
-  const hostingUtilsRequire = hostingUtilsRequirePath(workspace);
+  const hostingUtilsRequire = '@foxtware/mineral/hosting.utils';
 
-  for (const hostedEntry of hostedEntries) {
-    const { entryPoint, wrappers = [] } = hostedEntry;
-    const handler = handlerByRouteName.get(entryPoint);
-    if (!handler) {
-      throw new Error(`No handler found for entry_point: ${ entryPoint }`);
-    }
-
-    const relativePath = `./${ handler.filePath.slice(workspace.length + 1) }`;
+  for (const hostedHandler of hostedHandlers) {
+    const { entryPoint, wrappers = [], requirePath } = hostedHandler;
     const wrappersArg = wrappers.length ? `, ${ JSON.stringify(wrappers) }` : '';
 
     exportLines.push(
-      `  ${ entryPoint }: wrapHostedFunction(() => require('${ relativePath }'), '${ entryPoint }'${ wrappersArg }),`,
+      `  ${ entryPoint }: wrapHostedFunction(() => require('${ requirePath }'), '${ entryPoint }'${ wrappersArg }),`,
     );
   }
 
@@ -42,14 +27,11 @@ ${ exportLines.join('\n') }
 
 const writeHostedJs = ({
   workspace,
-  hostedEntries,
-  handlerByRouteName,
+  hostedHandlers,
 }) => {
-  const hostedPath = path.join(workspace, 'hosted.js');
+  const hostedPath = `${ workspace.replace(/\/$/, '') }/hosted.js`;
   const content = generateHostedJs({
-    workspace,
-    hostedEntries,
-    handlerByRouteName,
+    hostedHandlers,
   });
 
   fs.writeFileSync(hostedPath, content);
