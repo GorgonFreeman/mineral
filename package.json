@@ -10,7 +10,8 @@
   },
   "scripts": {
     "creds_to_env": "node hosting/copyCredsToEnv.js",
-    "dev": "node --watch --watch-path=./api --watch-path=./server.js --watch-path=./server.utils.js --watch-path=./.creds.yml server.js",
+    "dev": "node --watch --watch-path=./api --watch-path=./server.js --watch-path=./server.utils.js --watch-path=./hosting --watch-path=./.creds.yml server.js",
+    "hosting_preview": "node --watch --watch-path=./api --watch-path=./hosting/.hosting.yml --watch-path=./hosting/wrappers.js --watch-path=./.creds.yml hosting/hostingPreview.js",
     "tunnel": "ngrok http http://localhost:8000",
     "new": "node _build_scripts/createNewFunction.js",
     "serve": "PORT=8100 node server.js",

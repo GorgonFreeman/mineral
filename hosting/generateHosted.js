@@ -89,6 +89,14 @@ const writeHostedJs = ({
   });
 
   fs.mkdirSync(getHostingDir(workspace), { recursive: true });
+
+  if (fs.existsSync(hostedPath)) {
+    const existingContent = fs.readFileSync(hostedPath, 'utf8');
+    if (existingContent === content) {
+      return hostedPath;
+    }
+  }
+
   fs.writeFileSync(hostedPath, content);
   return hostedPath;
 };

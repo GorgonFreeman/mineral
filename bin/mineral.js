@@ -11,6 +11,12 @@ if (command === 'host') {
   return;
 }
 
+if (command === 'hosting_preview') {
+  const { startHostingPreview } = require('../hosting/hostingPreview');
+  startHostingPreview();
+  return;
+}
+
 const { startServer } = require('../server');
 
 startServer();
