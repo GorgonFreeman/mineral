@@ -78,8 +78,6 @@ const directoriesToScan = ({
   return [MINERAL_API_DIR, ...extraDirs];
 };
 
-const getFuncApiConfigFromModule = getFuncApiConfig;
-
 const addHandlerFromFile = (filePath, handlers) => {
   const moduleExports = require(filePath);
   if (!moduleExports || typeof moduleExports !== 'object') {
@@ -92,7 +90,7 @@ const addHandlerFromFile = (filePath, handlers) => {
     return;
   }
 
-  const funcApiConfig = getFuncApiConfigFromModule({
+  const funcApiConfig = getFuncApiConfig({
     moduleExports,
     routeName,
   });
