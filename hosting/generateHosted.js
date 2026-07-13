@@ -1,8 +1,20 @@
 const fs = require('fs');
 const { wrapHostedFunction } = require('./hosting.utils');
 
+const requirePathForHostedJs = (modulePath) => {
+  if (modulePath === './hosting/wrappers.js') {
+    return './wrappers.js';
+  }
+
+  if (modulePath.startsWith('./api/')) {
+    return `../${ modulePath.slice(2) }`;
+  }
+
+  return modulePath;
+};
+
 const formatResolvedWrapperForHostedJs = ({ modulePath, wrapperName }) => (
-  `require('${ modulePath }').${ wrapperName }`
+  `require('${ requirePathForHostedJs(modulePath) }').${ wrapperName }`
 );
 
 const formatWrapperList = (resolvedWrappers = []) => {
@@ -53,7 +65,7 @@ const generateHostedJs = ({
     });
 
     exportLines.push(
-      `  ${ hostedName }: wrapHostedFunction(() => require('${ requirePath }'), '${ handlerName }'${ wrappersArg }),`,
+      `  ${ hostedName }: wrapHostedFunction(() => require('${ requirePathForHostedJs(requirePath) }'), '${ handlerName }'${ wrappersArg }),`,
     );
   }
 
