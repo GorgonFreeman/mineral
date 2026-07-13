@@ -8,14 +8,14 @@ functions:
   exampleFunction:
     max_instances: 1
     timeout: 300s
-    wrappers:
-      - requireHostedApiKey
+    before_wrappers:
       - allowCrossOriginCallsAndHandleOptions
+      - requireHostedApiKey
     # entry_point: otherHandlerName
 
   pokemonPokeballThrow:
     max_instances: 1
-    wrappers:
+    before_wrappers:
       - checkTrainer
 
 groups:

@@ -71,13 +71,16 @@ const getHostedEntries = (functions = {}) => (
   Object.entries(functions).map(([hostedName, functionConfig = {}]) => ({
     hostedName,
     handlerName: functionConfig.entry_point || functionConfig.entryPoint || hostedName,
-    wrappers: Array.isArray(functionConfig.wrappers) ? functionConfig.wrappers : [],
+    beforeWrappers: Array.isArray(functionConfig.before_wrappers) ? functionConfig.before_wrappers : [],
+    afterWrappers: Array.isArray(functionConfig.after_wrappers) ? functionConfig.after_wrappers : [],
   }))
 );
 
-const functionUsesWrapper = (functionConfig = {}, wrapperName) => (
-  Array.isArray(functionConfig.wrappers) && functionConfig.wrappers.includes(wrapperName)
-);
+const functionUsesWrapper = (functionConfig = {}, wrapperName) => {
+  const { before_wrappers = [], after_wrappers = [] } = functionConfig;
+
+  return before_wrappers.includes(wrapperName) || after_wrappers.includes(wrapperName);
+};
 
 const getFuncApiConfig = ({
   moduleExports,
@@ -100,7 +103,10 @@ const getFuncApiConfig = ({
   }
 };
 
-const wrapHostedFunction = (loader, exportName, wrappers = []) => {
+const wrapHostedFunction = (loader, exportName, {
+  beforeWrappers = [],
+  afterWrappers = [],
+} = {}) => {
   let handler = null;
   let usesFuncApi = false;
 
@@ -129,7 +135,10 @@ const wrapHostedFunction = (loader, exportName, wrappers = []) => {
       : await handler(...args);
   };
 
-  const wrappedHandler = wrapFunction(coreHandler, wrappers);
+  const wrappedHandler = wrapFunction(coreHandler, {
+    beforeWrappers,
+    afterWrappers,
+  });
 
   return async (req, res) => {
     try {
@@ -200,9 +209,16 @@ const resolveHostedHandlersForDeploy = ({
   const hostedEntries = getHostedEntries(functions);
 
   return hostedEntries.map((hostedEntry) => {
-    const { handlerName, wrappers = [] } = hostedEntry;
+    const {
+      handlerName,
+      beforeWrappers = [],
+      afterWrappers = [],
+    } = hostedEntry;
 
-    const resolvedWrappers = wrappers.map((wrapperName) => (
+    const resolvedBeforeWrappers = beforeWrappers.map((wrapperName) => (
+      resolveWrapperName(wrapperName, workspaceRequire)
+    ));
+    const resolvedAfterWrappers = afterWrappers.map((wrapperName) => (
       resolveWrapperName(wrapperName, workspaceRequire)
     ));
 
@@ -215,7 +231,8 @@ const resolveHostedHandlersForDeploy = ({
 
     return {
       ...hostedEntry,
-      resolvedWrappers,
+      resolvedBeforeWrappers,
+      resolvedAfterWrappers,
       requirePath: getRequirePathForHandler(handler, workspace),
     };
   });

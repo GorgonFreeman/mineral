@@ -121,18 +121,21 @@ const runRequestHandler = async (requestHandler, requestContext) => {
   return mergeRequestContext(requestContext, handlerOutput);
 };
 
-const wrapFunction = (func, wrappers = []) => async (req, res, ...rest) => {
-  const postWrappers = wrappers.filter((wrapper) => typeof wrapper.after === 'function');
-  const preWrappers = wrappers.filter((wrapper) => typeof wrapper.after !== 'function');
-
-  for (const wrapper of preWrappers) {
-    const rejected = await wrapper(req, res);
-    if (rejected) {
-      return rejected;
+const wrapFunction = (func, {
+  beforeWrappers = [],
+  afterWrappers = [],
+} = {}) => async (req, res, ...rest) => {
+  for (const beforeWrapper of beforeWrappers) {
+    const beforeResult = await beforeWrapper(req, res);
+    if (beforeResult?.handled) {
+      return;
+    }
+    if (beforeResult) {
+      return beforeResult;
     }
   }
 
-  if (!postWrappers.length) {
+  if (!afterWrappers.length) {
     return func(req, res, ...rest);
   }
 
@@ -151,11 +154,11 @@ const wrapFunction = (func, wrappers = []) => async (req, res, ...rest) => {
     };
   }
 
-  for (const wrapper of postWrappers) {
+  for (const afterWrapper of afterWrappers) {
     try {
-      await wrapper.after(req, res, result);
+      await afterWrapper(req, res, result);
     } catch (error) {
-      console.log('wrapFunction postWrapper error', error);
+      console.log('wrapFunction afterWrapper error', error);
     }
   }
 

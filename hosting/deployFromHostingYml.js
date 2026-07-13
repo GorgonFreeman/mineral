@@ -107,7 +107,8 @@ const deployFunction = async ({
     entry_point,
     schedules,
     groups,
-    wrappers,
+    before_wrappers,
+    after_wrappers,
     source,
     env,
     ...gcloudArgs
