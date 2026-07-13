@@ -176,3 +176,31 @@ curl -X POST "http://localhost:8000/shopifyDecodeSessionToken" \
     "sessionToken": "<jwt>"
   }'
 */
+
+/*
+  Legacy usage:
+  const whichApp = req.headers['x-wf-app'];
+
+  const sessionToken = req?.headers?.authorization?.split(' ')?.pop();
+  if (!sessionToken) {
+    return respond(res, 401, {
+      error: 'Unauthorized: No session token',
+    });
+  }
+
+  const sessionTokenData = shopifyDecodeSessionToken(sessionToken, {
+    ...whichApp && { credsPath: whichApp },
+  });
+
+  const {
+    dest,
+    sub: customerGid,
+  } = sessionTokenData;
+
+  const config = domainToConfig(dest);
+  if (!config) {
+    return respond(res, 401, {
+      error: 'No config found for domain',
+    });
+  }
+*/
