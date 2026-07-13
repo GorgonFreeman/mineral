@@ -11,6 +11,7 @@
   "scripts": {
     "creds_to_env": "node hosting/copyCredsToEnv.js",
     "dev": "node --watch --watch-path=./api --watch-path=./server.js --watch-path=./server.utils.js --watch-path=./.creds.yml server.js",
+    "tunnel": "ngrok http http://localhost:8000",
     "new": "node _build_scripts/createNewFunction.js",
     "serve": "PORT=8100 node server.js",
     "start": "node server.js",
@@ -22,5 +23,8 @@
     "json-2-csv": "^5.5.9",
     "xml2js": "^0.6.2",
     "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "ngrok": "^5.0.0-beta.2"
   }
 }
