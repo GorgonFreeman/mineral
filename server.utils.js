@@ -122,14 +122,44 @@ const runRequestHandler = async (requestHandler, requestContext) => {
 };
 
 const wrapFunction = (func, wrappers = []) => async (req, res, ...rest) => {
-  for (const wrapper of wrappers) {
+  const postWrappers = wrappers.filter((wrapper) => typeof wrapper.after === 'function');
+  const preWrappers = wrappers.filter((wrapper) => typeof wrapper.after !== 'function');
+
+  for (const wrapper of preWrappers) {
     const rejected = await wrapper(req, res);
     if (rejected) {
       return rejected;
     }
   }
 
-  return func(req, res, ...rest);
+  if (!postWrappers.length) {
+    return func(req, res, ...rest);
+  }
+
+  let result;
+
+  try {
+    result = await func(req, res, ...rest);
+  } catch (error) {
+    result = {
+      ok: false,
+      error: {
+        code: 'UNHANDLED_ERROR',
+        message: 'Unhandled server error.',
+        details: errorToReadable(error),
+      },
+    };
+  }
+
+  for (const wrapper of postWrappers) {
+    try {
+      await wrapper.after(req, res, result);
+    } catch (error) {
+      console.log('wrapFunction postWrapper error', error);
+    }
+  }
+
+  return result;
 };
 
 const statusCodeFromResult = (result) => {
