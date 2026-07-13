@@ -55,5 +55,5 @@ For cloud deploy, workspaces use `hosting/.hosting.yml` and `npm run host` (same
 
 ## What the thang do
 - Server makes functions available from the api/ route, where an export matches the filename. Run `npm run serve`, and they're all curlable.
-- .creds.yml is copied into .env when deploying, so creds can be accessed while hosted. Locally, it creads from the file directly.
-- 
+- .creds.yml is copied into .env when deploying, so creds can be accessed while hosted. Locally, it reads from the file directly.
+- Cloud deploy reads `hosting/.hosting.yml` for per-function config — wrappers like `requireHostedApiKey`, `max_instances`, schedules — and deploys each function to Google Cloud.
