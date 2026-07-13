@@ -9,6 +9,7 @@ const {
   resolveHostedHandlersForDeploy,
   wrapHostedFunction,
 } = require('./hosting.utils');
+const { copyCredsToEnv } = require('./copyCredsToEnv');
 
 const getConfig = (options = {}) => ({
   port: Number(options.port ?? process.env.PORT ?? 8000),
@@ -130,6 +131,7 @@ const startHostingPreview = (options = {}) => {
   const config = getConfig(options);
 
   setWorkspace(config.workspace);
+  copyCredsToEnv(config.workspace);
   loadWorkspaceEnv();
 
   const handlers = loadHostedRoutes(config);
