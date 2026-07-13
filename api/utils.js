@@ -1161,7 +1161,6 @@ module.exports = {
   actionSingleOrMultiple,
   Processor,
   Getter,
-  capitaliseString,
   sentenceCaseString,
   ArgsWarden,
 };
