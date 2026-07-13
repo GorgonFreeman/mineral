@@ -1134,6 +1134,10 @@ class ArgsWarden {
   }
 }
 
+const gidToId = (gid) => {
+  return gid.split('/').pop();
+};
+
 module.exports = {
   wait,
   timeMs,
@@ -1162,4 +1166,5 @@ module.exports = {
   Getter,
   sentenceCaseString,
   ArgsWarden,
+  gidToId,
 };
