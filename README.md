@@ -52,3 +52,8 @@ The [bedrock](https://github.com/GorgonFreeman/bedrock) middleware, refactored f
 Mineral gets pushed to from a larger repo that can also contain private functions. Mineral should be strictly useful stuff for the public, and can be used standalone, but needs to be instantiated for serving, setting stuff like which creds file to use. This allows it to be used as part of another repo in the same HTTP/curl way as by itself. Pass `--workspace` to locate `.creds.yml` and `--api_dirs` to serve additional function directories.
 
 For cloud deploy, workspaces use `hosting/.hosting.yml` and `npm run host` (same `--workspace` / `--api_dirs` flags as dev/serve). See `hosting/.hosting.yml.sample`.
+
+## What the thang do
+- Server makes functions available from the api/ route, where an export matches the filename. Run `npm run serve`, and they're all curlable.
+- .creds.yml is copied into .env when deploying, so creds can be accessed while hosted. Locally, it creads from the file directly.
+- 
