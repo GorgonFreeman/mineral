@@ -180,17 +180,6 @@ const readHostingYml = (workspace) => {
   return hostingConfig;
 };
 
-const getCredsJsonForDeploy = (workspace) => {
-  const credsPath = `${ workspace }/.creds.yml`;
-
-  if (!fs.existsSync(credsPath)) {
-    throw new Error(`Missing .creds.yml in workspace: ${ workspace }`);
-  }
-
-  const credsText = fs.readFileSync(credsPath, 'utf8');
-  return JSON.stringify(yaml.parse(credsText));
-};
-
 const ensureWorkspaceEnvForDeploy = (workspace) => {
   const { copyCredsToEnv } = require('./copyCredsToEnv');
   const envPath = `${ workspace.replace(/\/$/, '') }/.env`;
@@ -240,7 +229,6 @@ module.exports = {
   getFuncApiConfig,
   wrapHostedFunction,
   readHostingYml,
-  getCredsJsonForDeploy,
   ensureWorkspaceEnvForDeploy,
   getHostedEntries,
   resolveHostedHandlersForDeploy,
