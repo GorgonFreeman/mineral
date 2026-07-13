@@ -278,7 +278,6 @@ const pathAsArray = (path) => {
 
 const objectDigNodeAtPath = (obj, path) => {
   let nodes = pathAsArray(path);
-  console.log(nodes);
 
   let output = obj;
   for (const node of nodes) {
