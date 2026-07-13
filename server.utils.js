@@ -1,8 +1,9 @@
 const { logDeep } = require('./api/utils');
+const { HOSTED } = require('./api/constants');
 const { StringDecoder } = require('string_decoder');
 
 const respondJson = (res, statusCode, payload) => {
-  logDeep(payload);
+  !HOSTED && logDeep(payload);
   const body = JSON.stringify(payload);
   res.writeHead(statusCode, {
     'Content-Type': 'application/json',

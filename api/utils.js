@@ -146,14 +146,14 @@ const customFetch = async (url, {
       });
 
       const responseContentType = response.headers.get('content-type');
-      console.log(responseContentType);
+      !HOSTED && console.log('responseContentType', responseContentType);
 
       if (!responseParser) {
         responseParser = getResponseParser(responseContentType);
       }
 
       const parsedResponse = await responseParser(response);
-      logDeep({ parsedResponse });
+      !HOSTED && logDeep({ parsedResponse });
 
       if (response.ok) {
         return {
