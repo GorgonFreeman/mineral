@@ -258,6 +258,7 @@ const funcApi = (func, config = {}) => {
 
     let callArgs = requestContext.args;
     if (passThroughReq) {
+      requestContext.req.body = modifiedBody;
       callArgs = [requestContext.req];
     } else if (passThroughBody) {
       callArgs = [modifiedBody];
