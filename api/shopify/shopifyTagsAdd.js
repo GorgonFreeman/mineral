@@ -7,7 +7,7 @@ const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
   ['gid'],
-  ['tags', Array],
+  ['tags', Array.isArray],
 ]);
 
 const defaultAttrs = 'id';
