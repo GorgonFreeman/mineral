@@ -10,6 +10,10 @@ const { getWorkspace } = require('./workspace');
 const wait = (ms) => new Promise((resolve, reject) => setTimeout(resolve, ms));
 
 const objHasAny = (obj, keys) => {
+  if (obj == null || typeof obj !== 'object') {
+    return false;
+  }
+
   return keys.some((key) => obj[key] !== undefined);
 };
 
