@@ -75,7 +75,7 @@ const shopifyCollectionGet = async (
   return shopifyGetSingle(
     credsPayload,
     'collection',
-    collectionIdentifier,
+    id,
     {
       apiVersion,
       attrs,
