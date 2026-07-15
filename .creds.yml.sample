@@ -26,4 +26,8 @@ linear:
   API_KEY: _______________________________
 
 slack:
-  BOT_TOKEN: xoxb________________________________
+  BOT_TOKEN: xoxb_________________________
+
+workable:
+  BASE_URL: https://[subdomain].workable.com/spi/v3
+  ACCESS_TOKEN: __________________________
