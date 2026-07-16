@@ -35,3 +35,13 @@ workable:
 loop:
   au:
     API_KEY: _____________________________
+
+upstash:
+  BASE_URL: https://________.upstash.io
+  TOKEN: ______________________________
+
+supabase:
+  project:
+    BASE_URL: https://_____.supabase.co
+    API_KEY: __________________________
+
