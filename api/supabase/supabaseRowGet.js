@@ -45,3 +45,14 @@ module.exports = {
   supabaseRowGet,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/supabaseRowGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "supabase.mushroom_kingdom" },
+    "tableName": "powerups",
+    "rowField": "name",
+    "rowValue": "star"
+  }'
+*/

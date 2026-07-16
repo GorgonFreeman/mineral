@@ -33,3 +33,12 @@ module.exports = {
   supabaseTableGet,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/supabaseTableGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "supabase.mushroom_kingdom" },
+    "tableName": "powerups"
+  }'
+*/

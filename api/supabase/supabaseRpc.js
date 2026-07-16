@@ -46,3 +46,16 @@ module.exports = {
   supabaseRpc,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/supabaseRpc" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "supabase.mushroom_kingdom" },
+    "rpcName": "grant_powerup",
+    "options": {
+      "rpcArgs": { "player": "mario", "powerup": "1up_mushroom" },
+      "useMaybeSingle": true
+    }
+  }'
+*/

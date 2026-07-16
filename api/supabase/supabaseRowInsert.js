@@ -41,3 +41,16 @@ module.exports = {
   supabaseRowInsert,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/supabaseRowInsert" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "supabase.mushroom_kingdom" },
+    "tableName": "powerups",
+    "rowObject": [
+      { "name": "mushroom", "effect": "grow", "duration_seconds": null },
+      { "name": "star", "effect": "invincible", "duration_seconds": 10 }
+    ]
+  }'
+*/

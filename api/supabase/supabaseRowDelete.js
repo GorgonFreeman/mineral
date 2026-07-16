@@ -83,3 +83,13 @@ module.exports = {
   supabaseRowDelete,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/supabaseRowDelete" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "supabase.mushroom_kingdom" },
+    "tableName": "powerups",
+    "deleteConfig": { "field": "name", "value": "fire_flower" }
+  }'
+*/
