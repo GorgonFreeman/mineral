@@ -31,3 +31,7 @@ slack:
 workable:
   BASE_URL: https://[subdomain].workable.com/spi/v3
   ACCESS_TOKEN: __________________________
+
+loop:
+  au:
+    API_KEY: _____________________________

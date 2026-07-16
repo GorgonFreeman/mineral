@@ -5,6 +5,7 @@ const {
   fetchClientCommonSteps,
 } = require('../utils');
 
+// TODO: Allow creds failure (e.g. missing BASE_URL / ACCESS_TOKEN → INVALID_CREDS before fetch)
 const addUrlAndAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
   const { creds } = context;
