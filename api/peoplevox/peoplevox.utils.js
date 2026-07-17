@@ -1,7 +1,7 @@
 const csvtojson = require('csvtojson');
 const xml2js = require('xml2js');
 const { FetchClient, credsFromPayload, appendUrlToBase, logDeep, Chain } = require('../utils');
-const { peoplevoxAuthGet } = require('../peoplevox/peoplevoxAuthGet');
+const { withPeoplevoxAuth } = require('../peoplevox/peoplevox.sessions');
 
 const xml2jsBuilder = new xml2js.Builder({
   headless: true,
@@ -48,21 +48,11 @@ const buildSoapEnvelope = ({
 // TODO: Split into multiple steps, allow mutating context
 const peoplevoxRequestPreparer = async (requestPayload, context) => {
   const { headers, body } = requestPayload;
-  const { credsPayload, action } = context;
-  let { sessionId: localSessionId } = context;
+  const { credsPayload, action, sessionId } = context;
   const { CLIENT_ID } = await credsFromPayload(credsPayload);
 
-  if (!localSessionId) {
-    const authResponse = await peoplevoxAuthGet(credsPayload);
-
-    if (!authResponse.ok) {
-      return { ...authResponse, breakChain: true };
-    }
-
-    const { Detail } = authResponse?.data?.['soap:Envelope']?.['soap:Body']?.['AuthenticateResponse']?.['AuthenticateResult'];
-    const [, responseSessionId] = Detail.split(',');
-
-    localSessionId = responseSessionId;
+  if (!sessionId) {
+    throw new Error('PeopleVox sessionId is required');
   }
 
   const baseUrl = `https://ap.peoplevox.net/${ CLIENT_ID }/Resources/IntegrationServicev4.asmx`;
@@ -71,7 +61,7 @@ const peoplevoxRequestPreparer = async (requestPayload, context) => {
     action,
     body,
     clientId: CLIENT_ID,
-    sessionId: localSessionId,
+    sessionId,
   });
 
   logDeep({ envelopeXml });
@@ -185,6 +175,8 @@ const peoplevoxClient = new FetchClient({
     hoistDetail,
   ]),
 });
+
+peoplevoxClient.use(withPeoplevoxAuth);
 
 module.exports = {
   peoplevoxClient,

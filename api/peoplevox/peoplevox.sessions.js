@@ -31,6 +31,26 @@ const getSessionId = async (credsPayload) => {
   };
 };
 
+const withPeoplevoxAuth = async (fetchPayload, next) => {
+  const { context = {} } = fetchPayload;
+  const { credsPayload } = context;
+
+  const sessionIdResponse = await getSessionId(credsPayload);
+
+  if (!sessionIdResponse.ok) {
+    return sessionIdResponse;
+  }
+
+  return next({
+    ...fetchPayload,
+    context: {
+      ...context,
+      sessionId: sessionIdResponse.data,
+    },
+  });
+};
+
 module.exports = {
   getSessionId,
+  withPeoplevoxAuth,
 };
