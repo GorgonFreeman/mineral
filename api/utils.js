@@ -430,7 +430,7 @@ class FetchClient {
     this.wrappers = [];
   }
 
-  async fetch({
+  async #fetch({
     url,
 
     // customFetch payload
@@ -505,6 +505,43 @@ class FetchClient {
   use(wrapper) {
     this.wrappers.push(wrapper);
   }
+
+  async fetch(fetchPayload) {
+    const coreFetch = (payload) => this.#fetch(payload);
+  
+    let wrappedFetch = coreFetch;
+    for (const wrapper of [...this.wrappers].reverse()) {
+      const currentNext = wrappedFetch; // capture this iteration's `next`
+      wrappedFetch = (payload) => wrapper(payload, currentNext);
+    }
+  
+    return await wrappedFetch(fetchPayload);
+  }
+
+  /* Example wrapper
+
+  const withDressColours = async (payload, next) => {
+
+    let response = await next({
+      ...payload,
+      headers: { ...payload.headers, dress: 'blue/white' },
+    });
+
+    if (!response.ok) {
+      console.warn('blue/white failed, retrying with black/gold');
+      response = await next({
+        ...payload,
+        headers: { ...payload.headers, dress: 'black/gold' },
+      });
+    }
+
+    return response;
+
+  };
+
+  client.use(withDressColours);
+
+  */
 }
 
 const fetchClientCommonSteps = {
