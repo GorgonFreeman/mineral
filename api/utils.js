@@ -427,7 +427,7 @@ class FetchClient {
     this.context = context;
     this.requestPreparer = requestPreparer; // can be a Chain
     this.responseInterpreter = responseInterpreter; // can be a Chain  
-    this.wrappers = [];
+    this.layers = [];
   }
 
   async #fetch({
@@ -502,23 +502,23 @@ class FetchClient {
     return response;
   }
 
-  use(wrapper) {
-    this.wrappers.push(wrapper);
+  use(layer) {
+    this.layers.push(layer);
   }
 
   async fetch(fetchPayload) {
     const coreFetch = (payload) => this.#fetch(payload);
   
-    let wrappedFetch = coreFetch;
-    for (const wrapper of [...this.wrappers].reverse()) {
-      const currentNext = wrappedFetch; // capture this iteration's `next`
-      wrappedFetch = (payload) => wrapper(payload, currentNext);
+    let layeredFetch = coreFetch;
+    for (const layer of [...this.layers].reverse()) {
+      const currentNext = layeredFetch; // capture this iteration's `next`
+      layeredFetch = (payload) => layer(payload, currentNext);
     }
   
-    return await wrappedFetch(fetchPayload);
+    return await layeredFetch(fetchPayload);
   }
 
-  /* Example wrapper
+  /* Example layer
 
   const withDressColours = async (payload, next) => {
 
