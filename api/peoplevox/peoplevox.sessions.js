@@ -1,3 +1,4 @@
+const { HOSTED } = require('../constants');
 const { credsFromPayload } = require('../utils');
 const { peoplevoxAuthGet } = require('./peoplevoxAuthGet');
 
@@ -9,6 +10,7 @@ const getSessionId = async (credsPayload) => {
   let sessionId = SESSION_IDS.get(CLIENT_ID);
 
   if (sessionId) {
+    !HOSTED && console.log('Peoplevox auth: from memory');
     return {
       ok: true,
       data: sessionId,
@@ -25,6 +27,7 @@ const getSessionId = async (credsPayload) => {
   const [, responseSessionId] = Detail.split(',');
 
   SESSION_IDS.set(CLIENT_ID, responseSessionId);
+  !HOSTED && console.log('Peoplevox auth: from API');
   return {
     ok: true,
     data: responseSessionId,
