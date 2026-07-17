@@ -43,26 +43,45 @@ const getSessionId = async (credsPayload) => {
   };
 };
 
+const setSessionId = async (credsPayload, sessionId) => {
+  const { CLIENT_ID } = await credsFromPayload(credsPayload);
+  SESSION_IDS.set(CLIENT_ID, sessionId);
+};
+
 const withPeoplevoxAuth = async (fetchPayload, next) => {
   const { context = {} } = fetchPayload;
   const { credsPayload } = context;
 
   const sessionIdResponse = await getSessionId(credsPayload);
 
-  if (!sessionIdResponse.ok) {
+  const { 
+    ok: sessionIdOk, 
+    data: sessionId,
+  } = sessionIdResponse;
+
+  if (!sessionIdOk) {
     return sessionIdResponse;
   }
 
-  return next({
+  const response = await next({
     ...fetchPayload,
     context: {
       ...context,
-      sessionId: sessionIdResponse.data,
+      sessionId,
     },
   });
+
+  if (response.ok) {
+    await setSessionId(credsPayload, sessionId);
+    return response;
+  }
+  
+  // TODO: Check if it was an auth error, and try another auth method if so
+  return response;
 };
 
 module.exports = {
   getSessionId,
+  setSessionId,
   withPeoplevoxAuth,
 };
