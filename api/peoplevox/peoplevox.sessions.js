@@ -2,6 +2,9 @@ const { HOSTED } = require('../constants');
 const { credsFromPayload } = require('../utils');
 const { peoplevoxAuthGet } = require('./peoplevoxAuthGet');
 
+// TODO: Track where auth comes from in order to facilitate retrying
+// TODO: Consider only storing auth when successful request goes through
+
 const SESSION_IDS = new Map();
 
 const getSessionId = async (credsPayload) => {
