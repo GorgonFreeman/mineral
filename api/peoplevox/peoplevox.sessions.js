@@ -17,6 +17,9 @@ const getSessionId = async (credsPayload) => {
     return {
       ok: true,
       data: sessionId,
+      meta: {
+        source: 'memory',
+      },
     };
   }
 
@@ -34,6 +37,9 @@ const getSessionId = async (credsPayload) => {
   return {
     ok: true,
     data: responseSessionId,
+    meta: {
+      source: 'api',
+    },
   };
 };
 
