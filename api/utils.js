@@ -427,6 +427,7 @@ class FetchClient {
     this.context = context;
     this.requestPreparer = requestPreparer; // can be a Chain
     this.responseInterpreter = responseInterpreter; // can be a Chain  
+    this.wrappers = [];
   }
 
   async fetch({
@@ -499,6 +500,10 @@ class FetchClient {
     inspect && await askQuestion('?');
 
     return response;
+  }
+
+  use(wrapper) {
+    this.wrappers.push(wrapper);
   }
 }
 
