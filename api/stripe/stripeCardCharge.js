@@ -9,7 +9,7 @@ const argsWarden = new ArgsWarden([
   ['expiryMonth'],
   ['expiryYear'],
   ['cvc'],
-  ['amount'],
+  ['amountCents'],
   ['currency'],
   ['description'],
 ]);
@@ -20,7 +20,7 @@ const stripeCardCharge = async (
   expiryMonth,
   expiryYear,
   cvc,
-  amount,
+  amountCents,
   currency,
   description,
 ) => {
@@ -31,7 +31,7 @@ const stripeCardCharge = async (
     expiryMonth,
     expiryYear,
     cvc,
-    amount,
+    amountCents,
     currency,
     description,
   });
@@ -64,7 +64,7 @@ const stripeCardCharge = async (
 
   const chargeResponse = await stripeChargeCreate(
     credsPayload,
-    amount,
+    amountCents,
     currency,
     cardToken,
     description,
@@ -93,6 +93,6 @@ curl -X POST "http://localhost:8000/stripeCardCharge" \
     "cvc": "123",
     "currency": "AUD",
     "description": "Transaction helper",
-    "amount": "50"
+    "amountCents": "50"
   }'
 */

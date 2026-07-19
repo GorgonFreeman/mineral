@@ -6,7 +6,7 @@ const { stripeClient } = require('../stripe/stripe.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['amount'],
+  ['amountCents'],
   ['currency'],
   ['source'],
   ['description'],
@@ -14,7 +14,7 @@ const argsWarden = new ArgsWarden([
 
 const stripeChargeCreate = async (
   credsPayload,
-  amount,
+  amountCents,
   currency,
   source,
   description,
@@ -22,7 +22,7 @@ const stripeChargeCreate = async (
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    amount,
+    amountCents,
     currency,
     source,
     description,
@@ -37,7 +37,7 @@ const stripeChargeCreate = async (
     url: '/charges',
     method: 'post',
     body: {
-      amount,
+      amount: amountCents,
       currency,
       source,
       description,
@@ -62,7 +62,7 @@ curl -X POST "http://localhost:8000/stripeChargeCreate" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "stripe" },
-    "amount": "100",
+    "amountCents": "100",
     "currency": "AUD",
     "source": "tok_visa",
     "description": "small charge"
