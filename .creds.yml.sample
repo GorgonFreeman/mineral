@@ -45,3 +45,6 @@ supabase:
     BASE_URL: https://_____.supabase.co
     API_KEY: __________________________
 
+stripe:
+  API_KEY: sk__________________________
+
