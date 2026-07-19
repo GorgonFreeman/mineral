@@ -24,7 +24,6 @@ const stripeRefundsGet = async (
 
   const response = await stripeClient.fetch({
     url: '/refunds',
-    method: 'get',
     params,
     context: { creds },
   });

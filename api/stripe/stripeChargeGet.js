@@ -26,7 +26,6 @@ const stripeChargeGet = async (
 
   const response = await stripeClient.fetch({
     url: `/charges/${ chargeId }`,
-    method: 'get',
     context: { creds },
   });
 

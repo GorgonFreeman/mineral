@@ -26,7 +26,6 @@ const stripeTokenGet = async (
 
   const response = await stripeClient.fetch({
     url: `/tokens/${ tokenId }`,
-    method: 'get',
     context: { creds },
   });
 

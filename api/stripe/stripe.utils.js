@@ -18,7 +18,6 @@ const addUrlAndAuthHeaders = async (state) => {
   return {
     requestPayload: {
       ...requestPayload,
-      method: requestPayload.method || 'post',
       url: appendUrlToBase(BASE_URL, requestPayload.url),
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
