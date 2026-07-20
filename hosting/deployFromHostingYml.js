@@ -109,6 +109,7 @@ const deployFunction = async ({
     groups,
     before_wrappers,
     after_wrappers,
+    include_creds_paths,
     source,
     env,
     ...gcloudArgs
@@ -197,7 +198,6 @@ const deployFunction = async ({
 const deployFromHostingYml = async (options = {}) => {
   const config = getHostConfig(options);
   setWorkspace(config.workspace);
-  ensureWorkspaceEnvForDeploy(config.workspace);
   loadWorkspaceEnv();
 
   const hostingConfig = readHostingYml(config.workspace);
@@ -235,9 +235,16 @@ const deployFromHostingYml = async (options = {}) => {
       return;
     }
 
+    const functionConfig = functions[functionName];
+    const includeCredsPaths = Array.isArray(functionConfig.include_creds_paths)
+      ? functionConfig.include_creds_paths
+      : undefined;
+
+    ensureWorkspaceEnvForDeploy(config.workspace, { includeCredsPaths });
+
     await deployFunction({
       functionName,
-      functionConfig: functions[functionName],
+      functionConfig,
       googleCloudInfo,
       workspace: config.workspace,
     });

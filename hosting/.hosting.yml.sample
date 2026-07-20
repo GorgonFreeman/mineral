@@ -5,19 +5,17 @@ google_cloud_info:
 # TODO: consider credsPayload in google_cloud_info instead of workspace .creds.yml
 
 functions:
-  exampleFunction:
-    max_instances: 1
-    timeout: 300s
-    before_wrappers:
-      - allowCrossOriginCallsAndHandleOptions
-      - requireHostedApiKey
-    # entry_point: otherHandlerName
-
   pokemonPokeballThrow:
+    entry_point: functionWithDifferentNameIfNeeded
     max_instances: 1
     before_wrappers:
-      - checkTrainer
+      - checkPokeballInventory
+    after_wrappers:
+      - rethrowIfNotCaught
+    include_creds_paths:
+      - nintendo.pokemon
+      - platform
 
 groups:
-  example_group:
-    - exampleFunction
+  pokemon:
+    - pokemonPokeballThrow

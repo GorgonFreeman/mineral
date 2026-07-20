@@ -189,11 +189,12 @@ const readHostingYml = (workspace) => {
   return hostingConfig;
 };
 
-const ensureWorkspaceEnvForDeploy = (workspace) => {
+const ensureWorkspaceEnvForDeploy = (workspace, options = {}) => {
+  const { includeCredsPaths } = options;
   const { copyCredsToEnv } = require('./copyCredsToEnv');
   const envPath = `${ workspace.replace(/\/$/, '') }/.env`;
 
-  copyCredsToEnv(workspace);
+  copyCredsToEnv(workspace, { includeCredsPaths });
 
   if (!fs.existsSync(envPath)) {
     throw new Error(`Missing .env in workspace: ${ workspace }`);
