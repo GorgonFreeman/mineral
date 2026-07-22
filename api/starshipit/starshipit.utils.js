@@ -13,7 +13,25 @@ const interpretStarshipitResponse = async (state) => {
   logDeep(response);
   await askQuestion('?');
 
-  const { success, results } = response.data;
+  const { success, results, errors } = response.data;
+
+  if (!success) {
+
+    const firstError = errors?.[0];
+    
+    // TODO: Consider removing data if errors
+    return {
+      response: {
+        ...response,
+        ok: false,
+        error: {
+          message: firstError?.message,
+          details: errors,
+        },
+      },
+      breakChain: true,
+    };
+  }
 
   return {
     response: {
