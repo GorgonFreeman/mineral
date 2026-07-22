@@ -111,7 +111,12 @@ const workableGet = async (
     return getter;
   }
 
-  return getter.run({ returnAll: true });
+  const data = await getter.run({ returnAll: true });
+
+  return {
+    ok: true,
+    data,
+  };
 };
 
 const funcApiConfig = {

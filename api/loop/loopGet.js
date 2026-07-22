@@ -77,8 +77,6 @@ const loopGet = async (
 
   const creds = await credsFromPayload(credsPayload);
 
-  let firstError = null;
-
   const getter = new Getter(
     {
       args: [creds, url],
@@ -91,7 +89,6 @@ const loopGet = async (
       func: loopGetPacket,
       digester: (response) => {
         if (!response?.ok) {
-          firstError = response;
           return [];
         }
 
@@ -112,11 +109,10 @@ const loopGet = async (
 
   const data = await getter.run({ returnAll: true });
 
-  if (firstError) {
-    return firstError;
-  }
-
-  return data;
+  return {
+    ok: true,
+    data,
+  };
 };
 
 const funcApiConfig = {

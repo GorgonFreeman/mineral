@@ -276,7 +276,12 @@ const shopifyGet = async (
     return getter;
   }
 
-  return await getter.run({ returnAll: true });
+  const data = await getter.run({ returnAll: true });
+
+  return {
+    ok: true,
+    data,
+  };
 };
 
 const funcApiConfig = {

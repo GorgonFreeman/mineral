@@ -86,8 +86,6 @@ const starshipitGet = async (
 
   const creds = await credsFromPayload(credsPayload);
 
-  let firstError = null;
-
   const getter = new Getter(
     {
       args: [creds, url],
@@ -100,7 +98,6 @@ const starshipitGet = async (
       func: starshipitGetPacket,
       digester: (response) => {
         if (!response?.ok) {
-          firstError = response;
           return [];
         }
 
@@ -116,10 +113,6 @@ const starshipitGet = async (
   }
 
   const data = await getter.run({ returnAll: true });
-
-  if (firstError) {
-    return firstError;
-  }
 
   return {
     ok: true,
