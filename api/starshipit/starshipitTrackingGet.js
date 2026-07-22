@@ -47,14 +47,7 @@ const starshipitTrackingGet = async (
     },
   });
 
-  if (!response?.ok) {
-    return response;
-  }
-
-  return {
-    ...response,
-    data: response.data?.results ?? response.data,
-  };
+  return response;
 };
 
 const funcApiConfig = {
@@ -70,7 +63,7 @@ module.exports = {
 curl -X POST "http://localhost:8000/starshipitTrackingGet" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "starshipit.acc" },
-    "trackingIdentifier": { "orderNumber": "7027430785096" }
+    "credsPayload": { "credsPath": "starshipit.wf" },
+    "trackingIdentifier": { "orderNumber": "7726760919112" }
   }'
 */
