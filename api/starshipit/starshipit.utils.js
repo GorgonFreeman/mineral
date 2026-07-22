@@ -13,9 +13,14 @@ const interpretStarshipitResponse = async (state) => {
   logDeep(response);
   await askQuestion('?');
 
-  // if (!response?.ok) {
-  //   return {};
-  // }
+  const { success, results } = response.data;
+
+  return {
+    response: {
+      ...response,
+      data: results ?? response.data,
+    },
+  };
 };
 
 const addUrlAndAuthHeaders = async (state) => {
