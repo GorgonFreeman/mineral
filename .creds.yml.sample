@@ -48,3 +48,9 @@ supabase:
 stripe:
   API_KEY: sk__________________________
 
+starshipit:
+  acc:
+    API_KEY: __________________________
+    SUB_KEY: __________________________
+    WEBHOOK_SECRET: ___________________
+
