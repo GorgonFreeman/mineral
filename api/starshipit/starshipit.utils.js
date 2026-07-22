@@ -10,8 +10,6 @@ const {
 
 const interpretStarshipitResponse = async (state) => {
   const { response } = state;
-  logDeep(response);
-  await askQuestion('?');
 
   const { success, results, errors } = response.data;
 
