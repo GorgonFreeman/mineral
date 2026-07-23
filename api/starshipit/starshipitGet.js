@@ -103,7 +103,7 @@ const starshipitGet = async (
           return [];
         }
 
-        return response?.data?.data?.[nodeName] ?? [];
+        return response?.data?.[nodeName] ?? [];
       },
       paginator: starshipitGetPaginator,
       ...getterOptions,
