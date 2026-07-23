@@ -54,3 +54,6 @@ starshipit:
     SUB_KEY: __________________________
     WEBHOOK_SECRET: ___________________
 
+bleckmann:
+  PRIMARY_KEY: ________________________
+  SECONDARY_KEY: ______________________
