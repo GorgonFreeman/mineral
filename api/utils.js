@@ -558,11 +558,15 @@ class FetchClientV2 {
     return pipeline.find(step => step === 'fetch');
   }
 
-  async #fetch({ requestPayload }) {
-    return customFetch(
-      requestPayload.url,
-      requestPayload,
-    );
+  async #fetch(state) {
+    const { requestPayload } = state;
+
+    return {
+      response: await customFetch(
+        requestPayload.url,
+        requestPayload,
+      ),
+    };
   }
 
   async fetch({
