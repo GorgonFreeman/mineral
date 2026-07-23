@@ -11,6 +11,7 @@ const resolveCreds = async (state) => {
 
   return {
     context: {
+      ...context,
       creds,
     },
   };
