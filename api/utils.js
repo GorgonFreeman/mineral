@@ -544,6 +544,42 @@ class FetchClient {
   */
 }
 
+class FetchClientV2 {
+  constructor({
+    pipeline = ['fetch'], // an array of functions that transform the request and response, including a string 'fetch' step.
+  } = {}) {
+    if (!this.pipelineHasFetchStep(pipeline)) {
+      throw new Error('Pipeline must have a fetch step');
+    }
+    this.pipeline = pipeline;
+  }
+
+  pipelineHasFetchStep = (pipeline) => {
+    return pipeline.find(step => step === 'fetch');
+  }
+
+  async #fetch(requestPayload) {
+    return customFetch(
+      requestPayload.url,
+      requestPayload,
+    );
+  }
+
+  async fetch({
+    context,
+    inspect,
+    ...requestPayload
+  }) {
+    const { pipeline } = this;
+    const pipelineChain = new Chain(pipeline.replace('fetch', this.#fetch));
+    const response = await pipelineChain.run({
+      requestPayload,
+      context,
+    });
+    return response;
+  }
+}
+
 const fetchClientCommonSteps = {
   stripEdgesAndNodes: async (state) => {
     const { response } = state;
