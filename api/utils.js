@@ -558,7 +558,7 @@ class FetchClientV2 {
     return pipeline.find(step => step === 'fetch');
   }
 
-  async #fetch(requestPayload) {
+  async #fetch({ requestPayload }) {
     return customFetch(
       requestPayload.url,
       requestPayload,
@@ -566,10 +566,16 @@ class FetchClientV2 {
   }
 
   async fetch({
+    // url, body, etc.
+    requestPayload,
+
+    // additional information to inform behaviour
     context,
-    inspect,
-    ...requestPayload
-  }) {
+
+    // options for the fetch itself, as opposed to data it uses
+    inspect = false,
+  } = {}) {
+
     const { pipeline } = this;
 
     const pipelineChain = new Chain(pipeline.map(step => {
@@ -577,10 +583,13 @@ class FetchClientV2 {
         ? this.#fetch 
         : step;
     }));
+
+    // fetch step will add response to this, for subsequent steps
     const response = await pipelineChain.run({
       requestPayload,
       context,
     });
+
     return response;
   }
 }

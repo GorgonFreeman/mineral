@@ -22,10 +22,12 @@ const bleckmannAsnGet = async (
 
   const bleckmannFetchClient = new FetchClientV2();
   const response = await bleckmannFetchClient.fetch({
+    requestPayload: {
+      url: `/warehousing/asns/${ asnId }`,
+    },
     context: {
       credsPayload,
     },
-    url: `/warehousing/asns/${ asnId }`,
   });
 
   return response;
