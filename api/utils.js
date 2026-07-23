@@ -592,7 +592,7 @@ class FetchClientV2 {
     const state = await pipelineChain.run({
       requestPayload,
       context,
-    });
+    }, { inspect });
 
     return state.response;
   }
