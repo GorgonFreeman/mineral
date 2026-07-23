@@ -1,5 +1,5 @@
 const { credsValidator } = require('../validators');
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, FetchClientV2 } = require('../utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
@@ -20,13 +20,15 @@ const bleckmannAsnGet = async (
     return rejectResponse;
   }
 
-  return {
-    ok: true,
-    data: {
-      asnId,
-      options,
+  const bleckmannFetchClient = new FetchClientV2();
+  const response = await bleckmannFetchClient.fetch({
+    context: {
+      credsPayload,
     },
-  };
+    url: `/warehousing/asns/${ asnId }`,
+  });
+
+  return response;
 };
 
 const funcApiConfig = {
