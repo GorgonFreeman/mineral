@@ -1,6 +1,5 @@
 const { credsValidator } = require('../validators');
 const { ArgsWarden } = require('../utils');
-const { BASE_URL } = require('../bleckmann/bleckmann.constants');
 const { bleckmannClient } = require('../bleckmann/bleckmann.utils');
 
 const argsWarden = new ArgsWarden([
@@ -28,7 +27,6 @@ const bleckmannAsnGet = async (
     },
     context: {
       credsPayload,
-      baseUrl: BASE_URL,
     },
   });
 

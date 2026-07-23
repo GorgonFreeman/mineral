@@ -2,7 +2,7 @@
 
 const { credsValidator } = require('../validators');
 const { ArgsWarden } = require('../utils');
-const { BASE_URL, MAX_PER_PAGE } = require('../bleckmann/bleckmann.constants');
+const { MAX_PER_PAGE } = require('../bleckmann/bleckmann.constants');
 const { bleckmannClient } = require('../bleckmann/bleckmann.utils');
 
 const argsWarden = new ArgsWarden([
@@ -40,7 +40,6 @@ const bleckmannAsnsGet = async (
     },
     context: {
       credsPayload,
-      baseUrl: BASE_URL,
     },
   });
 

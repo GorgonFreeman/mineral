@@ -1,6 +1,7 @@
+const { BASE_URL } = require('../bleckmann/bleckmann.constants');
+const { useBaseUrl } = require('../pipelineSteps');
 const {
   FetchClientV2,
-  appendUrlToBase,
   credsFromPayload,
 } = require('../utils');
 
@@ -35,24 +36,11 @@ const useAuthHeaders = async (state) => {
   };
 };
 
-const useBaseUrl = (state) => {
-  const { context, requestPayload } = state;
-  const { baseUrl } = context;
-  const { url } = requestPayload;
-
-  return {
-    requestPayload: {
-      ...requestPayload,
-      url: appendUrlToBase(baseUrl, url),
-    },
-  };
-};
-
 const bleckmannClient = new FetchClientV2({
   pipeline: [
     resolveCreds,
     useAuthHeaders,
-    useBaseUrl,
+    useBaseUrl(BASE_URL),
     'fetch',
   ],
 });
