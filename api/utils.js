@@ -1234,6 +1234,7 @@ module.exports = {
   appendUrlToBase,
   Chain,
   FetchClient,
+  FetchClientV2,
   fetchClientCommonSteps,
   ensureArray,
   everyIfArray,
