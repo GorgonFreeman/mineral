@@ -1,4 +1,20 @@
-const { appendUrlToBase } = require('./utils');
+const { appendUrlToBase, credsFromPayload } = require('./utils');
+
+const resolveCreds = async (state) => {
+  const { context } = state;
+
+  if (context.creds || !context.credsPayload) {
+    return {};
+  }
+
+  const creds = await credsFromPayload(context.credsPayload);
+
+  return {
+    context: {
+      creds,
+    },
+  };
+};
 
 const useBaseUrl = (baseUrl) => async (state) => {
   const { requestPayload, context } = state;
@@ -26,5 +42,6 @@ const useBaseUrl = (baseUrl) => async (state) => {
 };
 
 module.exports = {
+  resolveCreds,
   useBaseUrl,
 };

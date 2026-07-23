@@ -1,25 +1,6 @@
 const { BASE_URL } = require('../bleckmann/bleckmann.constants');
-const { useBaseUrl } = require('../pipelineSteps');
-const {
-  FetchClientV2,
-  credsFromPayload,
-} = require('../utils');
-
-const resolveCreds = async (state) => {
-  const { context } = state;
-
-  if (context.creds || !context.credsPayload) {
-    return {};
-  }
-
-  const creds = await credsFromPayload(context.credsPayload);
-
-  return {
-    context: {
-      creds,
-    },
-  };
-};
+const { resolveCreds, useBaseUrl } = require('../pipelineSteps');
+const { FetchClientV2 } = require('../utils');
 
 const useAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
