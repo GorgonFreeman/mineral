@@ -1,6 +1,7 @@
 const { credsValidator } = require('../validators');
-const { ArgsWarden, FetchClientV2, useBaseUrl, appendUrlToBase, logDeep } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { BASE_URL } = require('../bleckmann/bleckmann.constants');
+const { bleckmannClient } = require('../bleckmann/bleckmann.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
@@ -13,34 +14,15 @@ const bleckmannAsnGet = async (
   options = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
-    credsPayload, 
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
     asnId,
   });
   if (rejectResponse) {
     return rejectResponse;
   }
 
-  const useBaseUrl = (state) => {
-    const { context, requestPayload } = state;
-    const { baseUrl } = context;
-    const { url } = requestPayload;
-    logDeep(state);
-    return {
-      requestPayload: {
-        ...requestPayload,
-        url: appendUrlToBase(baseUrl, url),
-      },
-    };
-  };
-
-  const bleckmannFetchClient = new FetchClientV2({
-    pipeline: [
-      useBaseUrl,
-      'fetch',
-    ],
-  });
-  const response = await bleckmannFetchClient.fetch({
+  const response = await bleckmannClient.fetch({
     requestPayload: {
       url: `/warehousing/asns/${ asnId }`,
     },
