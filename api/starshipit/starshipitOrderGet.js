@@ -35,10 +35,12 @@ const starshipitOrderGet = async (
   const creds = await credsFromPayload(credsPayload);
 
   const response = await starshipitClient.fetch({
-    url: '/orders',
-    params: {
-      ...orderId && { order_id: orderId },
-      ...orderNumber && { order_number: orderNumber },
+    requestPayload: {
+      url: '/orders',
+      params: {
+        ...orderId && { order_id: orderId },
+        ...orderNumber && { order_number: orderNumber },
+      },
     },
     context: {
       creds,

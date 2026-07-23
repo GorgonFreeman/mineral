@@ -25,10 +25,12 @@ const starshipitAddressDelete = async (
   const creds = await credsFromPayload(credsPayload);
 
   return starshipitClient.fetch({
-    url: '/addressbook/delete',
-    method: 'post',
-    body: {
-      address_ids: [addressId],
+    requestPayload: {
+      url: '/addressbook/delete',
+      method: 'post',
+      body: {
+        address_ids: [addressId],
+      },
     },
     context: {
       creds,

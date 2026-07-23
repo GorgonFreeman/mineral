@@ -28,11 +28,13 @@ const starshipitAddressUpdate = async (
   const creds = await credsFromPayload(credsPayload);
 
   const response = await starshipitClient.fetch({
-    url: '/addressbook/update',
-    method: 'post',
-    body: {
-      id: addressId,
-      address: updatePayload,
+    requestPayload: {
+      url: '/addressbook/update',
+      method: 'post',
+      body: {
+        id: addressId,
+        address: updatePayload,
+      },
     },
     context: {
       creds,

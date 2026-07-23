@@ -25,10 +25,12 @@ const starshipitAddressCreate = async (
   const creds = await credsFromPayload(credsPayload);
 
   const response = await starshipitClient.fetch({
-    url: '/addressbook',
-    method: 'post',
-    body: {
-      address: addressPayload,
+    requestPayload: {
+      url: '/addressbook',
+      method: 'post',
+      body: {
+        address: addressPayload,
+      },
     },
     context: {
       creds,

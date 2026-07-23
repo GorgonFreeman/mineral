@@ -17,11 +17,13 @@ const starshipitGetPacket = async (
   } = {},
 ) => {
   return starshipitClient.fetch({
-    url,
-    params: {
-      page_size: perPage,
-      page_number: 1,
-      ...params,
+    requestPayload: {
+      url,
+      params: {
+        page_size: perPage,
+        page_number: 1,
+        ...params,
+      },
     },
     context: {
       creds,

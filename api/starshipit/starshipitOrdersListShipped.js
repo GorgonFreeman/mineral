@@ -25,11 +25,13 @@ const starshipitOrdersListShipped = async (
   const creds = await credsFromPayload(credsPayload);
 
   const response = await starshipitClient.fetch({
-    url: '/orders/shipped',
-    params: {
-      ...sinceLastUpdated && { since_last_updated: sinceLastUpdated },
-      ...idsOnly && { ids_only: idsOnly },
-      ...perPage && { limit: perPage },
+    requestPayload: {
+      url: '/orders/shipped',
+      params: {
+        ...sinceLastUpdated && { since_last_updated: sinceLastUpdated },
+        ...idsOnly && { ids_only: idsOnly },
+        ...perPage && { limit: perPage },
+      },
     },
     context: {
       creds,

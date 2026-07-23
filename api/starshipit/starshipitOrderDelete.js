@@ -72,10 +72,12 @@ const starshipitOrderDelete = async (
   const creds = await credsFromPayload(credsPayload);
 
   return starshipitClient.fetch({
-    url: '/orders/delete',
-    method: 'delete',
-    params: {
-      order_id: orderIdResponse.data,
+    requestPayload: {
+      url: '/orders/delete',
+      method: 'delete',
+      params: {
+        order_id: orderIdResponse.data,
+      },
     },
     context: {
       creds,

@@ -75,12 +75,14 @@ const starshipitOrderUpdate = async (
   const creds = await credsFromPayload(credsPayload);
 
   return starshipitClient.fetch({
-    url: '/orders',
-    method: 'put',
-    body: {
-      order: {
-        order_id: orderIdResponse.data,
-        ...updatePayload,
+    requestPayload: {
+      url: '/orders',
+      method: 'put',
+      body: {
+        order: {
+          order_id: orderIdResponse.data,
+          ...updatePayload,
+        },
       },
     },
     context: {

@@ -1,11 +1,8 @@
 const { BASE_URL } = require('../starshipit/starshipit.constants');
+const { resolveCreds, useBaseUrl } = require('../pipelineSteps');
 const {
-  FetchClient,
-  Chain,
-  appendUrlToBase,
+  FetchClientV2,
   fetchClientCommonSteps,
-  logDeep,
-  askQuestion,
 } = require('../utils');
 
 const interpretStarshipitResponse = async (state) => {
@@ -14,9 +11,8 @@ const interpretStarshipitResponse = async (state) => {
   const { success, results, errors } = response.data;
 
   if (!success) {
-
     const firstError = errors?.[0];
-    
+
     // TODO: Consider removing data if errors
     return {
       response: {
@@ -39,18 +35,16 @@ const interpretStarshipitResponse = async (state) => {
   };
 };
 
-const addUrlAndAuthHeaders = async (state) => {
+const useAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
-  const { creds } = context;
   const {
     API_KEY,
     SUB_KEY,
-  } = creds;
+  } = context.creds;
 
   return {
     requestPayload: {
       ...requestPayload,
-      url: appendUrlToBase(BASE_URL, requestPayload.url),
       headers: {
         'StarShipIT-Api-Key': API_KEY,
         'Ocp-Apim-Subscription-Key': SUB_KEY,
@@ -60,18 +54,15 @@ const addUrlAndAuthHeaders = async (state) => {
   };
 };
 
-const starshipitClientRequestPreparer = new Chain([
-  addUrlAndAuthHeaders,
-]);
-
-const starshipitClientResponseInterpreter = new Chain([
-  fetchClientCommonSteps.exitEarlyOnNotOk,
-  interpretStarshipitResponse,
-]);
-
-const starshipitClient = new FetchClient({
-  requestPreparer: starshipitClientRequestPreparer,
-  responseInterpreter: starshipitClientResponseInterpreter,
+const starshipitClient = new FetchClientV2({
+  pipeline: [
+    resolveCreds,
+    useBaseUrl(BASE_URL),
+    useAuthHeaders,
+    'fetch',
+    fetchClientCommonSteps.exitEarlyOnNotOk,
+    interpretStarshipitResponse,
+  ],
 });
 
 module.exports = {

@@ -37,10 +37,12 @@ const starshipitTrackingGet = async (
   const creds = await credsFromPayload(credsPayload);
 
   const response = await starshipitClient.fetch({
-    url: '/track',
-    params: {
-      ...trackingNumber && { tracking_number: trackingNumber },
-      ...orderNumber && { order_number: orderNumber },
+    requestPayload: {
+      url: '/track',
+      params: {
+        ...trackingNumber && { tracking_number: trackingNumber },
+        ...orderNumber && { order_number: orderNumber },
+      },
     },
     context: {
       creds,
