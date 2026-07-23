@@ -1,18 +1,21 @@
-const { credsValidator } = require('./validators');
-const { ArgsWarden } = require('./utils');
+const { credsValidator } = require('../validators');
+const { ArgsWarden } = require('../utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['arg'],
+  ['asnId'],
 ]);
 
 const bleckmannAsnGet = async (
   credsPayload,
-  arg,
+  asnId,
   options = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, arg });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
+    credsPayload, 
+    asnId,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -20,7 +23,7 @@ const bleckmannAsnGet = async (
   return {
     ok: true,
     data: {
-      arg,
+      asnId,
       options,
     },
   };
@@ -39,7 +42,7 @@ module.exports = {
 curl -X POST "http://localhost:8000/bleckmannAsnGet" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "shopify.au" },
-    "arg": "1234"
+    "credsPayload": { "credsPath": "bleckmann" },
+    "asnId": "UK-AG002594"
   }'
 */
