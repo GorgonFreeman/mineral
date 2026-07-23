@@ -571,7 +571,12 @@ class FetchClientV2 {
     ...requestPayload
   }) {
     const { pipeline } = this;
-    const pipelineChain = new Chain(pipeline.replace('fetch', this.#fetch));
+
+    const pipelineChain = new Chain(pipeline.map(step => {
+      return step === 'fetch' 
+        ? this.#fetch 
+        : step;
+    }));
     const response = await pipelineChain.run({
       requestPayload,
       context,
