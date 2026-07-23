@@ -1,23 +1,19 @@
 const { SLACK_API_BASE_URL } = require('../slack/slack.constants');
+const { resolveCreds, useBaseUrl } = require('../pipelineSteps');
 const {
-  FetchClient,
-  Chain,
-  appendUrlToBase,
+  FetchClientV2,
   fetchClientCommonSteps,
 } = require('../utils');
 
-const addUrlAndAuthHeaders = async (state) => {
+const useAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
   const { creds } = context;
-  const {
-    BOT_TOKEN,
-  } = creds;
+  const { BOT_TOKEN } = creds;
 
   return {
     requestPayload: {
       ...requestPayload,
       method: requestPayload.method || 'post',
-      url: appendUrlToBase(SLACK_API_BASE_URL, requestPayload.url),
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${ BOT_TOKEN }`,
@@ -27,18 +23,14 @@ const addUrlAndAuthHeaders = async (state) => {
   };
 };
 
-
-const slackClientRequestPreparer = new Chain([
-  addUrlAndAuthHeaders,
-]);
-
-const slackClientResponseInterpreter = new Chain([
-  fetchClientCommonSteps.exitEarlyOnNotOk,
-]);
-
-const slackClient = new FetchClient({
-  requestPreparer: slackClientRequestPreparer,
-  responseInterpreter: slackClientResponseInterpreter,
+const slackClient = new FetchClientV2({
+  pipeline: [
+    resolveCreds,
+    useBaseUrl(SLACK_API_BASE_URL),
+    useAuthHeaders,
+    'fetch',
+    fetchClientCommonSteps.exitEarlyOnNotOk,
+  ],
 });
 
 module.exports = {

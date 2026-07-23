@@ -1,4 +1,4 @@
-const { credsFromPayload, ArgsWarden, Getter } = require('../utils');
+const { ArgsWarden, Getter } = require('../utils');
 const { credsValidator } = require('../validators');
 const { loopClient } = require('../loop/loop.utils');
 const { MAX_PER_PAGE } = require('../loop/loop.constants');
@@ -9,7 +9,7 @@ const argsWarden = new ArgsWarden([
 ]);
 
 const loopGetPacket = async (
-  creds,
+  credsPayload,
   url,
   {
     params,
@@ -18,16 +18,18 @@ const loopGetPacket = async (
   } = {},
 ) => {
   return loopClient.fetch({
-    url,
-    ...(paginate && {
-      params: {
-        paginate: true,
-        pageSize: perPage,
-        ...params,
-      },
-    }),
+    requestPayload: {
+      url,
+      ...(paginate && {
+        params: {
+          paginate: true,
+          pageSize: perPage,
+          ...params,
+        },
+      }),
+    },
     context: {
-      creds,
+      credsPayload,
     },
   });
 };
@@ -44,10 +46,10 @@ const loopGetPaginator = async (currentParams, response) => {
     return [true];
   }
 
-  const [creds] = args;
+  const [credsPayload] = args;
 
   return [false, {
-    args: [creds, nextPageUrl],
+    args: [credsPayload, nextPageUrl],
     options: {
       paginate: false,
     },
@@ -75,11 +77,9 @@ const loopGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const getter = new Getter(
     {
-      args: [creds, url],
+      args: [credsPayload, url],
       options: {
         params,
         perPage,

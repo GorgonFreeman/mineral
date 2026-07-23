@@ -1,6 +1,6 @@
 // https://docs.stripe.com/api/tokens/retrieve
 
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { stripeClient } = require('../stripe/stripe.utils');
 
@@ -22,11 +22,11 @@ const stripeTokenGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const response = await stripeClient.fetch({
-    url: `/tokens/${ tokenId }`,
-    context: { creds },
+    requestPayload: {
+      url: `/tokens/${ tokenId }`,
+    },
+    context: { credsPayload },
   });
 
   return response;

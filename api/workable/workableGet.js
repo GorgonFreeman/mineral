@@ -1,6 +1,6 @@
 // https://workable.readme.io/reference/jobs
 
-const { credsFromPayload, ArgsWarden, Getter } = require('../utils');
+const { ArgsWarden, Getter } = require('../utils');
 const { credsValidator } = require('../validators');
 const { workableClient } = require('../workable/workable.utils');
 const { MAX_PER_PAGE } = require('../workable/workable.constants');
@@ -20,7 +20,7 @@ const digResults = (data, resultsKey) => {
 };
 
 const workableGetPacket = async (
-  creds,
+  credsPayload,
   url,
   {
     params,
@@ -28,13 +28,15 @@ const workableGetPacket = async (
   } = {},
 ) => {
   return workableClient.fetch({
-    url,
-    params: {
-      limit: Math.min(perPage, MAX_PER_PAGE),
-      ...params,
+    requestPayload: {
+      url,
+      params: {
+        limit: Math.min(perPage, MAX_PER_PAGE),
+        ...params,
+      },
     },
     context: {
-      creds,
+      credsPayload,
     },
   });
 };
@@ -83,11 +85,9 @@ const workableGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const getter = new Getter(
     {
-      args: [creds, url],
+      args: [credsPayload, url],
       options: {
         params,
         perPage,

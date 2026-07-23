@@ -1,6 +1,6 @@
 // https://linear.app/developers/graphql
 
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { linearClient } = require('../linear/linear.utils');
 
@@ -24,15 +24,14 @@ const linearIssuesGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const filter = teamId
     ? { team: { id: { eq: teamId } } }
     : undefined;
 
   const response = await linearClient.fetch({
-    body: {
-      query: `
+    requestPayload: {
+      body: {
+        query: `
         query IssuesGet($first: Int!, $filter: IssueFilter) {
           issues(first: $first, filter: $filter) {
             nodes {
@@ -58,12 +57,13 @@ const linearIssuesGet = async (
           }
         }
       `,
-      variables: {
-        first,
-        ...(filter && { filter }),
+        variables: {
+          first,
+          ...(filter && { filter }),
+        },
       },
     },
-    context: { creds },
+    context: { credsPayload },
     inspect,
   });
 

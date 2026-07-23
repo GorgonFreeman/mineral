@@ -1,6 +1,6 @@
 // https://docs.loopreturns.com/api-reference/latest/return-data/get-return-details
 
-const { credsFromPayload, objHasAny, ArgsWarden } = require('../utils');
+const { objHasAny, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { loopClient } = require('../loop/loop.utils');
 
@@ -37,8 +37,6 @@ const loopReturnGet = async (
     orderName,
   } = returnIdentifier;
 
-  const creds = await credsFromPayload(credsPayload);
-
   const params = {
     ...returnId && { return_id: returnId },
     ...orderId && { order_id: orderId },
@@ -46,10 +44,12 @@ const loopReturnGet = async (
   };
 
   return loopClient.fetch({
-    url: '/warehouse/return/details',
-    params,
+    requestPayload: {
+      url: '/warehouse/return/details',
+      params,
+    },
     context: {
-      creds,
+      credsPayload,
     },
   });
 };

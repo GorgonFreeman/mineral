@@ -1,6 +1,6 @@
 // https://docs.stripe.com/api/tokens/create_card
 
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { stripeClient } = require('../stripe/stripe.utils');
 
@@ -31,18 +31,18 @@ const stripeCardTokenCreate = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const response = await stripeClient.fetch({
-    url: '/tokens',
-    method: 'post',
-    body: {
-      'card[number]': cardNumber,
-      'card[exp_month]': expiryMonth,
-      'card[exp_year]': expiryYear,
-      'card[cvc]': cvc,
+    requestPayload: {
+      url: '/tokens',
+      method: 'post',
+      body: {
+        'card[number]': cardNumber,
+        'card[exp_month]': expiryMonth,
+        'card[exp_year]': expiryYear,
+        'card[cvc]': cvc,
+      },
     },
-    context: { creds },
+    context: { credsPayload },
   });
 
   return response;

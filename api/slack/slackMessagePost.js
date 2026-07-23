@@ -1,6 +1,6 @@
 // https://docs.slack.dev/reference/methods/chat.postmessage
 
-const { credsFromPayload, objHasAny, ArgsWarden } = require('../utils');
+const { objHasAny, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { slackClient } = require('../slack/slack.utils');
 
@@ -36,8 +36,6 @@ const slackMessagePost = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const {
     channelName,
     channelId,
@@ -50,15 +48,17 @@ const slackMessagePost = async (
   } = messagePayload;
 
   const response = await slackClient.fetch({
-    url: '/chat.postMessage',
-    method: 'post',
-    body: {
-      channel: channelId || channelName,
-      ...text && { text },
-      ...blocks && { blocks },
-      ...markdownText && { markdown_text: markdownText },
+    requestPayload: {
+      url: '/chat.postMessage',
+      method: 'post',
+      body: {
+        channel: channelId || channelName,
+        ...text && { text },
+        ...blocks && { blocks },
+        ...markdownText && { markdown_text: markdownText },
+      },
     },
-    context: { creds },
+    context: { credsPayload },
     inspect,
   });
 

@@ -1,6 +1,6 @@
 // https://docs.stripe.com/api/charges/create
 
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { stripeClient } = require('../stripe/stripe.utils');
 
@@ -31,18 +31,18 @@ const stripeChargeCreate = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const response = await stripeClient.fetch({
-    url: '/charges',
-    method: 'post',
-    body: {
-      amount: amountCents,
-      currency,
-      source,
-      description,
+    requestPayload: {
+      url: '/charges',
+      method: 'post',
+      body: {
+        amount: amountCents,
+        currency,
+        source,
+        description,
+      },
     },
-    context: { creds },
+    context: { credsPayload },
   });
 
   return response;

@@ -1,4 +1,4 @@
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { stripeClient } = require('../stripe/stripe.utils');
 
@@ -17,13 +17,13 @@ const FUNC = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const response = await stripeClient.fetch({
-    url: '/things',
-    method: 'post',
-    body: { arg },
-    context: { creds },
+    requestPayload: {
+      url: '/things',
+      method: 'post',
+      body: { arg },
+    },
+    context: { credsPayload },
   });
 
   return response;

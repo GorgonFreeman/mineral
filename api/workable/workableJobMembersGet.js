@@ -1,6 +1,6 @@
 // https://workable.readme.io/reference/job-members
 
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { workableClient } = require('../workable/workable.utils');
 
@@ -23,12 +23,12 @@ const workableJobMembersGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   return workableClient.fetch({
-    url: `/jobs/${ shortcode }/members`,
+    requestPayload: {
+      url: `/jobs/${ shortcode }/members`,
+    },
     context: {
-      creds,
+      credsPayload,
     },
   });
 };

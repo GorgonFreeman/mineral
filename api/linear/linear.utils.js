@@ -1,11 +1,11 @@
 const { LINEAR_GRAPHQL_URL } = require('../linear/linear.constants');
+const { resolveCreds } = require('../pipelineSteps');
 const {
-  FetchClient,
-  Chain,
+  FetchClientV2,
   fetchClientCommonSteps,
 } = require('../utils');
 
-const addUrlAndAuthHeaders = async (state) => {
+const useAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
   const { creds } = context;
   const { API_KEY } = creds;
@@ -24,18 +24,14 @@ const addUrlAndAuthHeaders = async (state) => {
   };
 };
 
-const linearClientRequestPreparer = new Chain([
-  addUrlAndAuthHeaders,
-]);
-
-const linearClientResponseInterpreter = new Chain([
-  fetchClientCommonSteps.exitEarlyOnNotOk,
-  fetchClientCommonSteps.exitEarlyOnGraphqlErrors,
-]);
-
-const linearClient = new FetchClient({
-  requestPreparer: linearClientRequestPreparer,
-  responseInterpreter: linearClientResponseInterpreter,
+const linearClient = new FetchClientV2({
+  pipeline: [
+    resolveCreds,
+    useAuthHeaders,
+    'fetch',
+    fetchClientCommonSteps.exitEarlyOnNotOk,
+    fetchClientCommonSteps.exitEarlyOnGraphqlErrors,
+  ],
 });
 
 module.exports = {

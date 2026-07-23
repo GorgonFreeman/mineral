@@ -1,6 +1,6 @@
 // https://docs.stripe.com/api/refunds/retrieve
 
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { stripeClient } = require('../stripe/stripe.utils');
 
@@ -22,11 +22,11 @@ const stripeRefundGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const response = await stripeClient.fetch({
-    url: `/refunds/${ refundId }`,
-    context: { creds },
+    requestPayload: {
+      url: `/refunds/${ refundId }`,
+    },
+    context: { credsPayload },
   });
 
   return response;

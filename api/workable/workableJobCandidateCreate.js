@@ -1,6 +1,6 @@
 // https://workable.readme.io/reference/job-candidates-create
 
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { workableClient } = require('../workable/workable.utils');
 
@@ -33,18 +33,18 @@ const workableJobCandidateCreate = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   return workableClient.fetch({
-    url: `/jobs/${ shortcode }/candidates`,
-    method: 'post',
-    body: {
-      sourced,
-      ...stage !== undefined && { stage },
-      candidate,
+    requestPayload: {
+      url: `/jobs/${ shortcode }/candidates`,
+      method: 'post',
+      body: {
+        sourced,
+        ...stage !== undefined && { stage },
+        candidate,
+      },
     },
     context: {
-      creds,
+      credsPayload,
     },
   });
 };

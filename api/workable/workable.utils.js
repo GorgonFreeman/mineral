@@ -1,12 +1,12 @@
+const { resolveCreds } = require('../pipelineSteps');
 const {
-  FetchClient,
-  Chain,
+  FetchClientV2,
   appendUrlToBase,
   fetchClientCommonSteps,
 } = require('../utils');
 
 // TODO: Allow creds failure (e.g. missing BASE_URL / ACCESS_TOKEN → INVALID_CREDS before fetch)
-const addUrlAndAuthHeaders = async (state) => {
+const useAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
   const { creds } = context;
   const {
@@ -28,17 +28,13 @@ const addUrlAndAuthHeaders = async (state) => {
   };
 };
 
-const workableClientRequestPreparer = new Chain([
-  addUrlAndAuthHeaders,
-]);
-
-const workableClientResponseInterpreter = new Chain([
-  fetchClientCommonSteps.exitEarlyOnNotOk,
-]);
-
-const workableClient = new FetchClient({
-  requestPreparer: workableClientRequestPreparer,
-  responseInterpreter: workableClientResponseInterpreter,
+const workableClient = new FetchClientV2({
+  pipeline: [
+    resolveCreds,
+    useAuthHeaders,
+    'fetch',
+    fetchClientCommonSteps.exitEarlyOnNotOk,
+  ],
 });
 
 module.exports = {
