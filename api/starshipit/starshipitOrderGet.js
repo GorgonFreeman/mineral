@@ -1,4 +1,4 @@
-const { credsFromPayload, objHasAny, ArgsWarden } = require('../utils');
+const { objHasAny, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { starshipitClient } = require('../starshipit/starshipit.utils');
 
@@ -32,8 +32,6 @@ const starshipitOrderGet = async (
     orderNumber,
   } = orderIdentifier;
 
-  const creds = await credsFromPayload(credsPayload);
-
   const response = await starshipitClient.fetch({
     requestPayload: {
       url: '/orders',
@@ -43,7 +41,7 @@ const starshipitOrderGet = async (
       },
     },
     context: {
-      creds,
+      credsPayload,
     },
   });
 

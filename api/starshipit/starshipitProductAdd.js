@@ -1,6 +1,6 @@
 // https://api-docs.starshipit.com/#8cfbd1b2-bd08-4cec-966f-7104cc147aee
 
-const { ArgsWarden, credsFromPayload } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { starshipitClient } = require('../starshipit/starshipit.utils');
 
@@ -44,8 +44,6 @@ const starshipitProductAdd = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   return starshipitClient.fetch({
     requestPayload: {
       url: '/products',
@@ -77,7 +75,7 @@ const starshipitProductAdd = async (
       },
     },
     context: {
-      creds,
+      credsPayload,
     },
   });
 };

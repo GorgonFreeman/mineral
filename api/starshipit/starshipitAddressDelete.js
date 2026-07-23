@@ -1,6 +1,6 @@
 // https://api-docs.starshipit.com/#0cd0b1b0-7ba4-4da3-8c94-67cb4e020a6d
 
-const { ArgsWarden, credsFromPayload } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { starshipitClient } = require('../starshipit/starshipit.utils');
 
@@ -22,8 +22,6 @@ const starshipitAddressDelete = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   return starshipitClient.fetch({
     requestPayload: {
       url: '/addressbook/delete',
@@ -33,7 +31,7 @@ const starshipitAddressDelete = async (
       },
     },
     context: {
-      creds,
+      credsPayload,
     },
   });
 };

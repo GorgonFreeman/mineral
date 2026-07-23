@@ -1,6 +1,6 @@
 // https://api-docs.starshipit.com/#4ff9ae6f-fadb-4c50-9087-467c2e336f93
 
-const { ArgsWarden, credsFromPayload } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { starshipitClient } = require('../starshipit/starshipit.utils');
 
@@ -25,8 +25,6 @@ const starshipitAddressUpdate = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const response = await starshipitClient.fetch({
     requestPayload: {
       url: '/addressbook/update',
@@ -37,7 +35,7 @@ const starshipitAddressUpdate = async (
       },
     },
     context: {
-      creds,
+      credsPayload,
     },
   });
 

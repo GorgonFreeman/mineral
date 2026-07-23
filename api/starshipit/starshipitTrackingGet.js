@@ -1,6 +1,6 @@
 // https://api-docs.starshipit.com/#05a846b9-0128-4dd3-80e4-e6008aef9b94
 
-const { credsFromPayload, objHasAny, ArgsWarden } = require('../utils');
+const { objHasAny, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { starshipitClient } = require('../starshipit/starshipit.utils');
 
@@ -34,8 +34,6 @@ const starshipitTrackingGet = async (
     orderNumber,
   } = trackingIdentifier;
 
-  const creds = await credsFromPayload(credsPayload);
-
   const response = await starshipitClient.fetch({
     requestPayload: {
       url: '/track',
@@ -45,7 +43,7 @@ const starshipitTrackingGet = async (
       },
     },
     context: {
-      creds,
+      credsPayload,
     },
   });
 

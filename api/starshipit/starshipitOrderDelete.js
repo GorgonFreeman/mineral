@@ -1,6 +1,6 @@
 // https://api-docs.starshipit.com/#c96bed4f-3a89-4e97-abaa-b1775cc7c5a7
 
-const { objHasAny, ArgsWarden, credsFromPayload } = require('../utils');
+const { objHasAny, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { starshipitClient } = require('../starshipit/starshipit.utils');
 const { starshipitOrderGet } = require('../starshipit/starshipitOrderGet');
@@ -69,8 +69,6 @@ const starshipitOrderDelete = async (
     return orderIdResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   return starshipitClient.fetch({
     requestPayload: {
       url: '/orders/delete',
@@ -80,7 +78,7 @@ const starshipitOrderDelete = async (
       },
     },
     context: {
-      creds,
+      credsPayload,
     },
   });
 };
