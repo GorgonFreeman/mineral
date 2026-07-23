@@ -589,12 +589,12 @@ class FetchClientV2 {
     }));
 
     // fetch step will add response to this, for subsequent steps
-    const response = await pipelineChain.run({
+    const state = await pipelineChain.run({
       requestPayload,
       context,
     });
 
-    return response;
+    return state.response;
   }
 }
 
