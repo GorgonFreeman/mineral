@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/set-customer-birthday
 
-const { credsFromPayload, objHasAny, ArgsWarden } = require('../utils');
+const { objHasAny, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -42,8 +42,6 @@ const yotpoCustomerBirthdaySet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const {
     customerId,
     customerEmail,
@@ -58,11 +56,13 @@ const yotpoCustomerBirthdaySet = async (
   };
 
   const response = await yotpoClient.fetch({
-    url: '/customer_birthdays',
-    method: 'post',
-    body,
+    requestPayload: {
+      url: '/customer_birthdays',
+      method: 'post',
+      body,
+    },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
     },
   });

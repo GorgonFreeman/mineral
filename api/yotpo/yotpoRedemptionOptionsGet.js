@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/fetch-active-redemption-options
 
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -23,8 +23,6 @@ const yotpoRedemptionOptionsGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const {
     customerId,
     customerEmail,
@@ -40,10 +38,12 @@ const yotpoRedemptionOptionsGet = async (
   };
 
   const response = await yotpoClient.fetch({
-    url: '/redemption_options',
-    params,
+    requestPayload: {
+      url: '/redemption_options',
+      params,
+    },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
     },
   });

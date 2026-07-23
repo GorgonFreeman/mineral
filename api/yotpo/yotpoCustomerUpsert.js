@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/createupdate-customer-records
 
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -37,8 +37,6 @@ const yotpoCustomerUpsert = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const body = {
     email,
     ...(id && { id }),
@@ -55,11 +53,13 @@ const yotpoCustomerUpsert = async (
   };
 
   const response = await yotpoClient.fetch({
-    url: '/customers',
-    method: 'post',
-    body,
+    requestPayload: {
+      url: '/customers',
+      method: 'post',
+      body,
+    },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
     },
   });

@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/create-redemption
 
-const { credsFromPayload, objHasAny, ArgsWarden } = require('../utils');
+const { objHasAny, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -43,8 +43,6 @@ const yotpoRedemptionCreate = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const {
     customerId,
     customerEmail,
@@ -64,11 +62,13 @@ const yotpoRedemptionCreate = async (
   };
 
   const response = await yotpoClient.fetch({
-    url: '/redemptions',
-    method: 'post',
-    body,
+    requestPayload: {
+      url: '/redemptions',
+      method: 'post',
+      body,
+    },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
     },
   });

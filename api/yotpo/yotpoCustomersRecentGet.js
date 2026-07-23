@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/fetch-all-recently-updated-customers
 
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -22,18 +22,18 @@ const yotpoCustomersRecentGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const params = {
     ...(pageInfo && { page_info: pageInfo }),
     ...(perPage !== undefined && { per_page: perPage }),
   };
 
   const response = await yotpoClient.fetch({
-    url: '/customers/recent',
-    params,
+    requestPayload: {
+      url: '/customers/recent',
+      params,
+    },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
     },
   });

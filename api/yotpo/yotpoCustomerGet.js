@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/fetch-customer-details
 
-const { credsFromPayload, objHasAny, ArgsWarden } = require('../utils');
+const { objHasAny, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -37,8 +37,6 @@ const yotpoCustomerGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const {
     customerId,
     customerEmail,
@@ -57,10 +55,12 @@ const yotpoCustomerGet = async (
   };
 
   const response = await yotpoClient.fetch({
-    url: '/customers',
-    params,
+    requestPayload: {
+      url: '/customers',
+      params,
+    },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
     },
   });

@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/adjust-a-customers-point-balance
 
-const { credsFromPayload, objHasAny, ArgsWarden } = require('../utils');
+const { objHasAny, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -40,8 +40,6 @@ const yotpoCustomerPointsAdjust = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const {
     customerId,
     customerEmail,
@@ -57,11 +55,13 @@ const yotpoCustomerPointsAdjust = async (
   };
 
   const response = await yotpoClient.fetch({
-    url: '/points/adjust',
-    method: 'post',
-    body,
+    requestPayload: {
+      url: '/points/adjust',
+      method: 'post',
+      body,
+    },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
     },
   });

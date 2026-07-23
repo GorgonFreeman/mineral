@@ -1,17 +1,17 @@
-const { 
-  BASE_URL, 
-  DEFAULT_API_VERSION, 
+const {
+  BASE_URL,
+  DEFAULT_API_VERSION,
 } = require('../yotpo/yotpo.constants');
-const { 
-  FetchClient, 
-  Chain, 
-  appendUrlToBase, 
-  fetchClientCommonSteps, 
+const { resolveCreds } = require('../pipelineSteps');
+const {
+  FetchClientV2,
+  appendUrlToBase,
+  fetchClientCommonSteps,
 } = require('../utils');
 
-const addUrlAndAuthHeaders = async (state) => {
+const useUrlAndAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
-  const { creds, apiVersion = DEFAULT_API_VERSION } = context;
+  const { apiVersion = DEFAULT_API_VERSION, creds } = context;
   const { API_KEY, GUID } = creds;
 
   return {
@@ -28,18 +28,14 @@ const addUrlAndAuthHeaders = async (state) => {
   };
 };
 
-const yotpoClientRequestPreparer = new Chain([
-  addUrlAndAuthHeaders,
-]);
-
-const yotpoClientResponseInterpreter = new Chain([
-  fetchClientCommonSteps.exitEarlyOnNotOk,
-  fetchClientCommonSteps.digToPath,
-]);
-
-const yotpoClient = new FetchClient({
-  requestPreparer: yotpoClientRequestPreparer,
-  responseInterpreter: yotpoClientResponseInterpreter,
+const yotpoClient = new FetchClientV2({
+  pipeline: [
+    resolveCreds,
+    useUrlAndAuthHeaders,
+    'fetch',
+    fetchClientCommonSteps.exitEarlyOnNotOk,
+    fetchClientCommonSteps.digToPath,
+  ],
 });
 
 module.exports = {

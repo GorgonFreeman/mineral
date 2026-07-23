@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/get-customer-anniversary
 
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -25,15 +25,15 @@ const yotpoCustomerAnniversaryGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const response = await yotpoClient.fetch({
-    url: '/customer_anniversary',
-    params: {
-      customer_email: customerEmail,
+    requestPayload: {
+      url: '/customer_anniversary',
+      params: {
+        customer_email: customerEmail,
+      },
     },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
     },
   });

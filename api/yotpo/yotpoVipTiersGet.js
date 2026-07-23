@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/fetch-vip-tiers
 
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -20,12 +20,12 @@ const yotpoVipTiersGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const response = await yotpoClient.fetch({
-    url: '/vip_tiers',
+    requestPayload: {
+      url: '/vip_tiers',
+    },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
     },
   });

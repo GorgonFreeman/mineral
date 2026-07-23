@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/record-a-customer-action
 
-const { credsFromPayload, objHasAny, ArgsWarden } = require('../utils');
+const { objHasAny, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -43,8 +43,6 @@ const yotpoCustomerActionRecord = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const {
     customerId,
     customerEmail,
@@ -63,11 +61,13 @@ const yotpoCustomerActionRecord = async (
   };
 
   const response = await yotpoClient.fetch({
-    url: '/actions',
-    method: 'post',
-    body,
+    requestPayload: {
+      url: '/actions',
+      method: 'post',
+      body,
+    },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
     },
   });

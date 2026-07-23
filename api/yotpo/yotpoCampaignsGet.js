@@ -1,6 +1,6 @@
 // https://loyaltyapi.yotpo.com/reference/get-active-campaigns
 
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { yotpoClient } = require('../yotpo/yotpo.utils');
 
@@ -22,8 +22,6 @@ const yotpoCampaignsGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const {
     customerId,
     customerEmail,
@@ -36,10 +34,12 @@ const yotpoCampaignsGet = async (
   };
 
   const response = await yotpoClient.fetch({
-    url: '/campaigns',
-    params,
+    requestPayload: {
+      url: '/campaigns',
+      params,
+    },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
     },
   });
