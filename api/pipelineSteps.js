@@ -2,17 +2,18 @@ const { appendUrlToBase, credsFromPayload } = require('./utils');
 
 const resolveCreds = async (state) => {
   const { context } = state;
+  const { creds, credsPayload } = context;
 
-  if (context.creds || !context.credsPayload) {
+  if (creds || !credsPayload) {
     return {};
   }
 
-  const creds = await credsFromPayload(context.credsPayload);
+  const resolvedCreds = await credsFromPayload(credsPayload);
 
   return {
     context: {
       ...context,
-      creds,
+      creds: resolvedCreds,
     },
   };
 };

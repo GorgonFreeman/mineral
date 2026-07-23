@@ -37,10 +37,11 @@ const interpretStarshipitResponse = async (state) => {
 
 const useAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
+  const { creds } = context;
   const {
     API_KEY,
     SUB_KEY,
-  } = context.creds;
+  } = creds;
 
   return {
     requestPayload: {
