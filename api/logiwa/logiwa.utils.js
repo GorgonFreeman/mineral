@@ -10,12 +10,14 @@ const {
 const useUrlAndAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
   const {
-    credsPayload,
     apiVersion = DEFAULT_API_VERSION,
     creds,
   } = context;
 
-  const authResponse = await logiwaAuthGet(credsPayload, { apiVersion });
+  const authResponse = await logiwaAuthGet(
+    { credsObject: creds }, 
+    { apiVersion },
+  );
 
   if (!authResponse?.ok) {
     return {
