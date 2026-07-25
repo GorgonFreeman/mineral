@@ -1,7 +1,7 @@
 const csvtojson = require('csvtojson');
 const xml2js = require('xml2js');
 const { FetchClient, credsFromPayload, appendUrlToBase, logDeep, Chain } = require('../utils');
-const { withPeoplevoxAuth } = require('../peoplevox/peoplevox.sessions');
+const { getSessionId, setSessionId } = require('../peoplevox/peoplevox.sessions');
 
 const xml2jsBuilder = new xml2js.Builder({
   headless: true,
@@ -176,7 +176,38 @@ const peoplevoxClient = new FetchClient({
   ]),
 });
 
-peoplevoxClient.use(withPeoplevoxAuth);
+const fetchWithoutAuth = peoplevoxClient.fetch.bind(peoplevoxClient);
+
+peoplevoxClient.fetch = async (fetchPayload) => {
+  const { context = {} } = fetchPayload;
+  const { credsPayload } = context;
+
+  const sessionIdResponse = await getSessionId(credsPayload);
+
+  const {
+    ok: sessionIdOk,
+    data: sessionId,
+  } = sessionIdResponse;
+
+  if (!sessionIdOk) {
+    return sessionIdResponse;
+  }
+
+  const response = await fetchWithoutAuth({
+    ...fetchPayload,
+    context: {
+      ...context,
+      sessionId,
+    },
+  });
+
+  if (response.ok) {
+    await setSessionId(credsPayload, sessionId);
+  }
+
+  // TODO: Check if it was an auth error, and try another auth method if so
+  return response;
+};
 
 module.exports = {
   peoplevoxClient,
