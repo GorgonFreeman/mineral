@@ -32,11 +32,13 @@ const peoplevoxGetSingle = async (
   const resolvedSearchClause = searchClause || `${ idName }.Equals("${ id }")`;
 
   const response = await peoplevoxClient.fetch({
-    method: 'post',
-    body: {
-      getRequest: {
-        TemplateName: templateName,
-        SearchClause: resolvedSearchClause,
+    requestPayload: {
+      method: 'post',
+      body: {
+        getRequest: {
+          TemplateName: templateName,
+          SearchClause: resolvedSearchClause,
+        },
       },
     },
     context: {

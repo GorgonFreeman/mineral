@@ -37,11 +37,13 @@ const peoplevoxOrderEdit = async (
   }
 
   return peoplevoxClient.fetch({
-    method: 'post',
-    body: {
-      saveRequest: {
-        TemplateName: 'Sales orders',
-        CsvData: csvData,
+    requestPayload: {
+      method: 'post',
+      body: {
+        saveRequest: {
+          TemplateName: 'Sales orders',
+          CsvData: csvData,
+        },
       },
     },
     context: {

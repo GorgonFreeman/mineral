@@ -1,6 +1,11 @@
 const csvtojson = require('csvtojson');
 const xml2js = require('xml2js');
-const { FetchClient, credsFromPayload, appendUrlToBase, logDeep, Chain } = require('../utils');
+const { resolveCreds } = require('../pipelineSteps');
+const {
+  FetchClientV2,
+  appendUrlToBase,
+  logDeep,
+} = require('../utils');
 const { getSessionId, setSessionId } = require('../peoplevox/peoplevox.sessions');
 
 const xml2jsBuilder = new xml2js.Builder({
@@ -45,17 +50,17 @@ const buildSoapEnvelope = ({
   return xml2jsBuilder.buildObject(envelopeObject);
 };
 
-// TODO: Split into multiple steps, allow mutating context
-const peoplevoxRequestPreparer = async (requestPayload, context) => {
-  const { headers, body } = requestPayload;
-  const { credsPayload, action, sessionId } = context;
-  const { CLIENT_ID } = await credsFromPayload(credsPayload);
+const useSoapEnvelope = async (state) => {
+  const { requestPayload, context } = state;
+  const { creds, action, sessionId } = context;
+  const { CLIENT_ID } = creds;
 
   if (!sessionId) {
     throw new Error('PeopleVox sessionId is required');
   }
 
   const baseUrl = `https://ap.peoplevox.net/${ CLIENT_ID }/Resources/IntegrationServicev4.asmx`;
+  const { headers, body } = requestPayload;
 
   const envelopeXml = buildSoapEnvelope({
     action,
@@ -67,14 +72,16 @@ const peoplevoxRequestPreparer = async (requestPayload, context) => {
   logDeep({ envelopeXml });
 
   return {
-    ...requestPayload,
-    url: appendUrlToBase(baseUrl, requestPayload.url),
-    headers: {
-      ...headers,
-      'Content-Type': 'text/xml; charset=utf-8',
-      'SOAPAction': `http://www.peoplevox.net/${ action }`,
+    requestPayload: {
+      ...requestPayload,
+      url: appendUrlToBase(baseUrl, requestPayload.url),
+      headers: {
+        ...headers,
+        'Content-Type': 'text/xml; charset=utf-8',
+        'SOAPAction': `http://www.peoplevox.net/${ action }`,
+      },
+      body: envelopeXml,
     },
-    body: envelopeXml,
   };
 };
 
@@ -166,20 +173,25 @@ const hoistDetail = (state) => {
   };
 };
 
-const peoplevoxClient = new FetchClient({
-  requestPreparer: peoplevoxRequestPreparer,
-  responseInterpreter: new Chain([
+const peoplevoxClient = new FetchClientV2({
+  pipeline: [
+    resolveCreds,
+    useSoapEnvelope,
+    'fetch',
     stripEnvelope,
     tryToParseDetailAsCsv,
     unwrapSingleDetail,
     hoistDetail,
-  ]),
+  ],
 });
 
 const fetchWithoutAuth = peoplevoxClient.fetch.bind(peoplevoxClient);
 
-peoplevoxClient.fetch = async (fetchPayload) => {
-  const { context = {} } = fetchPayload;
+peoplevoxClient.fetch = async ({
+  requestPayload,
+  context = {},
+  inspect = false,
+}) => {
   const { credsPayload } = context;
 
   const sessionIdResponse = await getSessionId(credsPayload);
@@ -194,11 +206,12 @@ peoplevoxClient.fetch = async (fetchPayload) => {
   }
 
   const response = await fetchWithoutAuth({
-    ...fetchPayload,
+    requestPayload,
     context: {
       ...context,
       sessionId,
     },
+    inspect,
   });
 
   if (response.ok) {

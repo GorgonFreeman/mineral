@@ -25,15 +25,17 @@ const peoplevoxReportGet = async (
   }
 
   const reportGetResponse = await peoplevoxClient.fetch({
-    method: 'post',
-    body: {
-      getReportRequest: {
-        TemplateName: reportName,
-        ...(searchClause ? { SearchClause: searchClause } : {}),
-        ...(perPage ? { ItemsPerPage: perPage } : {}),
-        ...(filter ? { FilterClause: filter } : {}),
-        ...(orderBy ? { OrderBy: orderBy } : {}),
-        ...(columns ? { Columns: columns.join(',') } : {}),
+    requestPayload: {
+      method: 'post',
+      body: {
+        getReportRequest: {
+          TemplateName: reportName,
+          ...(searchClause ? { SearchClause: searchClause } : {}),
+          ...(perPage ? { ItemsPerPage: perPage } : {}),
+          ...(filter ? { FilterClause: filter } : {}),
+          ...(orderBy ? { OrderBy: orderBy } : {}),
+          ...(columns ? { Columns: columns.join(',') } : {}),
+        },
       },
     },
     context: {
