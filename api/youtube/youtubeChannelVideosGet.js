@@ -1,9 +1,8 @@
 // https://developers.google.com/youtube/v3/guides/implementation/videos
 
-const { FetchClient, credsFromPayload, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
-
-const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
+const { youtubeClient } = require('../youtube/youtube.utils');
 
 const parseChannelHandle = (channelHandle) => {
   const trimmed = channelHandle.trim();
@@ -14,54 +13,6 @@ const parseChannelHandle = (channelHandle) => {
 
   return trimmed;
 };
-
-const youtubeClient = new FetchClient({
-  requestPreparer: async (requestPayload, context) => {
-    const { creds } = context;
-    const { API_KEY } = creds;
-
-    return {
-      ...requestPayload,
-      params: {
-        key: API_KEY,
-        ...requestPayload.params,
-      },
-    };
-  },
-  responseInterpreter: async (response) => {
-    if (!response.ok) {
-      const youtubeError = response.error?.details?.error;
-
-      if (youtubeError) {
-        return {
-          ok: false,
-          error: {
-            code: youtubeError.code,
-            message: youtubeError.message,
-            details: youtubeError,
-          },
-        };
-      }
-
-      return response;
-    }
-
-    const { data } = response;
-
-    if (data?.error) {
-      return {
-        ok: false,
-        error: {
-          code: data.error.code,
-          message: data.error.message,
-          details: data.error,
-        },
-      };
-    }
-
-    return response;
-  },
-});
 
 const formatVideo = (video) => {
   const {
@@ -106,17 +57,17 @@ const youtubeChannelVideosGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-  const fetchContext = { creds };
   const handle = parseChannelHandle(channelHandle);
 
   const channelResponse = await youtubeClient.fetch({
-    url: `${ YOUTUBE_API_BASE }/channels`,
-    params: {
-      part: 'contentDetails',
-      forHandle: handle,
+    requestPayload: {
+      url: '/channels',
+      params: {
+        part: 'contentDetails',
+        forHandle: handle,
+      },
     },
-    context: fetchContext,
+    context: { credsPayload },
     inspect,
   });
 
@@ -153,14 +104,16 @@ const youtubeChannelVideosGet = async (
 
   while (true) {
     const playlistResponse = await youtubeClient.fetch({
-      url: `${ YOUTUBE_API_BASE }/playlistItems`,
-      params: {
-        part: 'contentDetails',
-        playlistId: uploadsPlaylistId,
-        maxResults: 50,
-        ...(nextPageToken ? { pageToken: nextPageToken } : {}),
+      requestPayload: {
+        url: '/playlistItems',
+        params: {
+          part: 'contentDetails',
+          playlistId: uploadsPlaylistId,
+          maxResults: 50,
+          ...(nextPageToken ? { pageToken: nextPageToken } : {}),
+        },
       },
-      context: fetchContext,
+      context: { credsPayload },
       inspect,
     });
 
@@ -202,12 +155,14 @@ const youtubeChannelVideosGet = async (
     const batchIds = videoIds.slice(index, index + 50).join(',');
 
     const videosResponse = await youtubeClient.fetch({
-      url: `${ YOUTUBE_API_BASE }/videos`,
-      params: {
-        part: 'snippet,statistics,contentDetails',
-        id: batchIds,
+      requestPayload: {
+        url: '/videos',
+        params: {
+          part: 'snippet,statistics,contentDetails',
+          id: batchIds,
+        },
       },
-      context: fetchContext,
+      context: { credsPayload },
       inspect,
     });
 
