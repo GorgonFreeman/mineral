@@ -1,7 +1,7 @@
 const { LINEAR_GRAPHQL_URL } = require('../linear/linear.constants');
 const { resolveCreds } = require('../pipelineSteps');
 const {
-  FetchClientV2,
+  FetchClient,
   fetchClientCommonSteps,
 } = require('../utils');
 
@@ -24,7 +24,7 @@ const useAuthHeaders = async (state) => {
   };
 };
 
-const linearClient = new FetchClientV2({
+const linearClient = new FetchClient({
   pipeline: [
     resolveCreds,
     useAuthHeaders,

@@ -4,7 +4,7 @@ const {
 } = require('../yotpo/yotpo.constants');
 const { resolveCreds } = require('../pipelineSteps');
 const {
-  FetchClientV2,
+  FetchClient,
   appendUrlToBase,
   fetchClientCommonSteps,
 } = require('../utils');
@@ -28,7 +28,7 @@ const useUrlAndAuthHeaders = async (state) => {
   };
 };
 
-const yotpoClient = new FetchClientV2({
+const yotpoClient = new FetchClient({
   pipeline: [
     resolveCreds,
     useUrlAndAuthHeaders,

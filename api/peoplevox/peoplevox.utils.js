@@ -2,7 +2,7 @@ const csvtojson = require('csvtojson');
 const xml2js = require('xml2js');
 const { resolveCreds } = require('../pipelineSteps');
 const {
-  FetchClientV2,
+  FetchClient,
   appendUrlToBase,
   logDeep,
 } = require('../utils');
@@ -173,7 +173,7 @@ const hoistDetail = (state) => {
   };
 };
 
-const peoplevoxClient = new FetchClientV2({
+const peoplevoxClient = new FetchClient({
   pipeline: [
     resolveCreds,
     useSoapEnvelope,

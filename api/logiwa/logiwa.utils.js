@@ -2,7 +2,7 @@ const { DEFAULT_API_VERSION } = require('../logiwa/logiwa.constants');
 const { logiwaAuthGet } = require('../logiwa/logiwaAuthGet');
 const { resolveCreds } = require('../pipelineSteps');
 const {
-  FetchClientV2,
+  FetchClient,
   appendUrlToBase,
   fetchClientCommonSteps,
 } = require('../utils');
@@ -41,7 +41,7 @@ const useUrlAndAuthHeaders = async (state) => {
   };
 };
 
-const logiwaClient = new FetchClientV2({
+const logiwaClient = new FetchClient({
   pipeline: [
     resolveCreds,
     useUrlAndAuthHeaders,

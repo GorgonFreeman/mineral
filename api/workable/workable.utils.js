@@ -1,6 +1,6 @@
 const { resolveCreds } = require('../pipelineSteps');
 const {
-  FetchClientV2,
+  FetchClient,
   appendUrlToBase,
   fetchClientCommonSteps,
 } = require('../utils');
@@ -28,7 +28,7 @@ const useAuthHeaders = async (state) => {
   };
 };
 
-const workableClient = new FetchClientV2({
+const workableClient = new FetchClient({
   pipeline: [
     resolveCreds,
     useAuthHeaders,

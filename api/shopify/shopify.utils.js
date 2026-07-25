@@ -1,7 +1,7 @@
 const { DEFAULT_API_VERSION } = require('../shopify/shopify.constants');
 const { resolveCreds } = require('../pipelineSteps');
 const {
-  FetchClientV2,
+  FetchClient,
   appendUrlToBase,
   fetchClientCommonSteps,
   pathAsArray,
@@ -97,7 +97,7 @@ const movePageInfoToMeta = async (state) => {
   };
 };
 
-const shopifyClient = new FetchClientV2({
+const shopifyClient = new FetchClient({
   pipeline: [
     resolveCreds,
     useUrlAndAuthHeaders,

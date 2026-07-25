@@ -1,7 +1,7 @@
 const { YOUTUBE_API_BASE } = require('../youtube/youtube.constants');
 const { resolveCreds, useBaseUrl } = require('../pipelineSteps');
 const {
-  FetchClientV2,
+  FetchClient,
 } = require('../utils');
 
 const useApiKeyParam = async (state) => {
@@ -62,7 +62,7 @@ const interpretYoutubeResponse = async (state) => {
   return {};
 };
 
-const youtubeClient = new FetchClientV2({
+const youtubeClient = new FetchClient({
   pipeline: [
     resolveCreds,
     useBaseUrl(YOUTUBE_API_BASE),

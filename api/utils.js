@@ -416,135 +416,7 @@ class Chain {
   }
 }
 
-// TODO: client wrapper enabling auth and retrying with different auth
-
 class FetchClient {
-  constructor({
-    context, // necessary data for preparer and interpreters to refer to    
-    requestPreparer, // a function that updates requests before sending
-    responseInterpreter, // a function that transforms responses to report back
-  } = {}) {
-    this.context = context;
-    this.requestPreparer = requestPreparer; // can be a Chain
-    this.responseInterpreter = responseInterpreter; // can be a Chain  
-    this.layers = [];
-  }
-
-  async #fetch({
-    url,
-
-    // customFetch payload
-    method,
-    headers,
-    params,
-    body,
-    
-    responseInterpreter,
-
-    context = {},
-    inspect = false,
-  } = {}) {
-
-    let mergedContext = {
-      ...(this.context ?? {}),
-      ...(context ?? {}),
-    };
-    inspect && logDeep({ mergedContext });
-    inspect && await askQuestion('?');
-
-    let requestPayload = {
-      url,
-      ...(method ? { method } : {}),
-      ...(headers ? { headers } : {}),
-      ...(params ? { params } : {}),
-      ...(body ? { body } : {}),
-    };
-    inspect && logDeep({ requestPayload });
-    inspect && await askQuestion('?');
-
-    if (this.requestPreparer) {
-      if (this.requestPreparer.run) {
-        ({ requestPayload, context: mergedContext } = await this.requestPreparer.run(
-          { requestPayload, context: mergedContext },
-          { inspect },
-        ));
-      } else {
-        const result = await this.requestPreparer(requestPayload, mergedContext);
-        if (result) {
-          requestPayload = result;
-        }
-      }
-    }
-    inspect && logDeep({ requestPayload, mergedContext });
-    inspect && await askQuestion('?');
-
-    let response = await customFetch(
-      requestPayload.url,
-      requestPayload,
-    );
-    inspect && logDeep({ response });
-    inspect && await askQuestion('?');
-    
-    const usedResponseInterpreter = responseInterpreter || this.responseInterpreter;
-    if (usedResponseInterpreter) {
-      if (usedResponseInterpreter.run) {
-        ({ response, context: mergedContext } = await usedResponseInterpreter.run(
-          { response, context: mergedContext },
-          { inspect },
-        ));
-      } else {
-        response = await usedResponseInterpreter(response, mergedContext);
-      }
-    }
-    inspect && logDeep({ response });
-    inspect && await askQuestion('?');
-
-    return response;
-  }
-
-  use(layer) {
-    this.layers.push(layer);
-  }
-
-  async fetch(fetchPayload) {
-    const coreFetch = (payload) => this.#fetch(payload);
-  
-    let layeredFetch = coreFetch;
-    for (const layer of [...this.layers].reverse()) {
-      const currentNext = layeredFetch; // capture this iteration's `next`
-      layeredFetch = (payload) => layer(payload, currentNext);
-    }
-  
-    return await layeredFetch(fetchPayload);
-  }
-
-  /* Example layer
-
-  const withDressColours = async (payload, next) => {
-
-    let response = await next({
-      ...payload,
-      headers: { ...payload.headers, dress: 'blue/white' },
-    });
-
-    if (!response.ok) {
-      console.warn('blue/white failed, retrying with black/gold');
-      response = await next({
-        ...payload,
-        headers: { ...payload.headers, dress: 'black/gold' },
-      });
-    }
-
-    return response;
-
-  };
-
-  client.use(withDressColours);
-
-  */
-}
-
-class FetchClientV2 {
   constructor({
     pipeline = ['fetch'], // an array of functions that transform the request and response, including a string 'fetch' step.
   } = {}) {
@@ -1252,7 +1124,6 @@ module.exports = {
   appendUrlToBase,
   Chain,
   FetchClient,
-  FetchClientV2,
   fetchClientCommonSteps,
   ensureArray,
   everyIfArray,

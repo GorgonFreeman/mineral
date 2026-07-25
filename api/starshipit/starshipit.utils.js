@@ -1,7 +1,7 @@
 const { BASE_URL } = require('../starshipit/starshipit.constants');
 const { resolveCreds, useBaseUrl } = require('../pipelineSteps');
 const {
-  FetchClientV2,
+  FetchClient,
   fetchClientCommonSteps,
 } = require('../utils');
 
@@ -55,7 +55,7 @@ const useAuthHeaders = async (state) => {
   };
 };
 
-const starshipitClient = new FetchClientV2({
+const starshipitClient = new FetchClient({
   pipeline: [
     resolveCreds,
     useBaseUrl(BASE_URL),

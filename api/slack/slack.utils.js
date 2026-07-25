@@ -1,7 +1,7 @@
 const { SLACK_API_BASE_URL } = require('../slack/slack.constants');
 const { resolveCreds, useBaseUrl } = require('../pipelineSteps');
 const {
-  FetchClientV2,
+  FetchClient,
   fetchClientCommonSteps,
 } = require('../utils');
 
@@ -23,7 +23,7 @@ const useAuthHeaders = async (state) => {
   };
 };
 
-const slackClient = new FetchClientV2({
+const slackClient = new FetchClient({
   pipeline: [
     resolveCreds,
     useBaseUrl(SLACK_API_BASE_URL),

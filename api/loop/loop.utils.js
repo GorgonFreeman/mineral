@@ -1,7 +1,7 @@
 const { LOOP_API_BASE_URL } = require('../loop/loop.constants');
 const { resolveCreds, useBaseUrl } = require('../pipelineSteps');
 const {
-  FetchClientV2,
+  FetchClient,
   fetchClientCommonSteps,
 } = require('../utils');
 
@@ -23,7 +23,7 @@ const useAuthHeaders = async (state) => {
   };
 };
 
-const loopClient = new FetchClientV2({
+const loopClient = new FetchClient({
   pipeline: [
     resolveCreds,
     useBaseUrl(LOOP_API_BASE_URL),
