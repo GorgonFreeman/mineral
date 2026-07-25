@@ -1,4 +1,4 @@
-const { credsFromPayload, logDeep, ArgsWarden } = require('../utils');
+const { logDeep, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 
@@ -27,8 +27,6 @@ const shopifyMutationDo = async (
     returnSchema += ' userErrors { field message }';
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const mutation = `
     mutation ${ mutationName }(${ Object.entries(mutationVariables).map(([name, { type }]) => `$${ name }: ${ type }`).join(', ') }) {
       ${ mutationName }(${ Object.keys(mutationVariables).map(name => `${ name }: $${ name }`).join(', ') }) {
@@ -47,10 +45,12 @@ const shopifyMutationDo = async (
   }
 
   const response = await shopifyClient.fetch({
-    method: 'post',
-    body: { query: mutation, variables },
+    requestPayload: {
+      method: 'post',
+      body: { query: mutation, variables },
+    },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
       resultPath: `data.${ mutationName }`,
     },

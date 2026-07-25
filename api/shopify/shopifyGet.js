@@ -1,4 +1,4 @@
-const { credsFromPayload, Getter, capitaliseString, ArgsWarden } = require('../utils');
+const { Getter, capitaliseString, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 const { MAX_PER_PAGE } = require('./shopify.constants');
@@ -11,7 +11,7 @@ const argsWarden = new ArgsWarden([
 const shopifyGetPacket = async (
   // options on the main function can become args on the packet get if they have defaults
   // TODO: Consider where defaults should lie
-  creds,
+  credsPayload,
   resource,
   resources,
   attrs,
@@ -108,9 +108,10 @@ const shopifyGetPacket = async (
   };
 
   return await shopifyClient.fetch({
-    method: 'post',
-    body: {
-      query: `
+    requestPayload: {
+      method: 'post',
+      body: {
+        query: `
         query Get${ Resources } (
           ${ queryTypeDeclaration }
         ) {
@@ -129,10 +130,11 @@ const shopifyGetPacket = async (
           }
         }
       `,
-      variables,
+        variables,
+      },
     },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
       resultPath: `data.${ resources }`,
     },
@@ -231,14 +233,12 @@ const shopifyGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const getter = new Getter(
     {
       args: [
-        creds, 
-        resource, 
-        resources, 
+        credsPayload,
+        resource,
+        resources,
         attrs,
       ],
       options: {

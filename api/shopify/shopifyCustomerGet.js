@@ -1,7 +1,7 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/queries/customer
 
 const { credsValidator } = require('../validators');
-const { objHasAny, credsFromPayload, ArgsWarden } = require('../utils');
+const { objHasAny, ArgsWarden } = require('../utils');
 const { shopifyGetSingle } = require('../shopify/shopifyGetSingle');
 const { shopifyClient } = require('../shopify/shopify.utils');
 
@@ -44,8 +44,6 @@ const shopifyCustomerGet = async (
 
   if (!customerId) {
 
-    const creds = await credsFromPayload(credsPayload);
-
     const query = `
       query GetCustomerByIdentifier ($identifier: CustomerIdentifierInput!) {
         customer: customerByIdentifier(identifier: $identifier) {
@@ -63,10 +61,12 @@ const shopifyCustomerGet = async (
     };
 
     const response = await shopifyClient.fetch({
-      method: 'post',
-      body: { query, variables },
+      requestPayload: {
+        method: 'post',
+        body: { query, variables },
+      },
       context: {
-        creds,
+        credsPayload,
         apiVersion,
         resultPath: 'data.customer',
       },

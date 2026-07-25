@@ -1,4 +1,4 @@
-const { credsFromPayload, capitaliseString, ArgsWarden } = require('../utils');
+const { capitaliseString, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 
@@ -35,8 +35,6 @@ const shopifyGetSingle = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const Resource = capitaliseString(resource);
   const usesId = !resourcesNotRequiringId.includes(resource);
 
@@ -49,15 +47,17 @@ const shopifyGetSingle = async (
   `;
 
   const response = await shopifyClient.fetch({
-    method: 'post',
-    body: {
-      query,
-      variables: {
-        ...(usesId ? { id: `gid://shopify/${ gidType || Resource }/${ id }` } : {}),
+    requestPayload: {
+      method: 'post',
+      body: {
+        query,
+        variables: {
+          ...(usesId ? { id: `gid://shopify/${ gidType || Resource }/${ id }` } : {}),
+        },
       },
     },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
       resultPath: `data.${ resource }`,
     },

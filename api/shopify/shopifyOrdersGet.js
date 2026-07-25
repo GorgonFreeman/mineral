@@ -1,4 +1,4 @@
-const { credsFromPayload, logDeep, ArgsWarden } = require('../utils');
+const { logDeep, ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 
@@ -21,12 +21,11 @@ const shopifyOrdersGet = async (
     return rejectResponse;
   }
 
-  const creds = await credsFromPayload(credsPayload);
-
   const response = await shopifyClient.fetch({
-    method: 'post',
-    body: {
-      query: `
+    requestPayload: {
+      method: 'post',
+      body: {
+        query: `
         query OrdersGet(
           $first: Int!,
           $after: String,
@@ -49,14 +48,15 @@ const shopifyOrdersGet = async (
           }
         }
       `,
-      variables: {
-        first,
-        after,
-        query,
+        variables: {
+          first,
+          after,
+          query,
+        },
       },
     },
     context: {
-      creds,
+      credsPayload,
       apiVersion,
       resultPath: 'data.orders',
     },

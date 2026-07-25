@@ -1,7 +1,7 @@
 const { DEFAULT_API_VERSION } = require('../shopify/shopify.constants');
+const { resolveCreds } = require('../pipelineSteps');
 const {
-  FetchClient,
-  Chain,
+  FetchClientV2,
   appendUrlToBase,
   fetchClientCommonSteps,
   pathAsArray,
@@ -49,11 +49,11 @@ const handleMutationUserErrors = async (state) => {
   };
 };
 
-const addUrlAndAuthHeaders = async (state) => {
+const useUrlAndAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
   const {
-    creds,
     apiVersion = DEFAULT_API_VERSION,
+    creds,
   } = context;
   const {
     STORE_HANDLE,
@@ -61,15 +61,13 @@ const addUrlAndAuthHeaders = async (state) => {
   } = creds;
 
   const baseUrl = `https://${ STORE_HANDLE }.myshopify.com/admin/api/${ apiVersion }/graphql.json`;
-  const baseHeaders = {
-    'X-Shopify-Access-Token': API_KEY,
-  };
 
   return {
     requestPayload: {
+      ...requestPayload,
       url: appendUrlToBase(baseUrl, requestPayload.url),
       headers: {
-        ...baseHeaders,
+        'X-Shopify-Access-Token': API_KEY,
         ...requestPayload.headers,
       },
     },
@@ -99,23 +97,19 @@ const movePageInfoToMeta = async (state) => {
   };
 };
 
-const shopifyClientRequestPreparer = new Chain([
-  addUrlAndAuthHeaders,
-]);
-
-const shopifyClientResponseInterpreter = new Chain([
-  movePageInfoToMeta,
-  fetchClientCommonSteps.stripEdgesAndNodes,
-  fetchClientCommonSteps.collapseDataWithOneValue,
-  fetchClientCommonSteps.exitEarlyOnNotOk,
-  fetchClientCommonSteps.exitEarlyOnGraphqlErrors,
-  fetchClientCommonSteps.digToPath,
-  handleMutationUserErrors,
-]);
-
-const shopifyClient = new FetchClient({
-  requestPreparer: shopifyClientRequestPreparer,
-  responseInterpreter: shopifyClientResponseInterpreter,
+const shopifyClient = new FetchClientV2({
+  pipeline: [
+    resolveCreds,
+    useUrlAndAuthHeaders,
+    'fetch',
+    movePageInfoToMeta,
+    fetchClientCommonSteps.stripEdgesAndNodes,
+    fetchClientCommonSteps.collapseDataWithOneValue,
+    fetchClientCommonSteps.exitEarlyOnNotOk,
+    fetchClientCommonSteps.exitEarlyOnGraphqlErrors,
+    fetchClientCommonSteps.digToPath,
+    handleMutationUserErrors,
+  ],
 });
 
 module.exports = {

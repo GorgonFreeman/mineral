@@ -1,7 +1,7 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/queries/collection
 
 const { credsValidator } = require('../validators');
-const { ArgsWarden, objHasAny, credsFromPayload } = require('../utils');
+const { ArgsWarden, objHasAny } = require('../utils');
 const { shopifyGetSingle } = require('../shopify/shopifyGetSingle');
 const { shopifyClient } = require('../shopify/shopify.utils');
 
@@ -42,8 +42,6 @@ const shopifyCollectionGet = async (
 
   if (!id) {
 
-    const creds = await credsFromPayload(credsPayload);
-
     const query = `
       query GetCollectionByIdentifier ($identifier: CollectionIdentifierInput!) {
         collection: collectionByIdentifier(identifier: $identifier) {
@@ -60,10 +58,12 @@ const shopifyCollectionGet = async (
     };
 
     const response = await shopifyClient.fetch({
-      method: 'post',
-      body: { query, variables },
+      requestPayload: {
+        method: 'post',
+        body: { query, variables },
+      },
       context: {
-        creds,
+        credsPayload,
         apiVersion,
         resultPath: 'data.collection',
       },
