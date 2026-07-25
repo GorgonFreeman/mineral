@@ -26,8 +26,10 @@ const logiwaWebhookStatusGet = async (
   }
 
   return logiwaClient.fetch({
-    method: 'get',
-    url: `/Webhook/status/${ subscriptionId }`,
+    requestPayload: {
+      method: 'get',
+      url: `/Webhook/status/${ subscriptionId }`,
+    },
     context: {
       credsPayload,
       apiVersion,

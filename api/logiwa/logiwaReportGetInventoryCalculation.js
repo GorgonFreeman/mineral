@@ -33,9 +33,11 @@ const logiwaReportGetInventoryCalculation = async (
   };
 
   return logiwaClient.fetch({
-    method: 'get',
-    url: `/Report/InventoryCalculation/i/${ page }/s/${ perPage }`,
-    params,
+    requestPayload: {
+      method: 'get',
+      url: `/Report/InventoryCalculation/i/${ page }/s/${ perPage }`,
+      params,
+    },
     context: {
       credsPayload,
       apiVersion,

@@ -26,8 +26,10 @@ const logiwaProductGet = async (
   }
 
   return logiwaClient.fetch({
-    method: 'get',
-    url: `/Product/detail/${ productId }`,
+    requestPayload: {
+      method: 'get',
+      url: `/Product/detail/${ productId }`,
+    },
     context: {
       credsPayload,
       apiVersion,

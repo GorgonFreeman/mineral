@@ -57,9 +57,11 @@ const logiwaOrdersGet = async (
   };
 
   return logiwaClient.fetch({
-    method: 'get',
-    url: `/ShipmentOrder/list/i/${ page }/s/${ perPage }`,
-    params,
+    requestPayload: {
+      method: 'get',
+      url: `/ShipmentOrder/list/i/${ page }/s/${ perPage }`,
+      params,
+    },
     context: {
       credsPayload,
       apiVersion,

@@ -21,8 +21,10 @@ const logiwaWebhooksGet = async (
   }
 
   return logiwaClient.fetch({
-    method: 'get',
-    url: '/Webhook/list',
+    requestPayload: {
+      method: 'get',
+      url: '/Webhook/list',
+    },
     context: {
       credsPayload,
       apiVersion,

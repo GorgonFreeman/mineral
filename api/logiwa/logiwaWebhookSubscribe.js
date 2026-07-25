@@ -30,12 +30,14 @@ const logiwaWebhookSubscribe = async (
   }
 
   return logiwaClient.fetch({
-    method: 'post',
-    url: '/Webhook/create',
-    body: {
-      topic,
-      address: url,
-      ...(clientIdentifier ? { clientIdentifier } : { ignoreClient: true }),
+    requestPayload: {
+      method: 'post',
+      url: '/Webhook/create',
+      body: {
+        topic,
+        address: url,
+        ...(clientIdentifier ? { clientIdentifier } : { ignoreClient: true }),
+      },
     },
     context: {
       credsPayload,

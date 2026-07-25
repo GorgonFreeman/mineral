@@ -45,9 +45,11 @@ const logiwaProductsGet = async (
   };
 
   return logiwaClient.fetch({
-    method: 'get',
-    url: `/Product/list/i/${ page }/s/${ perPage }`,
-    params,
+    requestPayload: {
+      method: 'get',
+      url: `/Product/list/i/${ page }/s/${ perPage }`,
+      params,
+    },
     context: {
       credsPayload,
       apiVersion,

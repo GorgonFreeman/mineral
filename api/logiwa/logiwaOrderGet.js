@@ -26,8 +26,10 @@ const logiwaOrderGet = async (
   }
 
   return logiwaClient.fetch({
-    method: 'get',
-    url: `/ShipmentOrder/${ orderId }`,
+    requestPayload: {
+      method: 'get',
+      url: `/ShipmentOrder/${ orderId }`,
+    },
     context: {
       credsPayload,
       apiVersion,

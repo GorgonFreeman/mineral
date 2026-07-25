@@ -1,31 +1,35 @@
 const { DEFAULT_API_VERSION } = require('../logiwa/logiwa.constants');
 const { logiwaAuthGet } = require('../logiwa/logiwaAuthGet');
+const { resolveCreds } = require('../pipelineSteps');
 const {
-  FetchClient,
-  Chain,
+  FetchClientV2,
   appendUrlToBase,
-  credsFromPayload,
   fetchClientCommonSteps,
 } = require('../utils');
 
-const addUrlAndAuthHeaders = async (state) => {
+const useUrlAndAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
-  const { credsPayload, apiVersion = DEFAULT_API_VERSION } = context;
+  const {
+    credsPayload,
+    apiVersion = DEFAULT_API_VERSION,
+    creds,
+  } = context;
 
-  const creds = context.creds ?? await credsFromPayload(credsPayload);
-  const authResponse = await logiwaAuthGet(credsPayload);
-  const { data } = authResponse;
-  const { token } = data;
+  const authResponse = await logiwaAuthGet(credsPayload, { apiVersion });
 
-  // TODO: Handle failed auth
+  if (!authResponse?.ok) {
+    return {
+      breakChain: true,
+      response: authResponse,
+    };
+  }
 
+  const { token } = authResponse.data;
   const { BASE_URL } = creds;
 
   return {
-    context: {
-      creds,
-    },
     requestPayload: {
+      ...requestPayload,
       url: appendUrlToBase(`${ BASE_URL }/${ apiVersion }`, requestPayload.url),
       headers: {
         Authorization: `Bearer ${ token }`,
@@ -35,17 +39,13 @@ const addUrlAndAuthHeaders = async (state) => {
   };
 };
 
-const logiwaClientRequestPreparer = new Chain([
-  addUrlAndAuthHeaders,
-]);
-
-const logiwaClientResponseInterpreter = new Chain([
-  fetchClientCommonSteps.exitEarlyOnNotOk,
-]);
-
-const logiwaClient = new FetchClient({
-  requestPreparer: logiwaClientRequestPreparer,
-  responseInterpreter: logiwaClientResponseInterpreter,
+const logiwaClient = new FetchClientV2({
+  pipeline: [
+    resolveCreds,
+    useUrlAndAuthHeaders,
+    'fetch',
+    fetchClientCommonSteps.exitEarlyOnNotOk,
+  ],
 });
 
 module.exports = {

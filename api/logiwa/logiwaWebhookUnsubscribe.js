@@ -26,8 +26,10 @@ const logiwaWebhookUnsubscribe = async (
   }
 
   return logiwaClient.fetch({
-    method: 'delete',
-    url: `/Webhook/unsubscribe/${ subscriptionId }`,
+    requestPayload: {
+      method: 'delete',
+      url: `/Webhook/unsubscribe/${ subscriptionId }`,
+    },
     context: {
       credsPayload,
       apiVersion,
