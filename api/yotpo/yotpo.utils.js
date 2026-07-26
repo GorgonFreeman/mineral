@@ -19,7 +19,6 @@ const useUrlAndAuthHeaders = async (state) => {
       ...requestPayload,
       url: appendUrlToBase(`${ BASE_URL }/${ apiVersion }`, requestPayload.url),
       headers: {
-        'Content-Type': 'application/json',
         'x-api-key': API_KEY,
         'x-guid': GUID,
         ...requestPayload.headers,

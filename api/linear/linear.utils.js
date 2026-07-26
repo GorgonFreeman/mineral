@@ -16,7 +16,6 @@ const useAuthHeaders = async (state) => {
       url: requestPayload.url || LINEAR_GRAPHQL_URL,
       method: requestPayload.method || 'post',
       headers: {
-        'Content-Type': 'application/json',
         Authorization: API_KEY,
         ...requestPayload.headers,
       },

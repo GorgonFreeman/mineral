@@ -15,7 +15,6 @@ const useAuthHeaders = async (state) => {
       ...requestPayload,
       method: requestPayload.method || 'post',
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${ BOT_TOKEN }`,
         ...requestPayload.headers,
       },

@@ -14,7 +14,6 @@ const useAuthHeaders = async (state) => {
     requestPayload: {
       ...requestPayload,
       headers: {
-        'Content-Type': 'application/json',
         'Api-Key': API_KEY,
         ...requestPayload.headers,
       },

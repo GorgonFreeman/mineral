@@ -11,3 +11,7 @@ Notes for AI assistants working in this directory. **Read this file at the start
 - Use newlines and trailing commas where appropriate to minimise future diffs, e.g. in function args.
 - If you make a new .env or .creds.yml variable, update the correlating .sample file.
 - In Shopify, don't normalise and take gids as inputs if you can just take the id - the non-gid number - instead.
+
+## API clients
+- Base URLs for platform clients should live in `{platform}.constants.js`, not creds, if they are static for all users of the API.
+- Don't explicitly set `Content-Type: application/json` on the client — `customFetch` already adds it when there is a request body.
