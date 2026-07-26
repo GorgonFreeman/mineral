@@ -60,3 +60,6 @@ starshipit:
 bleckmann:
   PRIMARY_KEY: ________________________
   SECONDARY_KEY: ______________________
+
+stylearcade:
+  API_KEY: ____________________________
