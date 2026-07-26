@@ -25,6 +25,9 @@ yotpo:
 linear:
   API_KEY: _______________________________
 
+github:
+  ACCESS_TOKEN: ghp_______________________
+
 slack:
   BOT_TOKEN: xoxb_________________________
 
