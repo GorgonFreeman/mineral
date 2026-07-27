@@ -1,31 +1,67 @@
-// https://shopify.dev/docs/api/admin-graphql/latest/mutations/bulkoperationrunmutation
+// https://shopify.dev/docs/api/admin-graphql/latest/mutations/bulkOperationRunMutation
 
 const { credsValidator } = require('../validators');
 const { ArgsWarden } = require('../utils');
+const { shopifyMutationDo } = require('./shopifyMutationDo');
+
+const defaultReturnAttrs = `
+  id
+  type
+  status
+  objectCount
+  url
+`;
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['arg', Boolean],
+  ['mutation'],
+  ['stagedUploadPath'],
 ]);
 
 const shopifyBulkOperationRunMutation = async (
   credsPayload,
-  arg,
-  options = {},
+  mutation,
+  stagedUploadPath,
+  {
+    apiVersion,
+    returnAttrs = defaultReturnAttrs,
+    clientIdentifier,
+  } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, arg });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    mutation,
+    stagedUploadPath,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }
 
-  return {
-    ok: true,
-    data: {
-      arg,
-      options,
+  return shopifyMutationDo(
+    credsPayload,
+    'bulkOperationRunMutation',
+    {
+      mutationVariables: {
+        mutation: {
+          type: 'String!',
+          value: mutation,
+        },
+        stagedUploadPath: {
+          type: 'String!',
+          value: stagedUploadPath,
+        },
+        ...clientIdentifier && {
+          clientIdentifier: {
+            type: 'String',
+            value: clientIdentifier,
+          },
+        },
+      },
+      returnSchema: `bulkOperation { ${ returnAttrs } }`,
+      apiVersion,
     },
-  };
+  );
 };
 
 const funcApiConfig = {
