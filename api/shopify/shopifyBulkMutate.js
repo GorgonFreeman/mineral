@@ -1,18 +1,28 @@
 const { credsValidator } = require('../validators');
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, objHasAny } = require('../utils');
+
+const bulkMutationInputValidator = input => objHasAny(input, ['filepath', 'data', 'stagedUploadUrl']);
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['arg', Boolean],
+  ['mutation'],
+  ['input', bulkMutationInputValidator],
 ]);
 
 const shopifyBulkMutate = async (
   credsPayload,
-  arg,
-  options = {},
+  mutation,
+  input,
+  {
+    option,
+  } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, arg });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
+    credsPayload, 
+    mutation, 
+    input,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -20,8 +30,8 @@ const shopifyBulkMutate = async (
   return {
     ok: true,
     data: {
-      arg,
-      options,
+      mutation,
+      input,
     },
   };
 };
