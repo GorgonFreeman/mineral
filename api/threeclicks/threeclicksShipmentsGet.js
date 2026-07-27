@@ -1,4 +1,4 @@
-// https://g40-server.instance.3clickscloud.com/swagger-ui/index.html
+// https://g40-server.instance.3clickscloud.com/swagger-ui/index.html#operations-v1_-_Search_>_Advanced-shippingSearch
 
 const { ArgsWarden, timeMs } = require('../utils');
 const { credsValidator } = require('../validators');

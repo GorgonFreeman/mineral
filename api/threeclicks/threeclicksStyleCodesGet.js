@@ -1,4 +1,4 @@
-// https://g40-server.instance.3clickscloud.com/swagger-ui/index.html
+// https://g40-server.instance.3clickscloud.com/swagger-ui/index.html#operations-tag-v1_-_Site_Settings_>_Style
 
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
