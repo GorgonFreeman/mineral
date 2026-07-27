@@ -32,7 +32,7 @@ slack:
   BOT_TOKEN: xoxb_________________________
 
 workable:
-  BASE_URL: https://[subdomain].workable.com/spi/v3
+  BASE_URL: https://__.workable.com/spi/v3
   ACCESS_TOKEN: __________________________
 
 loop:
@@ -40,31 +40,31 @@ loop:
     API_KEY: _____________________________
 
 upstash:
-  BASE_URL: https://________.upstash.io
-  TOKEN: ______________________________
+  BASE_URL: https://___________.upstash.io
+  TOKEN: _________________________________
 
 supabase:
   project:
-    BASE_URL: https://_____.supabase.co
-    API_KEY: __________________________
+    BASE_URL: https://________.supabase.co
+    API_KEY: _____________________________
 
 stripe:
-  API_KEY: sk__________________________
+  API_KEY: sk_____________________________
 
 starshipit:
   acc:
-    API_KEY: __________________________
-    SUB_KEY: __________________________
-    WEBHOOK_SECRET: ___________________
+    API_KEY: _____________________________
+    SUB_KEY: _____________________________
+    WEBHOOK_SECRET: ______________________
 
 bleckmann:
-  PRIMARY_KEY: ________________________
-  SECONDARY_KEY: ______________________
+  PRIMARY_KEY: ___________________________
+  SECONDARY_KEY: _________________________
 
 stylearcade:
-  API_KEY: ____________________________
+  API_KEY: _______________________________
 
 threeclicks:
-  API_KEY: ____________________________
-  API_SECRET: __________________________
+  API_KEY: _______________________________
+  API_SECRET: ____________________________
   API_DOMAIN: g40-server.instance.3clickscloud.com
