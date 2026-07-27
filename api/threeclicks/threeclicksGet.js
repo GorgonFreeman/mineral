@@ -1,4 +1,4 @@
-// https://access.3clickscloud.com/apiuserguide.php
+// https://g40-server.instance.3clickscloud.com/swagger-ui/index.html
 
 const { ArgsWarden, Getter } = require('../utils');
 const { credsValidator } = require('../validators');
