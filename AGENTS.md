@@ -11,6 +11,7 @@ Notes for AI assistants working in this directory. **Read this file at the start
 - Use newlines and trailing commas where appropriate to minimise future diffs, e.g. in function args.
 - If you make a new .env or .creds.yml variable, update the correlating .sample file.
 - In Shopify, don't normalise and take gids as inputs if you can just take the id - the non-gid number - instead.
+- Use trailing commas wherever possible, for future git diff readability.
 
 ## API clients
 - Base URLs for platform clients should live in `{platform}.constants.js`, not creds, if they are static for all users of the API.
