@@ -37,4 +37,11 @@ const threeclicksKeycodeGet = async (credsPayload, styleNumber, styleColoursizeI
   });
 };
 
-module.exports = { threeclicksKeycodeGet, funcApiConfig: { argsWarden } };
+const funcApiConfig = {
+  argsWarden,
+};
+
+module.exports = {
+  threeclicksKeycodeGet,
+  funcApiConfig,
+};

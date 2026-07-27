@@ -60,4 +60,11 @@ const threeclicksStylePriceUpdate = async (
   });
 };
 
-module.exports = { threeclicksStylePriceUpdate, funcApiConfig: { argsWarden } };
+const funcApiConfig = {
+  argsWarden,
+};
+
+module.exports = {
+  threeclicksStylePriceUpdate,
+  funcApiConfig,
+};

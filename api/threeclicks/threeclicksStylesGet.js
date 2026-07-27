@@ -27,6 +27,19 @@ const threeclicksStylesGet = async (
   });
 };
 
-const funcApiConfig = { argsWarden };
+const funcApiConfig = {
+  argsWarden,
+};
 
-module.exports = { threeclicksStylesGet, funcApiConfig };
+module.exports = {
+  threeclicksStylesGet,
+  funcApiConfig,
+};
+
+/*
+curl -X POST "http://localhost:8000/threeclicksStylesGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "threeclicks" }
+  }'
+*/

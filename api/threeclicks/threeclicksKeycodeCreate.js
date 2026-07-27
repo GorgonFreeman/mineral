@@ -45,4 +45,11 @@ const threeclicksKeycodeCreate = async (
   });
 };
 
-module.exports = { threeclicksKeycodeCreate, funcApiConfig: { argsWarden } };
+const funcApiConfig = {
+  argsWarden,
+};
+
+module.exports = {
+  threeclicksKeycodeCreate,
+  funcApiConfig,
+};

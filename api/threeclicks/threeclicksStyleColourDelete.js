@@ -24,4 +24,11 @@ const threeclicksStyleColourDelete = async (credsPayload, styleNumber, styleColo
   });
 };
 
-module.exports = { threeclicksStyleColourDelete, funcApiConfig: { argsWarden } };
+const funcApiConfig = {
+  argsWarden,
+};
+
+module.exports = {
+  threeclicksStyleColourDelete,
+  funcApiConfig,
+};

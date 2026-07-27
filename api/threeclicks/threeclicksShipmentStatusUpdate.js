@@ -35,4 +35,11 @@ const threeclicksShipmentStatusUpdate = async (
   });
 };
 
-module.exports = { threeclicksShipmentStatusUpdate, funcApiConfig: { argsWarden } };
+const funcApiConfig = {
+  argsWarden,
+};
+
+module.exports = {
+  threeclicksShipmentStatusUpdate,
+  funcApiConfig,
+};

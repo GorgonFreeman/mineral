@@ -12,4 +12,19 @@ const threeclicksPurchaseOrdersGet = async (credsPayload, { mode = 'all', ...get
   return threeclicksGet(credsPayload, '/search/advanced/order', { params: { mode }, ...getterOptions });
 };
 
-module.exports = { threeclicksPurchaseOrdersGet, funcApiConfig: { argsWarden } };
+const funcApiConfig = {
+  argsWarden,
+};
+
+module.exports = {
+  threeclicksPurchaseOrdersGet,
+  funcApiConfig,
+};
+
+/*
+curl -X POST "http://localhost:8000/threeclicksPurchaseOrdersGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "threeclicks" }
+  }'
+*/

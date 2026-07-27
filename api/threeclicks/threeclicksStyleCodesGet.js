@@ -27,4 +27,20 @@ const threeclicksStyleCodesGet = async (credsPayload, codesFor) => {
   });
 };
 
-module.exports = { threeclicksStyleCodesGet, funcApiConfig: { argsWarden } };
+const funcApiConfig = {
+  argsWarden,
+};
+
+module.exports = {
+  threeclicksStyleCodesGet,
+  funcApiConfig,
+};
+
+/*
+curl -X POST "http://localhost:8000/threeclicksStyleCodesGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "threeclicks" },
+    "codesFor": "collection"
+  }'
+*/

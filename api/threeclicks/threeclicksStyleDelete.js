@@ -23,4 +23,11 @@ const threeclicksStyleDelete = async (credsPayload, styleNumber) => {
   });
 };
 
-module.exports = { threeclicksStyleDelete, funcApiConfig: { argsWarden } };
+const funcApiConfig = {
+  argsWarden,
+};
+
+module.exports = {
+  threeclicksStyleDelete,
+  funcApiConfig,
+};

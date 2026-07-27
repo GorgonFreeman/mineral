@@ -28,4 +28,11 @@ const threeclicksShipmentOrderAdd = async (credsPayload, shipmentNumber, orderNu
   });
 };
 
-module.exports = { threeclicksShipmentOrderAdd, funcApiConfig: { argsWarden } };
+const funcApiConfig = {
+  argsWarden,
+};
+
+module.exports = {
+  threeclicksShipmentOrderAdd,
+  funcApiConfig,
+};

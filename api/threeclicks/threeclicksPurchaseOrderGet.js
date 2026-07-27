@@ -23,4 +23,11 @@ const threeclicksPurchaseOrderGet = async (credsPayload, orderNumber) => {
   });
 };
 
-module.exports = { threeclicksPurchaseOrderGet, funcApiConfig: { argsWarden } };
+const funcApiConfig = {
+  argsWarden,
+};
+
+module.exports = {
+  threeclicksPurchaseOrderGet,
+  funcApiConfig,
+};

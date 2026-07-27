@@ -36,4 +36,11 @@ const threeclicksPurchaseOrderQuantityUpdate = async (
   });
 };
 
-module.exports = { threeclicksPurchaseOrderQuantityUpdate, funcApiConfig: { argsWarden } };
+const funcApiConfig = {
+  argsWarden,
+};
+
+module.exports = {
+  threeclicksPurchaseOrderQuantityUpdate,
+  funcApiConfig,
+};
