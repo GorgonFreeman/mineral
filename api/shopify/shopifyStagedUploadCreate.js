@@ -1,39 +1,71 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/stagedUploadsCreate
 
 const { credsValidator } = require('../validators');
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, ensureArray, everyIfArray } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
+
+const defaultReturnAttrs = `
+  url
+  resourceUrl
+  parameters {
+    name
+    value
+  }
+`;
+
+const stagedUploadInputItemValidator = ({
+  resource,
+  filename,
+  mimeType,
+} = {}) => Boolean(resource && filename && mimeType);
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['thingId'],
+  ['stagedUploadInput', (i) => everyIfArray(stagedUploadInputItemValidator, i)],
 ]);
 
 const shopifyStagedUploadCreate = async (
   credsPayload,
-  thingId,
+  stagedUploadInput,
   {
     apiVersion,
-    returnSchema = 'deletedThingId',
+    returnAttrs = defaultReturnAttrs,
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, thingId });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    stagedUploadInput,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }
 
+  const input = ensureArray(stagedUploadInput).map(({
+    resource,
+    filename,
+    mimeType,
+    fileSize,
+    httpMethod,
+  }) => ({
+    resource,
+    filename,
+    mimeType,
+    ...fileSize && { fileSize: String(fileSize) },
+    ...httpMethod && { httpMethod },
+  }));
+
   return shopifyMutationDo(
     credsPayload,
-    'thingDelete',
+    'stagedUploadsCreate',
     {
       mutationVariables: {
-        id: {
-          type: 'ID!',
-          value: `gid://shopify/Thing/${ thingId }`,
+        input: {
+          type: '[StagedUploadInput!]!',
+          value: input,
         },
       },
-      returnSchema,
+      returnSchema: `stagedTargets { ${ returnAttrs } }`,
       apiVersion,
     },
   );
@@ -53,6 +85,12 @@ curl -X POST "http://localhost:8000/shopifyStagedUploadCreate" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
-    "thingId": "104188477512"
+    "stagedUploadInput": {
+      "resource": "BULK_MUTATION_VARIABLES",
+      "filename": "inputs.jsonl",
+      "mimeType": "text/jsonl",
+      "httpMethod": "POST"
+    }
+  }'
   }'
 */
