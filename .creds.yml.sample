@@ -63,3 +63,8 @@ bleckmann:
 
 stylearcade:
   API_KEY: ____________________________
+
+threeclicks:
+  API_KEY: ____________________________
+  API_SECRET: __________________________
+  API_DOMAIN: g40-server.instance.3clickscloud.com
