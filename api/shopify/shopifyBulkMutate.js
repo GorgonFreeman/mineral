@@ -1,3 +1,4 @@
+const fs = require('fs').promises;
 const { credsValidator } = require('../validators');
 const { ArgsWarden, objHasAny } = require('../utils');
 
@@ -25,6 +26,24 @@ const shopifyBulkMutate = async (
   });
   if (rejectResponse) {
     return rejectResponse;
+  }
+
+  const {
+    filepath,
+    data,
+    stagedUploadUrl,
+  } = input;
+
+  if (filepath) {
+    
+    if (HOSTED) {
+      return {
+        ok: false,
+        error: 'Filepath is not supported for hosted environments',
+      };
+    }
+
+    const file = await fs.readFile(filepath, 'utf8');
   }
 
   return {
