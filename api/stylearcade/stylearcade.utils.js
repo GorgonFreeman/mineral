@@ -1,9 +1,13 @@
-const { BASE_URL } = require('../stylearcade/stylearcade.constants');
 const { resolveCreds, useBaseUrl } = require('../pipelineSteps');
 const {
   FetchClient,
   fetchClientCommonSteps,
 } = require('../utils');
+
+const useStylearcadeBaseUrl = async (state) => {
+  const { creds } = state.context;
+  return useBaseUrl(creds.BASE_URL)(state);
+};
 
 const useAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
@@ -24,7 +28,7 @@ const useAuthHeaders = async (state) => {
 const stylearcadeClient = new FetchClient({
   pipeline: [
     resolveCreds,
-    useBaseUrl(BASE_URL),
+    useStylearcadeBaseUrl,
     useAuthHeaders,
     'fetch',
     fetchClientCommonSteps.exitEarlyOnNotOk,

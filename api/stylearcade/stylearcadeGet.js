@@ -12,7 +12,7 @@ const stylearcadeGetPacket = async (
   {
     params,
     perPage = MAX_PER_PAGE,
-    url = '',
+    url = '/export',
   } = {},
 ) => {
   return stylearcadeClient.fetch({
@@ -70,7 +70,7 @@ const stylearcadeGet = async (
     params,
     perPage = MAX_PER_PAGE,
     nodeName = 'records',
-    url = '',
+    url = '/export',
     ...getterOptions
   } = {},
 ) => {

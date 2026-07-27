@@ -62,6 +62,7 @@ bleckmann:
   SECONDARY_KEY: _________________________
 
 stylearcade:
+  BASE_URL: https://api.stylearcade.com/range-plan/v1/tenants/________
   API_KEY: _______________________________
 
 threeclicks:
