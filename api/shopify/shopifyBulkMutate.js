@@ -1,4 +1,5 @@
 const fs = require('fs').promises;
+const { HOSTED } = require('../constants');
 const { credsValidator } = require('../validators');
 const { ArgsWarden, objHasAny } = require('../utils');
 
@@ -39,6 +40,14 @@ const shopifyBulkMutate = async (
   } = input;
 
   if (!stagedUrl) {
+
+    if (HOSTED) {
+      return {
+        ok: false,
+        error: 'File-based options are not available while hosted',
+      };
+    }
+
     if (!filepath) {
       // Make data into a file
     }
