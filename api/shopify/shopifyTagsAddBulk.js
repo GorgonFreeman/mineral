@@ -16,7 +16,7 @@ const tagsAddBulkMutation = `
       }
     }
   }
-`;
+`.trim();
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
