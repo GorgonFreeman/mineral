@@ -101,6 +101,7 @@ const xmlResponseParser = (parserOptions = {}) => {
 };
 
 const getResponseParser = (contentType) => {
+  if (contentType?.includes('jsonl') || contentType?.includes('ndjson')) return (res) => res.text();
   if (contentType.includes('application/json')) return (res) => res.json();
   if (contentType.includes('text/xml')) return xmlResponseParser();
   if (contentType.includes('application/soap+xml')) return (res) => res.text();

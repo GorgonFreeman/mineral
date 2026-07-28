@@ -176,9 +176,7 @@ const shopifyBulkMutationDo = async (
     };
   }
 
-  const resultsResponse = await customFetch(bulkOperation.url, {
-    responseParser: (response) => response.text(),
-  });
+  const resultsResponse = await customFetch(bulkOperation.url);
   if (!resultsResponse.ok) {
     return resultsResponse;
   }
