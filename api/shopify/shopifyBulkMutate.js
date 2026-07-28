@@ -7,12 +7,15 @@ const { credsValidator } = require('../validators');
 const {
   ArgsWarden,
   customFetch,
+  gidToId,
   objectToFormData,
   objHasAny,
   objectArrayToJsonl,
+  wait,
 } = require('../utils');
 const { shopifyStagedUploadCreate } = require('./shopifyStagedUploadCreate');
 const { shopifyBulkOperationRunMutation } = require('./shopifyBulkOperationRunMutation');
+const { shopifyBulkOperationGet } = require('./shopifyBulkOperationGet');
 
 const bulkMutationInputValidator = input => objHasAny(input, [
   'data', 
@@ -32,6 +35,7 @@ const shopifyBulkMutate = async (
   {
     apiVersion,
     clientIdentifier,
+    waitForResult = true,
   } = {},
 ) => {
 
@@ -103,13 +107,63 @@ const shopifyBulkMutate = async (
     },
   );
 
-  if (!mutationRunResponse.ok) {
+  if (!waitForResult) {
     return mutationRunResponse;
   }
 
-  return mutationRunResponse;
+  const { ok: mutationRunOk, data: mutationRunData } = mutationRunResponse;
+  if (!mutationRunOk) {
+    return mutationRunResponse;
+  }
 
-  // Optionally, poll for completion
+  const bulkOperationId = gidToId(mutationRunData.bulkOperation.id);
+  
+  let bulkOperation;
+  do {
+
+    await wait(5000);
+
+    const operationResponse = await shopifyBulkOperationGet(
+      credsPayload,
+      bulkOperationId,
+      { apiVersion },
+    );
+    if (!operationResponse.ok) {
+      return operationResponse;
+    }
+
+    bulkOperation = operationResponse.data;
+
+  } while (['CREATED', 'RUNNING'].includes(bulkOperation?.status));
+
+  if (bulkOperation.status !== 'COMPLETED') {
+    return {
+      ok: false,
+      error: {
+        code: 'BULK_OPERATION_FAILED',
+        message: `Bulk operation failed with status ${ bulkOperation.status }`,
+        details: bulkOperation,
+      },
+    };
+  }
+
+  const resultsResponse = await customFetch(bulkOperation.url);
+  if (!resultsResponse.ok) {
+    return resultsResponse;
+  }
+
+  const results = resultsResponse.data
+    .split('\n')
+    .filter((line) => line.trim())
+    .map((line) => JSON.parse(line));
+
+  return {
+    ok: true,
+    data: results,
+    meta: {
+      bulkOperation,
+    },
+  };
 };
 
 const funcApiConfig = {
