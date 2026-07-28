@@ -56,6 +56,8 @@ const shopifyBulkMutate = async (
     input,
     bulkOperationId,
   } = createOrResumeBulkOpPayload;
+  
+  let bulkOperation;
 
   if (!bulkOperationId) {
 
@@ -65,7 +67,7 @@ const shopifyBulkMutate = async (
         error: 'This function is only available locally',
       };
     }
-    
+
     let {
       data,
       filepath,
@@ -126,13 +128,12 @@ const shopifyBulkMutate = async (
     if (!mutationRunOk) {
       return mutationRunResponse;
     }
-
-    bulkOperationId = gidToId(mutationRunData.bulkOperation.id);
+    
+    bulkOperation = mutationRunData.bulkOperation;
+    bulkOperationId = gidToId(bulkOperation.id);
   }
   
-  let bulkOperation;
-  do {
-
+  while (['CREATED', 'RUNNING'].includes(bulkOperation?.status)) {
     await wait(5000);
 
     const operationResponse = await shopifyBulkOperationGet(
@@ -145,8 +146,7 @@ const shopifyBulkMutate = async (
     }
 
     bulkOperation = operationResponse.data;
-
-  } while (['CREATED', 'RUNNING'].includes(bulkOperation?.status));
+  }
 
   if (bulkOperation.status !== 'COMPLETED') {
     return {
