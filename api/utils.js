@@ -610,6 +610,13 @@ const objectArrayToJsonl = (objects) => {
   return objects.map((object) => JSON.stringify(object)).join('\n');
 };
 
+const jsonlToObjectArray = (jsonl) => {
+  return jsonl
+    .split('\n')
+    .filter((line) => line.trim())
+    .map((line) => JSON.parse(line));
+};
+
 const everyIfArray = (func, value) => {
   if (Array.isArray(value)) {
     if (value.length === 0) {
@@ -1160,6 +1167,7 @@ module.exports = {
   objectToFormData,
   ensureArray,
   objectArrayToJsonl,
+  jsonlToObjectArray,
   everyIfArray,
   simpleSort,
   arrayToChunks,

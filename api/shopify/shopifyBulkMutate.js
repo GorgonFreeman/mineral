@@ -11,6 +11,7 @@ const {
   objectToFormData,
   objHasAny,
   objectArrayToJsonl,
+  jsonlToObjectArray,
   wait,
   valueProvided,
 } = require('../utils');
@@ -167,10 +168,7 @@ const shopifyBulkMutate = async (
     return resultsResponse;
   }
 
-  const results = resultsResponse.data
-    .split('\n')
-    .filter((line) => line.trim())
-    .map((line) => JSON.parse(line));
+  const results = jsonlToObjectArray(resultsResponse.data);
 
   return {
     ok: true,
