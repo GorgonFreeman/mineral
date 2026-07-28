@@ -4,8 +4,10 @@ const {
   FetchClient,
   appendUrlToBase,
   fetchClientCommonSteps,
+  jsonlToObjectArray,
   pathAsArray,
   objectDigNodeAtPath,
+  sentenceCaseString,
 } = require('../utils');
 
 const handleMutationUserErrors = async (state) => {
@@ -97,6 +99,80 @@ const movePageInfoToMeta = async (state) => {
   };
 };
 
+// https://shopify.dev/docs/api/usage/bulk-operations/queries
+const parseShopifyJsonl = (jsonl) => {
+  const objects = jsonlToObjectArray(jsonl);
+  const objectsMap = new Map();
+  const objectsWithoutStitching = [];
+
+  for (const object of objects) {
+    const {
+      id: gid,
+      __parentId: parentGid,
+    } = object;
+
+    if (!gid) {
+      objectsWithoutStitching.push(object);
+      continue;
+    }
+
+    const [objectType] = gid.split('gid://shopify/')[1].split(/[^a-zA-Z0-9]+/);
+
+    objectsMap.set(gid, {
+      ...object,
+      selfType: objectType,
+      ...parentGid && { parentGid },
+    });
+  }
+
+  const objectTypeToProperty = (objectType) => `${ sentenceCaseString(objectType) }s`;
+
+  for (const [gid, object] of objectsMap) {
+    const {
+      selfType,
+      parentGid,
+    } = object;
+
+    if (!parentGid) {
+      continue;
+    }
+
+    const objectProperty = objectTypeToProperty(selfType);
+
+    let parentObject = objectsMap.get(parentGid);
+    if (!parentObject) {
+      continue;
+    }
+
+    const nestedParent = gid.split('?')?.[1];
+
+    if (nestedParent) {
+      let [nestedParentType] = nestedParent.split('=');
+      nestedParentType = nestedParentType
+        .replaceAll('_id', '')
+        .split('_')
+        .map((word) => word[0].toUpperCase() + word.slice(1))
+        .join('');
+      nestedParentType = sentenceCaseString(nestedParentType);
+      parentObject = parentObject[nestedParentType];
+    }
+
+    if (!parentObject) {
+      continue;
+    }
+
+    parentObject[objectProperty] = parentObject[objectProperty] || [];
+    parentObject[objectProperty].push(objectsMap.get(gid));
+  }
+
+  const topLevelObjects = Array.from(objectsMap.values()).filter((object) => !object?.parentGid);
+
+  return [
+    ...topLevelObjects,
+    ...objectsWithoutStitching,
+  ];
+};
+
 const shopifyClient = new FetchClient({
   pipeline: [
     resolveCreds,
@@ -113,5 +189,6 @@ const shopifyClient = new FetchClient({
 });
 
 module.exports = {
+  parseShopifyJsonl,
   shopifyClient,
 };
