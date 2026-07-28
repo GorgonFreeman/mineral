@@ -1,5 +1,5 @@
 const { randomUUID } = require('crypto');
-const { createReadStream } = require('fs');
+const { Blob } = require('buffer');
 const fs = require('fs').promises;
 
 const { HOSTED, TEMP_DIR } = require('../constants');
@@ -61,7 +61,7 @@ const shopifyBulkMutationDo = async (
     return rejectResponse;
   }
 
-  const {
+  let {
     mutation,
     input,
     bulkOperationId,
@@ -104,11 +104,18 @@ const shopifyBulkMutationDo = async (
     }
 
     const { url, parameters } = stagedUploadResponse.data.stagedTargets[0];
+    const stagedUploadPath = parameters.find(({ name }) => name === 'key')?.value;
+
+    const fileBuffer = await fs.readFile(filepath);
 
     const formData = objectToFormData(
       Object.fromEntries(parameters.map(({ name, value }) => [name, value])),
     );
-    formData.append('file', createReadStream(filepath));
+    formData.append(
+      'file',
+      new Blob([fileBuffer], { type: 'text/jsonl' }),
+      filepath.split('/').pop(),
+    );
 
     const uploadResponse = await customFetch(url, {
       method: 'post',
@@ -118,8 +125,6 @@ const shopifyBulkMutationDo = async (
       return uploadResponse;
     }
 
-    const stagedUploadPath = uploadResponse.data?.PostResponse?.Key;
-    
     const mutationRunResponse = await shopifyBulkOperationRunMutation(
       credsPayload,
       mutation,
