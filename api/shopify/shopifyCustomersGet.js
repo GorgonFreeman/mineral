@@ -1,14 +1,16 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/queries/customers
 
-const { credsFromPayload, Getter, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
-const { shopifyGet } = require('./shopifyGet');
+const { shopifyGet, shopifyGetter } = require('./shopifyGet');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
 
 const shopifyCustomersGet = async (
+  returnGetter, // Always bound
+
   credsPayload,
   {
     ...getterOptions // e.g. limit
@@ -22,7 +24,19 @@ const shopifyCustomersGet = async (
     return rejectResponse;
   }
 
-  return await shopifyGet(credsPayload, 'customer', { ...getterOptions });
+  const getterArgs = [
+    credsPayload, 
+    'customer', 
+    {
+      ...getterOptions,
+    },
+  ];
+
+  if (returnGetter) {
+    return shopifyGetter(...getterArgs);
+  }
+
+  return shopifyGet(...getterArgs);
 };
 
 const funcApiConfig = {
@@ -30,7 +44,8 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  shopifyCustomersGet,
+  shopifyCustomersGet: (...args) => shopifyCustomersGet(false, ...args),
+  shopifyCustomersGetter: (...args) => shopifyCustomersGet(true, ...args),
   funcApiConfig,
 };
 
