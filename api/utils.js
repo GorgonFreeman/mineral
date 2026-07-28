@@ -20,6 +20,8 @@ const objHasAny = (obj, keys) => {
 const capitaliseString = (string) => `${ string[0].toUpperCase() }${ string.slice(1) }`;
 const sentenceCaseString = (string) => `${ string[0].toLowerCase() }${ string.slice(1) }`;
 
+const normalise = (value) => (value || '').toString().trim().toLowerCase();
+
 const credsByPath = (credsPath, credsObject) => {
   const pathNodes = pathAsArray(credsPath);
 
@@ -1155,6 +1157,7 @@ module.exports = {
   timeMs,
   objHasAny,
   capitaliseString,
+  normalise,
   credsFromPayload,
   customFetch,
   logDeep,
