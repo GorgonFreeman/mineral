@@ -134,7 +134,10 @@ const shopifyBulkMutate = async (
   }
   
   while (['CREATED', 'RUNNING'].includes(bulkOperation?.status)) {
-    await wait(5000);
+
+    if (bulkOperation) {
+      await wait(5000);
+    }
 
     const operationResponse = await shopifyBulkOperationGet(
       credsPayload,
