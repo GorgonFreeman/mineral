@@ -1,6 +1,5 @@
 const { randomUUID } = require('crypto');
-const { Blob } = require('buffer');
-const fs = require('fs').promises;
+const { openAsBlob, promises: fs } = require('fs');
 
 const { HOSTED, TEMP_DIR } = require('../constants');
 const { credsValidator } = require('../validators');
@@ -106,14 +105,14 @@ const shopifyBulkMutationDo = async (
     const { url, parameters } = stagedUploadResponse.data.stagedTargets[0];
     const stagedUploadPath = parameters.find(({ name }) => name === 'key')?.value;
 
-    const fileBuffer = await fs.readFile(filepath);
+    const fileBlob = await openAsBlob(filepath, { type: 'text/jsonl' });
 
     const formData = objectToFormData(
       Object.fromEntries(parameters.map(({ name, value }) => [name, value])),
     );
     formData.append(
       'file',
-      new Blob([fileBuffer], { type: 'text/jsonl' }),
+      fileBlob,
       filepath.split('/').pop(),
     );
 
