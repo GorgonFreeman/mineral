@@ -19,6 +19,15 @@ const { shopifyStagedUploadCreate } = require('./shopifyStagedUploadCreate');
 const { shopifyBulkOperationRunMutation } = require('./shopifyBulkOperationRunMutation');
 const { shopifyBulkOperationGet } = require('./shopifyBulkOperationGet');
 
+const bulkOpAttrs = `
+  id
+  status
+  type
+  objectCount
+  url
+  errorCode
+`;
+
 const createOrResumeBulkOpPayloadValidator = input => {
   const { mutation, input, bulkOperationId } = input;
   return (
@@ -118,6 +127,7 @@ const shopifyBulkMutate = async (
       {
         apiVersion,
         clientIdentifier,
+        returnAttrs: bulkOpAttrs,
       },
     );
 
@@ -143,7 +153,10 @@ const shopifyBulkMutate = async (
     const operationResponse = await shopifyBulkOperationGet(
       credsPayload,
       bulkOperationId,
-      { apiVersion },
+      {
+        apiVersion,
+        attrs: bulkOpAttrs,
+      },
     );
     if (!operationResponse.ok) {
       return operationResponse;
