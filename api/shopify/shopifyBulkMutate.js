@@ -65,74 +65,69 @@ const shopifyBulkMutate = async (
         error: 'This function is only available locally',
       };
     }
+    
+    let {
+      data,
+      filepath,
+    } = input;
 
+    if (!filepath) {
+      await fs.mkdir(TEMP_DIR, { recursive: true });
+      filepath = `${ TEMP_DIR }/shopifyBulkMutate_${ randomUUID() }.jsonl`;
+      await fs.writeFile(filepath, objectArrayToJsonl(data));
+    }
 
+    const stagedUploadResponse = await shopifyStagedUploadCreate(
+      credsPayload,
+      {
+        resource: 'BULK_MUTATION_VARIABLES',
+        filename: filepath.split('/').pop(),
+        mimeType: 'text/jsonl',
+        httpMethod: 'POST',
+      },
+      { apiVersion },
+    );
+    if (!stagedUploadResponse.ok) {
+      return stagedUploadResponse;
+    }
 
-  let {
-    data,
-    filepath,
-  } = input;
+    const { url, parameters } = stagedUploadResponse.data.stagedTargets[0];
 
-  if (!filepath) {
-    await fs.mkdir(TEMP_DIR, { recursive: true });
-    filepath = `${ TEMP_DIR }/shopifyBulkMutate_${ randomUUID() }.jsonl`;
-    await fs.writeFile(filepath, objectArrayToJsonl(data));
-  }
+    const formData = objectToFormData(
+      Object.fromEntries(parameters.map(({ name, value }) => [name, value])),
+    );
+    formData.append('file', createReadStream(filepath));
 
-  const stagedUploadResponse = await shopifyStagedUploadCreate(
-    credsPayload,
-    {
-      resource: 'BULK_MUTATION_VARIABLES',
-      filename: filepath.split('/').pop(),
-      mimeType: 'text/jsonl',
-      httpMethod: 'POST',
-    },
-    { apiVersion },
-  );
-  if (!stagedUploadResponse.ok) {
-    return stagedUploadResponse;
-  }
+    const uploadResponse = await customFetch(url, {
+      method: 'post',
+      body: formData,
+    });
+    if (!uploadResponse.ok) {
+      return uploadResponse;
+    }
 
-  const { url, parameters } = stagedUploadResponse.data.stagedTargets[0];
+    const stagedUploadPath = uploadResponse.data?.PostResponse?.Key;
+    
+    const mutationRunResponse = await shopifyBulkOperationRunMutation(
+      credsPayload,
+      mutation,
+      stagedUploadPath,
+      {
+        apiVersion,
+        clientIdentifier,
+      },
+    );
 
-  const formData = objectToFormData(
-    Object.fromEntries(parameters.map(({ name, value }) => [name, value])),
-  );
-  formData.append('file', createReadStream(filepath));
+    if (!waitForResult) {
+      return mutationRunResponse;
+    }
 
-  const uploadResponse = await customFetch(url, {
-    method: 'post',
-    body: formData,
-  });
-  if (!uploadResponse.ok) {
-    return uploadResponse;
-  }
+    const { ok: mutationRunOk, data: mutationRunData } = mutationRunResponse;
+    if (!mutationRunOk) {
+      return mutationRunResponse;
+    }
 
-  const stagedUploadPath = uploadResponse.data?.PostResponse?.Key;
-  
-  const mutationRunResponse = await shopifyBulkOperationRunMutation(
-    credsPayload,
-    mutation,
-    stagedUploadPath,
-    {
-      apiVersion,
-      clientIdentifier,
-    },
-  );
-
-  if (!waitForResult) {
-    return mutationRunResponse;
-  }
-
-  const { ok: mutationRunOk, data: mutationRunData } = mutationRunResponse;
-  if (!mutationRunOk) {
-    return mutationRunResponse;
-  }
-
-  bulkOperationId = gidToId(mutationRunData.bulkOperation.id);
-
-
-
+    bulkOperationId = gidToId(mutationRunData.bulkOperation.id);
   }
   
   let bulkOperation;
