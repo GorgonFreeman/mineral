@@ -1182,4 +1182,5 @@ module.exports = {
   sentenceCaseString,
   ArgsWarden,
   gidToId,
+  valueProvided,
 };
