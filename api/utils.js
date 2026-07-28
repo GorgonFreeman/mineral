@@ -179,14 +179,14 @@ const customFetch = async (url, {
       });
 
       const responseContentType = response.headers.get('content-type');
-      !HOSTED && console.log('responseContentType', responseContentType);
+      // !HOSTED && console.log('responseContentType', responseContentType);
 
       if (!responseParser) {
         responseParser = getResponseParser(responseContentType);
       }
 
       const parsedResponse = await responseParser(response);
-      !HOSTED && logDeep({ parsedResponse });
+      // !HOSTED && logDeep({ parsedResponse });
 
       if (response.ok) {
         return {
@@ -1043,7 +1043,7 @@ class Getter extends EventEmitter {
         paginatedParams.options,
       );
 
-      logDeep(response);
+      // logDeep(response);
 
       let items;
       if (digester) {
