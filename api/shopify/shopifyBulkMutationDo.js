@@ -28,14 +28,14 @@ const bulkOpAttrs = `
   errorCode
 `;
 
-const createOrResumeBulkOpPayloadValidator = input => {
-  const { mutation, input, bulkOperationId } = input;
-  return (
-    valueProvided(mutation) && objHasAny(input, [
-      'mutationArgs',
-      'bulkOperationId',
-    ]) || valueProvided(bulkOperationId)
-  );
+const createOrResumeBulkOpPayloadValidator = (payload) => {
+  const { mutation, input, bulkOperationId } = payload;
+
+  if (valueProvided(bulkOperationId)) {
+    return true;
+  }
+
+  return valueProvided(mutation) && objHasAny(input, ['data', 'filepath']);
 };
 
 const argsWarden = new ArgsWarden([
