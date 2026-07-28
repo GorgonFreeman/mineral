@@ -20,7 +20,7 @@ const base64UrlDecodeJson = (input) => {
   return JSON.parse(Buffer.from(`${ base64 }${ padding }`, 'base64').toString('utf8'));
 };
 
-const normalizeSessionToken = (sessionToken) => {
+const normaliseSessionToken = (sessionToken) => {
   const trimmedToken = sessionToken.trim();
 
   if (trimmedToken.toLowerCase().startsWith('bearer ')) {
@@ -116,7 +116,7 @@ const shopifyDecodeSessionToken = async (
     };
   }
 
-  const token = normalizeSessionToken(sessionToken);
+  const token = normaliseSessionToken(sessionToken);
   const decoded = decodeSessionTokenPayload(token);
 
   if (!decoded) {

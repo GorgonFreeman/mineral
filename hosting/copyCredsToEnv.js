@@ -54,9 +54,9 @@ const filterCredsByPaths = (creds, includeCredsPaths) => {
 
 const copyCredsToEnv = (workspace, options = {}) => {
   const { includeCredsPaths } = options;
-  const normalizedWorkspace = workspace.replace(/\/$/, '');
-  const credsPath = `${ normalizedWorkspace }/.creds.yml`;
-  const envPath = `${ normalizedWorkspace }/.env`;
+  const normalisedWorkspace = workspace.replace(/\/$/, '');
+  const credsPath = `${ normalisedWorkspace }/.creds.yml`;
+  const envPath = `${ normalisedWorkspace }/.env`;
 
   if (!fs.existsSync(credsPath)) {
     throw new Error(`Missing .creds.yml in workspace: ${ workspace }`);

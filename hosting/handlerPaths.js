@@ -2,11 +2,11 @@ const MINERAL_ROOT = `${ __dirname }/..`;
 const MINERAL_API_DIR = `${ MINERAL_ROOT }/api`;
 
 const getRequirePathForHandler = (handler, workspace) => {
-  const normalizedWorkspace = workspace.replace(/\/$/, '');
+  const normalisedWorkspace = workspace.replace(/\/$/, '');
   const { filePath } = handler;
 
-  if (filePath.startsWith(`${ normalizedWorkspace }/`)) {
-    return `./${ filePath.slice(normalizedWorkspace.length + 1) }`;
+  if (filePath.startsWith(`${ normalisedWorkspace }/`)) {
+    return `./${ filePath.slice(normalisedWorkspace.length + 1) }`;
   }
 
   if (filePath.startsWith(`${ MINERAL_API_DIR }/`)) {

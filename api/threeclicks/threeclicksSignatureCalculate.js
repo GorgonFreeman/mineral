@@ -1,6 +1,6 @@
 // https://g40-server.instance.3clickscloud.com/swagger-ui/index.html
 
-const { ArgsWarden, credsFromPayload } = require('../utils');
+const { ArgsWarden, credsFromPayload, normalise } = require('../utils');
 const { credsValidator } = require('../validators');
 const {
   threeclicksSignatureCalculate,
@@ -30,16 +30,16 @@ const threeclicksSignatureCalculateEndpoint = async (
   }
 
   const creds = await credsFromPayload(credsPayload);
-  const normalizedMethod = method.toLowerCase();
+  const normalisedMethod = normalise(method);
   const data = getSignatureData({
-    method: normalizedMethod,
+    method: normalisedMethod,
     params,
     body,
   });
 
   const result = threeclicksSignatureCalculate({
     creds,
-    method: normalizedMethod,
+    method: normalisedMethod,
     data,
   });
 

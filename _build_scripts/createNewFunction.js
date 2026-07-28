@@ -11,9 +11,9 @@ const excludedDirs = new Set([
   'node_modules',
 ]);
 
-const normalizePath = (dirPath) => dirPath.replace(/\/$/, '');
+const normalisePath = (dirPath) => dirPath.replace(/\/$/, '');
 
-const isMineralCwd = () => normalizePath(process.cwd()) === normalizePath(mineralRoot);
+const isMineralCwd = () => normalisePath(process.cwd()) === normalisePath(mineralRoot);
 
 const getContext = () => {
   const inMineral = isMineralCwd();
@@ -192,7 +192,7 @@ const sortExampleFiles = (exampleFiles) => {
   });
 };
 
-const normalizeTemplateArg = (templateArg) => {
+const normaliseTemplateArg = (templateArg) => {
   if (!templateArg) {
     return null;
   }
@@ -227,13 +227,13 @@ const findWorkspaceTemplate = (exampleFiles, templateArg) => {
     return directMatch;
   }
 
-  const normalizedFilename = normalizeTemplateArg(templateArg);
-  const filenameMatches = exampleFiles.filter(file => file.filename === normalizedFilename);
+  const normalisedFilename = normaliseTemplateArg(templateArg);
+  const filenameMatches = exampleFiles.filter(file => file.filename === normalisedFilename);
 
   if (templateArg.includes('/')) {
     const [ prefix, suffix ] = templateArg.split('/');
-    const normalizedSuffix = normalizeTemplateArg(suffix);
-    const prefixedMatch = exampleFiles.find(file => file.relativePath === `${ prefix }/${ normalizedSuffix }`);
+    const normalisedSuffix = normaliseTemplateArg(suffix);
+    const prefixedMatch = exampleFiles.find(file => file.relativePath === `${ prefix }/${ normalisedSuffix }`);
 
     if (prefixedMatch) {
       return prefixedMatch;
@@ -244,7 +244,7 @@ const findWorkspaceTemplate = (exampleFiles, templateArg) => {
     return filenameMatches[0];
   }
 
-  const suffixMatches = exampleFiles.filter(file => file.relativePath.endsWith(`/${ normalizedFilename }`));
+  const suffixMatches = exampleFiles.filter(file => file.relativePath.endsWith(`/${ normalisedFilename }`));
 
   if (suffixMatches.length === 1) {
     return suffixMatches[0];
@@ -280,24 +280,24 @@ const resolveTemplateFromArg = async ({
     return rootExampleJsPath;
   }
 
-  const normalizedFilename = normalizeTemplateArg(templateArg);
+  const normalisedFilename = normaliseTemplateArg(templateArg);
 
   const matchInDir = exampleFiles.find(file => {
-    return file.filename === normalizedFilename
+    return file.filename === normalisedFilename
       || file.displayName === templateArg
-      || file.displayName === normalizedFilename;
+      || file.displayName === normalisedFilename;
   });
 
   if (matchInDir) {
     return matchInDir.fullPath;
   }
 
-  if (normalizedFilename === '_example.js') {
+  if (normalisedFilename === '_example.js') {
     await fs.access(rootExampleJsPath);
     return rootExampleJsPath;
   }
 
-  throw new Error(`Template not found: ${ templateArg } (looked for ${ normalizedFilename } in api/${ dir })`);
+  throw new Error(`Template not found: ${ templateArg } (looked for ${ normalisedFilename } in api/${ dir })`);
 };
 
 const scriptFileContents = async (name, selectedTemplate) => {
@@ -322,7 +322,7 @@ const getDirs = async (targetApiDirectory) => {
   }
 };
 
-const normalizeDirArg = (dirArg) => {
+const normaliseDirArg = (dirArg) => {
   if (!dirArg || dirArg === '.' || dirArg === 'api') {
     return '';
   }
@@ -331,13 +331,13 @@ const normalizeDirArg = (dirArg) => {
 };
 
 const resolveDirArg = ({ dirArg, dirs, inMineral, name }) => {
-  const normalizedDir = normalizeDirArg(dirArg);
+  const normalisedDir = normaliseDirArg(dirArg);
 
-  if (dirs.includes(normalizedDir)) {
-    return normalizedDir;
+  if (dirs.includes(normalisedDir)) {
+    return normalisedDir;
   }
 
-  if (!inMineral && dirs.length === 0 && normalizedDir === '') {
+  if (!inMineral && dirs.length === 0 && normalisedDir === '') {
     return '';
   }
 
@@ -349,7 +349,7 @@ const resolveDirArg = ({ dirArg, dirs, inMineral, name }) => {
     return null;
   }
 
-  return normalizedDir;
+  return normalisedDir;
 };
 
 const buildFuncName = (dir, name) => {
