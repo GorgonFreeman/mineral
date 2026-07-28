@@ -1,7 +1,9 @@
+const { randomUUID } = require('crypto');
 const fs = require('fs').promises;
-const { HOSTED } = require('../constants');
+
+const { HOSTED, TEMP_DIR } = require('../constants');
 const { credsValidator } = require('../validators');
-const { ArgsWarden, objHasAny } = require('../utils');
+const { ArgsWarden, objHasAny, objectArrayToJsonl } = require('../utils');
 
 const bulkMutationInputValidator = input => objHasAny(input, [
   'data', 
@@ -19,9 +21,6 @@ const shopifyBulkMutate = async (
   credsPayload,
   mutation,
   input,
-  {
-    option,
-  } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
@@ -33,7 +32,7 @@ const shopifyBulkMutate = async (
     return rejectResponse;
   }
 
-  const {
+  let {
     data,
     filepath,
     stagedUploadPath,
@@ -49,8 +48,9 @@ const shopifyBulkMutate = async (
     }
 
     if (!filepath) {
-      // Make data into a file
-
+      await fs.mkdir(TEMP_DIR, { recursive: true });
+      filepath = `${ TEMP_DIR }/shopifyBulkMutate_${ randomUUID() }.jsonl`;
+      await fs.writeFile(filepath, objectArrayToJsonl(data));
     }
     // Upload file to staged url
   }

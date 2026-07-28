@@ -578,6 +578,10 @@ const ensureArray = (value) => {
   return [value];
 };
 
+const objectArrayToJsonl = (objects) => {
+  return objects.map((object) => JSON.stringify(object)).join('\n');
+};
+
 const everyIfArray = (func, value) => {
   if (Array.isArray(value)) {
     if (value.length === 0) {
@@ -1126,6 +1130,7 @@ module.exports = {
   FetchClient,
   fetchClientCommonSteps,
   ensureArray,
+  objectArrayToJsonl,
   everyIfArray,
   simpleSort,
   arrayToChunks,

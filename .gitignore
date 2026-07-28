@@ -6,3 +6,4 @@ node_modules/
 hosted.js
 hosting/.hosting.yml
 hosting/hosted.js
+_temp/
