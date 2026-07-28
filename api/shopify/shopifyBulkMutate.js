@@ -1,9 +1,17 @@
 const { randomUUID } = require('crypto');
+const { createReadStream } = require('fs');
 const fs = require('fs').promises;
 
 const { HOSTED, TEMP_DIR } = require('../constants');
 const { credsValidator } = require('../validators');
-const { ArgsWarden, objHasAny, objectArrayToJsonl } = require('../utils');
+const {
+  ArgsWarden,
+  customFetch,
+  objectToFormData,
+  objHasAny,
+  objectArrayToJsonl,
+} = require('../utils');
+const { shopifyStagedUploadCreate } = require('./shopifyStagedUploadCreate');
 
 const bulkMutationInputValidator = input => objHasAny(input, [
   'data', 
@@ -21,6 +29,9 @@ const shopifyBulkMutate = async (
   credsPayload,
   mutation,
   input,
+  {
+    apiVersion,
+  } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
@@ -52,16 +63,47 @@ const shopifyBulkMutate = async (
       filepath = `${ TEMP_DIR }/shopifyBulkMutate_${ randomUUID() }.jsonl`;
       await fs.writeFile(filepath, objectArrayToJsonl(data));
     }
-    // Upload file to staged url
+
+    const stagedUploadResponse = await shopifyStagedUploadCreate(
+      credsPayload,
+      {
+        resource: 'BULK_MUTATION_VARIABLES',
+        filename: filepath.split('/').pop(),
+        mimeType: 'text/jsonl',
+        httpMethod: 'POST',
+      },
+      { apiVersion },
+    );
+    if (!stagedUploadResponse.ok) {
+      return stagedUploadResponse;
+    }
+
+    const { url, parameters } = stagedUploadResponse.data.stagedTargets[0];
+
+    const formData = objectToFormData(
+      Object.fromEntries(parameters.map(({ name, value }) => [name, value])),
+    );
+    formData.append('file', createReadStream(filepath));
+
+    const uploadResponse = await customFetch(url, {
+      method: 'post',
+      body: formData,
+    });
+    if (!uploadResponse.ok) {
+      return uploadResponse;
+    }
+
+    stagedUploadPath = uploadResponse.data?.PostResponse?.Key;
   }
 
-  // Mutate using staged url
+  // Mutate using staged upload path
 
   // Optionally, poll for completion
 
   return {
     ok: true,
     data: {
+      stagedUploadPath,
       mutation,
       input,
     },

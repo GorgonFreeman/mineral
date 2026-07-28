@@ -108,6 +108,30 @@ const getResponseParser = (contentType) => {
   return (res) => res.text(); // safe default
 };
 
+const objectToFormData = (object) => {
+  const formData = new FormData();
+  for (const [key, value] of Object.entries(object)) {
+    formData.append(key, value);
+  }
+  return formData;
+};
+
+const bodyPassesThrough = (body) => {
+  if (body == null) {
+    return false;
+  }
+
+  if (typeof body === 'string') {
+    return true;
+  }
+
+  if (body instanceof FormData) {
+    return true;
+  }
+
+  return typeof body.getHeaders === 'function';
+};
+
 const customFetch = async (url, {
   method = 'get',
   headers = {},
@@ -123,7 +147,11 @@ const customFetch = async (url, {
     headers['x-request-id'] = String(Date.now());
   }
 
-  if (body && !headers['Content-Type']) {
+  if (body?.getHeaders) {
+    Object.assign(headers, body.getHeaders());
+  }
+
+  if (body && !headers['Content-Type'] && !bodyPassesThrough(body)) {
     headers['Content-Type'] = 'application/json';
   }
 
@@ -142,11 +170,11 @@ const customFetch = async (url, {
       const response = await fetch(url, {
         method,
         headers,
-        ...body 
-          ? { body: typeof body === 'string' 
-              ? body 
-              : JSON.stringify(body) 
-          } : {},
+        ...body && {
+          body: bodyPassesThrough(body)
+            ? body
+            : JSON.stringify(body),
+        },
       });
 
       const responseContentType = response.headers.get('content-type');
@@ -1129,6 +1157,7 @@ module.exports = {
   Chain,
   FetchClient,
   fetchClientCommonSteps,
+  objectToFormData,
   ensureArray,
   objectArrayToJsonl,
   everyIfArray,
