@@ -2,13 +2,15 @@
 
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
-const { shopifyGet } = require('./shopifyGet');
+const { shopifyGet, shopifyGetter } = require('./shopifyGet');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
 
 const shopifyFulfillmentOrdersGet = async (
+  returnGetter, // Always bound
+
   credsPayload,
   {
     ...getterOptions // e.g. limit
@@ -22,7 +24,17 @@ const shopifyFulfillmentOrdersGet = async (
     return rejectResponse;
   }
 
-  return await shopifyGet(credsPayload, 'fulfillmentOrder', { ...getterOptions });
+  const getterArgs = [
+    credsPayload, 
+    'fulfillmentOrder', 
+    {
+      ...getterOptions,
+    },
+  ];
+
+  return returnGetter
+    ? shopifyGetter(...getterArgs)
+    : shopifyGet(...getterArgs);
 };
 
 const funcApiConfig = {
@@ -30,7 +42,8 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  shopifyFulfillmentOrdersGet,
+  shopifyFulfillmentOrdersGet: (...args) => shopifyFulfillmentOrdersGet(false, ...args),
+  shopifyFulfillmentOrdersGetter: (...args) => shopifyFulfillmentOrdersGet(true, ...args),
   funcApiConfig,
 };
 

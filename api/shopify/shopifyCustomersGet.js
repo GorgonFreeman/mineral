@@ -32,11 +32,9 @@ const shopifyCustomersGet = async (
     },
   ];
 
-  if (returnGetter) {
-    return shopifyGetter(...getterArgs);
-  }
-
-  return shopifyGet(...getterArgs);
+  return returnGetter
+    ? shopifyGetter(...getterArgs)
+    : shopifyGet(...getterArgs);
 };
 
 const funcApiConfig = {

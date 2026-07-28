@@ -2,7 +2,7 @@
 
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
-const { shopifyGet } = require('./shopifyGet');
+const { shopifyGet, shopifyGetter } = require('./shopifyGet');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
@@ -10,6 +10,8 @@ const argsWarden = new ArgsWarden([
 ]);
 
 const shopifyMetafieldDefinitionsGet = async (
+  returnGetter, // Always bound
+
   credsPayload,
   ownerType,
   {
@@ -25,7 +27,18 @@ const shopifyMetafieldDefinitionsGet = async (
     return rejectResponse;
   }
 
-  return await shopifyGet(credsPayload, 'metafieldDefinition', { ownerType, ...getterOptions });
+  const getterArgs = [
+    credsPayload, 
+    'metafieldDefinition', 
+    {
+      ownerType,
+      ...getterOptions,
+    },
+  ];
+
+  return returnGetter
+    ? shopifyGetter(...getterArgs)
+    : shopifyGet(...getterArgs);
 };
 
 const funcApiConfig = {
@@ -33,7 +46,8 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  shopifyMetafieldDefinitionsGet,
+  shopifyMetafieldDefinitionsGet: (...args) => shopifyMetafieldDefinitionsGet(false, ...args),
+  shopifyMetafieldDefinitionsGetter: (...args) => shopifyMetafieldDefinitionsGet(true, ...args),
   funcApiConfig,
 };
 

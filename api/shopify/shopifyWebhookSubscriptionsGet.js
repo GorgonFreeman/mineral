@@ -2,13 +2,15 @@
 
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
-const { shopifyGet } = require('./shopifyGet');
+const { shopifyGet, shopifyGetter } = require('./shopifyGet');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
 
 const shopifyWebhookSubscriptionsGet = async (
+  returnGetter, // Always bound
+
   credsPayload,
   {
     ...getterOptions // e.g. limit
@@ -22,7 +24,17 @@ const shopifyWebhookSubscriptionsGet = async (
     return rejectResponse;
   }
 
-  return await shopifyGet(credsPayload, 'webhookSubscription', { ...getterOptions });
+  const getterArgs = [
+    credsPayload, 
+    'webhookSubscription', 
+    {
+      ...getterOptions,
+    },
+  ];
+
+  return returnGetter
+    ? shopifyGetter(...getterArgs)
+    : shopifyGet(...getterArgs);
 };
 
 const funcApiConfig = {
@@ -30,7 +42,8 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  shopifyWebhookSubscriptionsGet,
+  shopifyWebhookSubscriptionsGet: (...args) => shopifyWebhookSubscriptionsGet(false, ...args),
+  shopifyWebhookSubscriptionsGetter: (...args) => shopifyWebhookSubscriptionsGet(true, ...args),
   funcApiConfig,
 };
 
