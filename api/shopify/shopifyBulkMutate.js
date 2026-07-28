@@ -2,7 +2,11 @@ const fs = require('fs').promises;
 const { credsValidator } = require('../validators');
 const { ArgsWarden, objHasAny } = require('../utils');
 
-const bulkMutationInputValidator = input => objHasAny(input, ['filepath', 'data', 'stagedUploadUrl']);
+const bulkMutationInputValidator = input => objHasAny(input, [
+  'data', 
+  'filepath', 
+  'stagedUrl',
+]);
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
@@ -29,22 +33,21 @@ const shopifyBulkMutate = async (
   }
 
   const {
-    filepath,
     data,
-    stagedUploadUrl,
+    filepath,
+    stagedUrl,
   } = input;
 
-  if (filepath) {
-    
-    if (HOSTED) {
-      return {
-        ok: false,
-        error: 'Filepath is not supported for hosted environments',
-      };
+  if (!stagedUrl) {
+    if (!filepath) {
+      // Make data into a file
     }
-
-    const file = await fs.readFile(filepath, 'utf8');
+    // Upload file to staged url
   }
+
+  // Mutate using staged url
+
+  // Optionally, poll for completion
 
   return {
     ok: true,
