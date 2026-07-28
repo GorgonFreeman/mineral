@@ -12,6 +12,7 @@ const {
   objectArrayToJsonl,
 } = require('../utils');
 const { shopifyStagedUploadCreate } = require('./shopifyStagedUploadCreate');
+const { shopifyBulkOperationRunMutation } = require('./shopifyBulkOperationRunMutation');
 
 const bulkMutationInputValidator = input => objHasAny(input, [
   'data', 
@@ -31,6 +32,7 @@ const shopifyBulkMutate = async (
   input,
   {
     apiVersion,
+    clientIdentifier,
   } = {},
 ) => {
 
@@ -96,18 +98,23 @@ const shopifyBulkMutate = async (
     stagedUploadPath = uploadResponse.data?.PostResponse?.Key;
   }
 
-  // Mutate using staged upload path
+  const mutationRunResponse = await shopifyBulkOperationRunMutation(
+    credsPayload,
+    mutation,
+    stagedUploadPath,
+    {
+      apiVersion,
+      clientIdentifier,
+    },
+  );
+
+  if (!mutationRunResponse.ok) {
+    return mutationRunResponse;
+  }
+
+  return mutationRunResponse;
 
   // Optionally, poll for completion
-
-  return {
-    ok: true,
-    data: {
-      stagedUploadPath,
-      mutation,
-      input,
-    },
-  };
 };
 
 const funcApiConfig = {
