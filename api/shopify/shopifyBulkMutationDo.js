@@ -43,7 +43,7 @@ const argsWarden = new ArgsWarden([
   ['createOrResumeBulkOpPayload', createOrResumeBulkOpPayloadValidator],
 ]);
 
-const shopifyBulkMutate = async (
+const shopifyBulkMutationDo = async (
   credsPayload,
   createOrResumeBulkOpPayload,
   {
@@ -85,7 +85,7 @@ const shopifyBulkMutate = async (
 
     if (!filepath) {
       await fs.mkdir(TEMP_DIR, { recursive: true });
-      filepath = `${ TEMP_DIR }/shopifyBulkMutate_${ randomUUID() }.jsonl`;
+      filepath = `${ TEMP_DIR }/shopifyBulkMutationDo_${ randomUUID() }.jsonl`;
       await fs.writeFile(filepath, objectArrayToJsonl(data));
     }
 
@@ -197,12 +197,12 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  shopifyBulkMutate,
+  shopifyBulkMutationDo,
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/shopifyBulkMutate" \
+curl -X POST "http://localhost:8000/shopifyBulkMutationDo" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
