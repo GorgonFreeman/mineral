@@ -12,26 +12,30 @@ const {
   objHasAny,
   objectArrayToJsonl,
   wait,
+  valueProvided,
 } = require('../utils');
 const { shopifyStagedUploadCreate } = require('./shopifyStagedUploadCreate');
 const { shopifyBulkOperationRunMutation } = require('./shopifyBulkOperationRunMutation');
 const { shopifyBulkOperationGet } = require('./shopifyBulkOperationGet');
 
-const bulkMutationInputValidator = input => objHasAny(input, [
-  'data', 
-  'filepath', 
-]);
+const createOrResumeBulkOpPayloadValidator = input => {
+  const { mutation, input, bulkOperationId } = input;
+  return (
+    valueProvided(mutation) && objHasAny(input, [
+      'mutationArgs',
+      'bulkOperationId',
+    ]) || valueProvided(bulkOperationId)
+  );
+};
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['mutation'],
-  ['input', bulkMutationInputValidator],
+  ['createOrResumeBulkOpPayload', createOrResumeBulkOpPayloadValidator],
 ]);
 
 const shopifyBulkMutate = async (
   credsPayload,
-  mutation,
-  input,
+  createOrResumeBulkOpPayload,
   {
     apiVersion,
     clientIdentifier,
@@ -41,19 +45,28 @@ const shopifyBulkMutate = async (
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
     credsPayload, 
-    mutation, 
-    input,
+    createOrResumeBulkOpPayload,
   });
   if (rejectResponse) {
     return rejectResponse;
   }
 
-  if (HOSTED) {
-    return {
-      ok: false,
-      error: 'This function is only available locally',
-    };
-  }
+  const {
+    mutation,
+    input,
+    bulkOperationId,
+  } = createOrResumeBulkOpPayload;
+
+  if (!bulkOperationId) {
+
+    if (HOSTED) {
+      return {
+        ok: false,
+        error: 'This function is only available locally',
+      };
+    }
+
+
 
   let {
     data,
@@ -116,7 +129,11 @@ const shopifyBulkMutate = async (
     return mutationRunResponse;
   }
 
-  const bulkOperationId = gidToId(mutationRunData.bulkOperation.id);
+  bulkOperationId = gidToId(mutationRunData.bulkOperation.id);
+
+
+
+  }
   
   let bulkOperation;
   do {
