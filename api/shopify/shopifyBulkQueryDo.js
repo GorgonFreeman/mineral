@@ -92,7 +92,9 @@ const shopifyBulkQueryDo = async (
     };
   }
 
-  const resultsResponse = await customFetch(bulkOperation.url);
+  const resultsResponse = await customFetch(bulkOperation.url, {
+    responseParser: (response) => response.text(),
+  });
   if (!resultsResponse.ok) {
     return resultsResponse;
   }
