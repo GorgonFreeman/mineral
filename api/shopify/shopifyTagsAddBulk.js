@@ -29,7 +29,7 @@ const shopifyTagsAddBulk = async (
   gids,
   tags,
   {
-    ...bulkMutationOptions,
+    ...bulkMutationOptions
   } = {},
 ) => {
 
