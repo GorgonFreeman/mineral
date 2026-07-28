@@ -6,7 +6,7 @@ const { ArgsWarden, objHasAny } = require('../utils');
 const bulkMutationInputValidator = input => objHasAny(input, [
   'data', 
   'filepath', 
-  'stagedUrl',
+  'stagedUploadPath',
 ]);
 
 const argsWarden = new ArgsWarden([
@@ -36,10 +36,10 @@ const shopifyBulkMutate = async (
   const {
     data,
     filepath,
-    stagedUrl,
+    stagedUploadPath,
   } = input;
 
-  if (!stagedUrl) {
+  if (!stagedUploadPath) {
 
     if (HOSTED) {
       return {
@@ -50,6 +50,7 @@ const shopifyBulkMutate = async (
 
     if (!filepath) {
       // Make data into a file
+
     }
     // Upload file to staged url
   }
