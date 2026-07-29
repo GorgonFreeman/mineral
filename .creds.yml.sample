@@ -69,3 +69,6 @@ threeclicks:
   API_KEY: _______________________________
   API_SECRET: ____________________________
   API_DOMAIN: g40-server.instance.3clickscloud.com
+
+printify:
+  API_KEY: _______________________________
