@@ -6,18 +6,18 @@ const { printifyClient } = require('../printify/printify.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['arg'],
 ]);
 
 const printifyShopsGet = async (
   credsPayload,
-  arg,
   {
-    shopId,
+    option,
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, arg });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
+    credsPayload, 
+  });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -25,7 +25,7 @@ const printifyShopsGet = async (
   const response = await printifyClient.fetch({
     requestPayload: {
       method: 'get',
-      url: `/shops/${ shopId }/things/${ arg }.json`,
+      url: `/shops.json`,
     },
     context: { credsPayload },
   });
@@ -46,8 +46,6 @@ module.exports = {
 curl -X POST "http://localhost:8000/printifyShopsGet" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "printify" },
-    "arg": "1234",
-    "options": { "shopId": "1234567890" }
+    "credsPayload": { "credsPath": "printify" }
   }'
 */
