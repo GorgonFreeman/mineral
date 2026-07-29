@@ -1,6 +1,6 @@
 // https://developers.printify.com/#api-reference
- 
-const { ArgsWarden } = require('../utils');
+
+const { ArgsWarden, credsFromPayload } = require('../utils');
 const { credsValidator } = require('../validators');
 const { printifyClient } = require('../printify/printify.utils');
 
@@ -22,15 +22,28 @@ const FUNC = async (
     return rejectResponse;
   }
 
-  const response = await printifyClient.fetch({
+  if (!shopId) {
+    const creds = await credsFromPayload(credsPayload);
+    ({ SHOP_ID: shopId } = creds);
+  }
+
+  if (!shopId) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_ARGS',
+        message: 'shopId option is required if not in creds',
+      },
+    };
+  }
+
+  return printifyClient.fetch({
     requestPayload: {
       method: 'get',
       url: `/shops/${ shopId }/things/${ arg }.json`,
     },
     context: { credsPayload },
   });
-
-  return response;
 };
 
 const funcApiConfig = {
@@ -47,7 +60,6 @@ curl -X POST "http://localhost:8000/FUNC" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "printify" },
-    "arg": "1234",
-    "options": { "shopId": "1234567890" }
+    "arg": "1234"
   }'
 */

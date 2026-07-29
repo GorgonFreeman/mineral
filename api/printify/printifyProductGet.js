@@ -35,7 +35,7 @@ const printifyProductGet = async (
       ok: false,
       error: {
         code: 'INVALID_ARGS',
-        message: 'shopId is required',
+        message: 'shopId option is required if not in creds',
       },
     };
   }
