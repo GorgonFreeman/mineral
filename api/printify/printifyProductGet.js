@@ -1,29 +1,43 @@
 // https://developers.printify.com/#retrieve-a-product
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, credsFromPayload } = require('../utils');
 const { credsValidator } = require('../validators');
 const { printifyClient } = require('../printify/printify.utils');
 
 const argsWarden = new ArgsWarden([
-  ['shopId'],
   ['credsPayload', credsValidator],
   ['productId'],
 ]);
 
 const printifyProductGet = async (
-  shopId,
   credsPayload,
   productId,
-  options = {},
+  {
+    shopId,
+  } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
-    shopId,
     credsPayload,
     productId,
   });
   if (rejectResponse) {
     return rejectResponse;
+  }
+
+  if (!shopId) {
+    const creds = await credsFromPayload(credsPayload);
+    shopId = creds.SHOP_ID;
+  }
+
+  if (!shopId) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_ARGS',
+        message: 'shopId is required',
+      },
+    };
   }
 
   return printifyClient.fetch({
@@ -50,7 +64,6 @@ module.exports = {
 curl -X POST "http://localhost:8000/printifyProductGet" \
   -H "Content-Type: application/json" \
   -d '{
-    "shopId": "10363118",
     "credsPayload": { "credsPath": "printify" },
     "productId": "67a3f38542eab3720306975b"
   }'
