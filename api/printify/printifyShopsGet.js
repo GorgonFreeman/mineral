@@ -1,36 +1,40 @@
-// https://developers.printify.com/#api-reference
- 
+// https://developers.printify.com/#retrieve-list-of-shops-in-a-printify-account
+
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
-const { printifyClient } = require('../printify/printify.utils');
+const { printifyGet, printifyGetter } = require('../printify/printifyGet');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
 
 const printifyShopsGet = async (
+  returnGetter,
+
   credsPayload,
   {
-    option,
+    ...getterOptions
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
-    credsPayload, 
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
   });
   if (rejectResponse) {
     return rejectResponse;
   }
 
-  const response = await printifyClient.fetch({
-    requestPayload: {
-      method: 'get',
-      url: `/shops.json`,
+  const getterArgs = [
+    credsPayload,
+    '/shops.json',
+    {
+      ...getterOptions,
     },
-    context: { credsPayload },
-  });
+  ];
 
-  return response;
+  return returnGetter
+    ? printifyGetter(...getterArgs)
+    : printifyGet(...getterArgs);
 };
 
 const funcApiConfig = {
@@ -38,7 +42,8 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  printifyShopsGet,
+  printifyShopsGet: (...args) => printifyShopsGet(false, ...args),
+  printifyShopsGetter: (...args) => printifyShopsGet(true, ...args),
   funcApiConfig,
 };
 
