@@ -13,7 +13,7 @@ const printifyProductGet = async (
   credsPayload,
   productId,
   {
-    shopId,
+    shopId, // required but since it's relatively static, we've allowed it to come from creds.
   } = {},
 ) => {
 
@@ -27,7 +27,7 @@ const printifyProductGet = async (
 
   if (!shopId) {
     const creds = await credsFromPayload(credsPayload);
-    shopId = creds.SHOP_ID;
+    ({ SHOP_ID: shopId } = creds);
   }
 
   if (!shopId) {
