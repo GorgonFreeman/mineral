@@ -98,13 +98,13 @@ curl -X POST "http://localhost:8000/shopifyProductGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
-    "productIdentifier": { "productId": "6981862359112" }
+    "productIdentifier": { "productId": "1234567890" }
   }'
 
 curl -X POST "http://localhost:8000/shopifyProductGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
-    "productIdentifier": { "handle": "store-credit" }
+    "productIdentifier": { "handle": "master-ball" }
   }'
 */
