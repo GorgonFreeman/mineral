@@ -1,19 +1,18 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/storeCreditAccountCredit
 
 const { credsValidator } = require('../validators');
-const { actionSingleOrMultiple, everyIfArray, ArgsWarden } = require('../utils');
+const { actionSingleOrMultiple, everyIfArray, ArgsWarden, valueProvided } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
-const creditAmountValidator = (creditAmount) => {
-  return creditAmount?.amount !== undefined
-    && creditAmount?.amount !== null
-    && creditAmount?.currencyCode;
+const creditPayloadValidator = (creditPayload) => {
+  return valueProvided(creditPayload?.amount)
+    && creditPayload?.currencyCode;
 };
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
   ['ownerOrAccountGid'],
-  ['creditAmount', (i) => everyIfArray(creditAmountValidator, i)],
+  ['creditPayload', (i) => everyIfArray(creditPayloadValidator, i)],
 ]);
 
 const defaultReturnSchema = `
@@ -35,10 +34,9 @@ const defaultReturnSchema = `
 const shopifyStoreCreditAccountCreditSingle = async (
   credsPayload,
   ownerOrAccountGid,
-  creditAmount,
+  creditPayload,
   {
     apiVersion,
-    expiresAt,
     returnSchema = defaultReturnSchema,
   } = {},
 ) => {
@@ -46,7 +44,8 @@ const shopifyStoreCreditAccountCreditSingle = async (
   const {
     amount,
     currencyCode,
-  } = creditAmount;
+    expiresAt,
+  } = creditPayload;
 
   return shopifyMutationDo(
     credsPayload,
@@ -77,11 +76,10 @@ const shopifyStoreCreditAccountCreditSingle = async (
 const shopifyStoreCreditAccountCredit = async (
   credsPayload,
   ownerOrAccountGid,
-  creditAmount,
+  creditPayload,
   {
     queueRunOptions,
     apiVersion,
-    expiresAt,
     returnSchema = defaultReturnSchema,
   } = {},
 ) => {
@@ -89,21 +87,21 @@ const shopifyStoreCreditAccountCredit = async (
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     ownerOrAccountGid,
-    creditAmount,
+    creditPayload,
   });
   if (rejectResponse) {
     return rejectResponse;
   }
 
   return actionSingleOrMultiple(
-    creditAmount,
+    creditPayload,
     shopifyStoreCreditAccountCreditSingle,
-    (creditAmountItem) => ({
+    (creditPayloadItem) => ({
       args: [
         credsPayload,
         ownerOrAccountGid,
-        creditAmountItem,
-        { apiVersion, expiresAt, returnSchema },
+        creditPayloadItem,
+        { apiVersion, returnSchema },
       ],
     }),
     {
@@ -127,7 +125,7 @@ curl -X POST "http://localhost:8000/shopifyStoreCreditAccountCredit" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
     "ownerOrAccountGid": "gid://shopify/Customer/5736896757832",
-    "creditAmount": {
+    "creditPayload": {
       "amount": "10.00",
       "currencyCode": "AUD"
     }
@@ -138,8 +136,8 @@ curl -X POST "http://localhost:8000/shopifyStoreCreditAccountCredit" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
     "ownerOrAccountGid": "gid://shopify/Customer/5736896757832",
-    "creditAmount": [
-      { "amount": "10.00", "currencyCode": "AUD" },
+    "creditPayload": [
+      { "amount": "10.00", "currencyCode": "AUD", "expiresAt": "2027-07-16T13:59:59Z" },
       { "amount": "5.00", "currencyCode": "USD" }
     ]
   }'
