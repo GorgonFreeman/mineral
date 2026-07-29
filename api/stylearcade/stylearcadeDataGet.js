@@ -10,7 +10,9 @@ const argsWarden = new ArgsWarden([
 
 const stylearcadeDataGet = async (
   credsPayload,
-  options = {},
+  {
+    ...getterOptions
+  } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload });
@@ -20,13 +22,15 @@ const stylearcadeDataGet = async (
 
   return stylearcadeGet(credsPayload, {
     nodeName: 'records',
-    ...options,
+    ...getterOptions,
   });
 };
 
 const stylearcadeDataGetter = async (
   credsPayload,
-  options = {},
+  {
+    ...getterOptions
+  } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload });
@@ -36,7 +40,7 @@ const stylearcadeDataGetter = async (
 
   return stylearcadeGetter(credsPayload, {
     nodeName: 'records',
-    ...options,
+    ...getterOptions,
   });
 };
 
