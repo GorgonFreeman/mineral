@@ -22,11 +22,15 @@ const etsyAuthorizationCodeRequest = async (
     return rejectResponse;
   }
 
+  const creds = await credsFromPayload(credsPayload);
+  const { API_KEY } = creds;
+
   const response = await new FetchClient().fetch({
     requestPayload: {
       url: OAUTH_CONNECT_URL,
       params: {
         response_type: 'code',
+        client_id: API_KEY,
       },
     },
   });
