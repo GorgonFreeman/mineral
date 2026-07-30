@@ -95,6 +95,6 @@ curl -X POST "http://localhost:8000/etsyAuthorizationCodeRequest" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "etsy" },
-    "redirectUrl": "https://www.example.com/some/location",
+    "redirectUrl": "https://77ab-114-76-30-108.ngrok-free.app/log"
   }'
 */
