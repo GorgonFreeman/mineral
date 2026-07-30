@@ -72,7 +72,7 @@ const etsyAuthorizationCodeRequest = async (
         response_type: 'code',
         client_id: API_KEY,
         redirect_uri: redirectUrl,
-        scope: scopes.join('%20'),
+        scope: scopes.join(' '),
         state,
         code_challenge: codeChallenge,
         code_challenge_method: 'S256',
