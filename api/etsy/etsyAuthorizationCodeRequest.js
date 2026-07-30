@@ -10,6 +10,8 @@ const argsWarden = new ArgsWarden([
 
 const etsyAuthorizationCodeRequest = async (
   credsPayload,
+  redirectUrl,
+  scopes,
   {
     option,
   } = {},
@@ -31,8 +33,8 @@ const etsyAuthorizationCodeRequest = async (
       params: {
         response_type: 'code',
         client_id: API_KEY,
-        // redirect_uri,
-        // scope,
+        redirect_uri: redirectUrl,
+        scope: scopes.join(' '),
         // state,
         // code_challenge,
         code_challenge_method: 'S256',
@@ -56,6 +58,8 @@ module.exports = {
 curl -X POST "http://localhost:8000/etsyAuthorizationCodeRequest" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "etsy" }
+    "credsPayload": { "credsPath": "etsy" },
+    "redirectUrl": "https://www.example.com/some/location",
+    "scopes": ["transactions_r", "transactions_w"]
   }'
 */
