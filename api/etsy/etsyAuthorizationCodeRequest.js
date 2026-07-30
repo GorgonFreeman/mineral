@@ -5,7 +5,6 @@ const { promisify } = require('util');
 const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
 const { OAUTH_CONNECT_URL, OAUTH_ALL_SCOPES } = require('./etsy.constants');
-const { HOSTED } = require('../constants');
 const { credsValidator } = require('../validators');
 const { credsFromPayload, ArgsWarden } = require('../utils');
 
@@ -51,6 +50,7 @@ const etsyAuthorizationCodeRequest = async (
   redirectUrl,
   {
     scopes = OAUTH_ALL_SCOPES,
+    openAuthUrl = false,
   } = {},
 ) => {
 
@@ -88,25 +88,17 @@ const etsyAuthorizationCodeRequest = async (
     code_challenge_method: 'S256',
   });
 
-  if (HOSTED) {
-    return {
-      ok: true,
-      data: {
-        url,
-        state,
-        codeVerifier,
-      },
-    };
+  if (openAuthUrl) {
+    // TODO: support non-Macs
+    await execFileAsync('open', [url]);
   }
-
-  // TODO: support non-Macs
-  await execFileAsync('open', [url]);
 
   return {
     ok: true,
     data: {
       state,
       codeVerifier,
+      ...!openAuthUrl && { url },
     },
   };
 };
@@ -125,6 +117,7 @@ curl -X POST "http://localhost:8000/etsyAuthorizationCodeRequest" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "etsy" },
-    "redirectUrl": "https://77ab-114-76-30-108.ngrok-free.app/log"
+    "redirectUrl": "https://06b6-59-154-120-174.ngrok-free.app/log"
   }'
 */
+
