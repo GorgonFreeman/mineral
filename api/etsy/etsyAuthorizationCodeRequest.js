@@ -31,6 +31,11 @@ const etsyAuthorizationCodeRequest = async (
       params: {
         response_type: 'code',
         client_id: API_KEY,
+        // redirect_uri,
+        // scope,
+        // state,
+        // code_challenge,
+        code_challenge_method: 'S256',
       },
     },
   });
