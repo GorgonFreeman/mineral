@@ -1,48 +1,38 @@
 // https://developers.printify.com/#create-a-new-order
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, actionSingleOrMultiple, everyIfArray, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
 const { printifyClient, resolveShopIdFromCreds } = require('../printify/printify.utils');
 
+const orderPayloadValidator = (orderPayload) => {
+  return valueProvided(orderPayload?.externalId)
+    && valueProvided(orderPayload?.shippingMethod)
+    && valueProvided(orderPayload?.addressTo)
+    && Array.isArray(orderPayload?.lineItems);
+};
+
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['externalId'],
-  ['shippingMethod'],
-  ['addressTo'],
-  ['lineItems'],
+  ['orderPayload', (orderPayload) => everyIfArray(orderPayloadValidator, orderPayload)],
 ]);
 
-const printifyOrderCreate = async (
+const printifyOrderCreateSingle = async (
   credsPayload,
-  externalId,
-  shippingMethod,
-  addressTo,
-  lineItems,
+  orderPayload,
   {
     shopId,
-    label,
-    expressShipping,
-    economyShipping,
-    sendShippingNotification = true,
   } = {},
 ) => {
-
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({
-    credsPayload,
+  const {
     externalId,
     shippingMethod,
     addressTo,
     lineItems,
-  });
-  if (rejectResponse) {
-    return rejectResponse;
-  }
-
-  const shopIdResponse = await resolveShopIdFromCreds({ shopId, credsPayload });
-  if (!shopIdResponse.ok) {
-    return shopIdResponse;
-  }
-  ({ data: shopId } = shopIdResponse);
+    label,
+    expressShipping,
+    economyShipping,
+    sendShippingNotification = true,
+  } = orderPayload;
 
   return printifyClient.fetch({
     requestPayload: {
@@ -61,6 +51,41 @@ const printifyOrderCreate = async (
     },
     context: { credsPayload },
   });
+};
+
+const printifyOrderCreate = async (
+  credsPayload,
+  orderPayload,
+  {
+    shopId,
+    queueRunOptions,
+  } = {},
+) => {
+
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    orderPayload,
+  });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  const shopIdResponse = await resolveShopIdFromCreds({ shopId, credsPayload });
+  if (!shopIdResponse.ok) {
+    return shopIdResponse;
+  }
+  ({ data: shopId } = shopIdResponse);
+
+  return actionSingleOrMultiple(
+    orderPayload,
+    printifyOrderCreateSingle,
+    (orderPayloadItem) => ({
+      args: [credsPayload, orderPayloadItem, { shopId }],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
+    },
+  );
 };
 
 const funcApiConfig = {

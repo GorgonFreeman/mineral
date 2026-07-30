@@ -1,6 +1,6 @@
 // https://developers.printify.com/#delete-a-webhook
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, actionSingleOrMultiple } = require('../utils');
 const { credsValidator } = require('../validators');
 const { printifyClient, resolveShopIdFromCreds } = require('../printify/printify.utils');
 
@@ -9,11 +9,28 @@ const argsWarden = new ArgsWarden([
   ['webhookId'],
 ]);
 
+const printifyWebhookDeleteSingle = async (
+  credsPayload,
+  webhookId,
+  {
+    shopId,
+  } = {},
+) => {
+  return printifyClient.fetch({
+    requestPayload: {
+      method: 'delete',
+      url: `/shops/${ shopId }/webhooks/${ webhookId }.json`,
+    },
+    context: { credsPayload },
+  });
+};
+
 const printifyWebhookDelete = async (
   credsPayload,
   webhookId,
   {
     shopId,
+    queueRunOptions,
   } = {},
 ) => {
 
@@ -31,13 +48,16 @@ const printifyWebhookDelete = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return printifyClient.fetch({
-    requestPayload: {
-      method: 'delete',
-      url: `/shops/${ shopId }/webhooks/${ webhookId }.json`,
+  return actionSingleOrMultiple(
+    webhookId,
+    printifyWebhookDeleteSingle,
+    (webhookIdItem) => ({
+      args: [credsPayload, webhookIdItem, { shopId }],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
     },
-    context: { credsPayload },
-  });
+  );
 };
 
 const funcApiConfig = {

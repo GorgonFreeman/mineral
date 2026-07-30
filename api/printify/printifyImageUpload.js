@@ -1,29 +1,27 @@
 // https://developers.printify.com/#upload-a-new-image
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, actionSingleOrMultiple, everyIfArray, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
 const { printifyClient } = require('../printify/printify.utils');
 
+const uploadPayloadValidator = (uploadPayload) => {
+  return valueProvided(uploadPayload?.imageUrl)
+    && valueProvided(uploadPayload?.filename);
+};
+
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['imageUrl'],
-  ['filename'],
+  ['uploadPayload', (uploadPayload) => everyIfArray(uploadPayloadValidator, uploadPayload)],
 ]);
 
-const printifyImageUpload = async (
+const printifyImageUploadSingle = async (
   credsPayload,
-  imageUrl,
-  filename,
+  uploadPayload,
 ) => {
-
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({
-    credsPayload,
+  const {
     imageUrl,
     filename,
-  });
-  if (rejectResponse) {
-    return rejectResponse;
-  }
+  } = uploadPayload;
 
   return printifyClient.fetch({
     requestPayload: {
@@ -36,6 +34,34 @@ const printifyImageUpload = async (
     },
     context: { credsPayload },
   });
+};
+
+const printifyImageUpload = async (
+  credsPayload,
+  uploadPayload,
+  {
+    queueRunOptions,
+  } = {},
+) => {
+
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    uploadPayload,
+  });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  return actionSingleOrMultiple(
+    uploadPayload,
+    printifyImageUploadSingle,
+    (uploadPayloadItem) => ({
+      args: [credsPayload, uploadPayloadItem],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
+    },
+  );
 };
 
 const funcApiConfig = {

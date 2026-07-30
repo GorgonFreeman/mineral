@@ -1,6 +1,6 @@
 // https://developers.printify.com/#cancel-an-order
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, actionSingleOrMultiple } = require('../utils');
 const { credsValidator } = require('../validators');
 const { printifyClient, resolveShopIdFromCreds } = require('../printify/printify.utils');
 
@@ -9,11 +9,28 @@ const argsWarden = new ArgsWarden([
   ['orderId'],
 ]);
 
+const printifyOrderCancelSingle = async (
+  credsPayload,
+  orderId,
+  {
+    shopId,
+  } = {},
+) => {
+  return printifyClient.fetch({
+    requestPayload: {
+      method: 'post',
+      url: `/shops/${ shopId }/orders/${ orderId }/cancel.json`,
+    },
+    context: { credsPayload },
+  });
+};
+
 const printifyOrderCancel = async (
   credsPayload,
   orderId,
   {
     shopId,
+    queueRunOptions,
   } = {},
 ) => {
 
@@ -31,13 +48,16 @@ const printifyOrderCancel = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return printifyClient.fetch({
-    requestPayload: {
-      method: 'post',
-      url: `/shops/${ shopId }/orders/${ orderId }/cancel.json`,
+  return actionSingleOrMultiple(
+    orderId,
+    printifyOrderCancelSingle,
+    (orderIdItem) => ({
+      args: [credsPayload, orderIdItem, { shopId }],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
     },
-    context: { credsPayload },
-  });
+  );
 };
 
 const funcApiConfig = {

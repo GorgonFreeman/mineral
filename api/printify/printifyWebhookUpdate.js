@@ -1,28 +1,53 @@
 // https://developers.printify.com/#update-a-webhook
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, actionSingleOrMultiple, everyIfArray, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
 const { printifyClient, resolveShopIdFromCreds } = require('../printify/printify.utils');
 
+const webhookUpdateValidator = (webhookUpdate) => {
+  return valueProvided(webhookUpdate?.webhookId)
+    && valueProvided(webhookUpdate?.updatePayload);
+};
+
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['webhookId'],
-  ['updatePayload'],
+  ['webhookUpdate', (webhookUpdate) => everyIfArray(webhookUpdateValidator, webhookUpdate)],
 ]);
+
+const printifyWebhookUpdateSingle = async (
+  credsPayload,
+  webhookUpdate,
+  {
+    shopId,
+  } = {},
+) => {
+  const {
+    webhookId,
+    updatePayload,
+  } = webhookUpdate;
+
+  return printifyClient.fetch({
+    requestPayload: {
+      method: 'put',
+      url: `/shops/${ shopId }/webhooks/${ webhookId }.json`,
+      body: updatePayload,
+    },
+    context: { credsPayload },
+  });
+};
 
 const printifyWebhookUpdate = async (
   credsPayload,
-  webhookId,
-  updatePayload,
+  webhookUpdate,
   {
     shopId,
+    queueRunOptions,
   } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    webhookId,
-    updatePayload,
+    webhookUpdate,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -34,14 +59,16 @@ const printifyWebhookUpdate = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return printifyClient.fetch({
-    requestPayload: {
-      method: 'put',
-      url: `/shops/${ shopId }/webhooks/${ webhookId }.json`,
-      body: updatePayload,
+  return actionSingleOrMultiple(
+    webhookUpdate,
+    printifyWebhookUpdateSingle,
+    (webhookUpdateItem) => ({
+      args: [credsPayload, webhookUpdateItem, { shopId }],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
     },
-    context: { credsPayload },
-  });
+  );
 };
 
 const funcApiConfig = {

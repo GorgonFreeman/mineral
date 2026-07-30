@@ -1,6 +1,6 @@
 // https://developers.printify.com/#retrieve-order
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, actionSingleOrMultiple } = require('../utils');
 const { credsValidator } = require('../validators');
 const { printifyClient, resolveShopIdFromCreds } = require('../printify/printify.utils');
 
@@ -9,11 +9,28 @@ const argsWarden = new ArgsWarden([
   ['orderId'],
 ]);
 
+const printifyOrderGetSingle = async (
+  credsPayload,
+  orderId,
+  {
+    shopId,
+  } = {},
+) => {
+  return printifyClient.fetch({
+    requestPayload: {
+      method: 'get',
+      url: `/shops/${ shopId }/orders/${ orderId }.json`,
+    },
+    context: { credsPayload },
+  });
+};
+
 const printifyOrderGet = async (
   credsPayload,
   orderId,
   {
     shopId,
+    queueRunOptions,
   } = {},
 ) => {
 
@@ -31,13 +48,16 @@ const printifyOrderGet = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return printifyClient.fetch({
-    requestPayload: {
-      method: 'get',
-      url: `/shops/${ shopId }/orders/${ orderId }.json`,
+  return actionSingleOrMultiple(
+    orderId,
+    printifyOrderGetSingle,
+    (orderIdItem) => ({
+      args: [credsPayload, orderIdItem, { shopId }],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
     },
-    context: { credsPayload },
-  });
+  );
 };
 
 const funcApiConfig = {

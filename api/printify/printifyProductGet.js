@@ -1,6 +1,6 @@
 // https://developers.printify.com/#retrieve-a-product
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, actionSingleOrMultiple } = require('../utils');
 const { credsValidator } = require('../validators');
 const { printifyClient, resolveShopIdFromCreds } = require('../printify/printify.utils');
 
@@ -9,11 +9,28 @@ const argsWarden = new ArgsWarden([
   ['productId'],
 ]);
 
+const printifyProductGetSingle = async (
+  credsPayload,
+  productId,
+  {
+    shopId,
+  } = {},
+) => {
+  return printifyClient.fetch({
+    requestPayload: {
+      method: 'get',
+      url: `/shops/${ shopId }/products/${ productId }.json`,
+    },
+    context: { credsPayload },
+  });
+};
+
 const printifyProductGet = async (
   credsPayload,
   productId,
   {
-    shopId, // required but since it's relatively static, we've allowed it to come from creds.
+    shopId,
+    queueRunOptions,
   } = {},
 ) => {
 
@@ -31,15 +48,16 @@ const printifyProductGet = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return printifyClient.fetch({
-    requestPayload: {
-      method: 'get',
-      url: `/shops/${ shopId }/products/${ productId }.json`,
+  return actionSingleOrMultiple(
+    productId,
+    printifyProductGetSingle,
+    (productIdItem) => ({
+      args: [credsPayload, productIdItem, { shopId }],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
     },
-    context: {
-      credsPayload,
-    },
-  });
+  );
 };
 
 const funcApiConfig = {

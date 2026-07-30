@@ -1,38 +1,30 @@
 // https://developers.printify.com/#create-a-new-webhook
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, actionSingleOrMultiple, everyIfArray, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
 const { printifyClient, resolveShopIdFromCreds } = require('../printify/printify.utils');
 
+const webhookPayloadValidator = (webhookPayload) => {
+  return valueProvided(webhookPayload?.topic)
+    && valueProvided(webhookPayload?.webhookUrl);
+};
+
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['topic'],
-  ['webhookUrl'],
+  ['webhookPayload', (webhookPayload) => everyIfArray(webhookPayloadValidator, webhookPayload)],
 ]);
 
-const printifyWebhookCreate = async (
+const printifyWebhookCreateSingle = async (
   credsPayload,
-  topic,
-  webhookUrl,
+  webhookPayload,
   {
     shopId,
   } = {},
 ) => {
-
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({
-    credsPayload,
+  const {
     topic,
     webhookUrl,
-  });
-  if (rejectResponse) {
-    return rejectResponse;
-  }
-
-  const shopIdResponse = await resolveShopIdFromCreds({ shopId, credsPayload });
-  if (!shopIdResponse.ok) {
-    return shopIdResponse;
-  }
-  ({ data: shopId } = shopIdResponse);
+  } = webhookPayload;
 
   return printifyClient.fetch({
     requestPayload: {
@@ -45,6 +37,41 @@ const printifyWebhookCreate = async (
     },
     context: { credsPayload },
   });
+};
+
+const printifyWebhookCreate = async (
+  credsPayload,
+  webhookPayload,
+  {
+    shopId,
+    queueRunOptions,
+  } = {},
+) => {
+
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    webhookPayload,
+  });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  const shopIdResponse = await resolveShopIdFromCreds({ shopId, credsPayload });
+  if (!shopIdResponse.ok) {
+    return shopIdResponse;
+  }
+  ({ data: shopId } = shopIdResponse);
+
+  return actionSingleOrMultiple(
+    webhookPayload,
+    printifyWebhookCreateSingle,
+    (webhookPayloadItem) => ({
+      args: [credsPayload, webhookPayloadItem, { shopId }],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
+    },
+  );
 };
 
 const funcApiConfig = {

@@ -65,7 +65,6 @@ module.exports = {
 curl -X POST "http://localhost:8000/printifyOrdersGet" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "printify" },
-    "options": { "perPage": 100, "status": "on-hold" }
+    "credsPayload": { "credsPath": "printify" }
   }'
 */

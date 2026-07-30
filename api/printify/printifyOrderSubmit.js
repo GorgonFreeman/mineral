@@ -1,6 +1,6 @@
 // https://developers.printify.com/#send-order-to-production
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, actionSingleOrMultiple } = require('../utils');
 const { credsValidator } = require('../validators');
 const { printifyClient, resolveShopIdFromCreds } = require('../printify/printify.utils');
 
@@ -9,11 +9,28 @@ const argsWarden = new ArgsWarden([
   ['orderId'],
 ]);
 
+const printifyOrderSubmitSingle = async (
+  credsPayload,
+  orderId,
+  {
+    shopId,
+  } = {},
+) => {
+  return printifyClient.fetch({
+    requestPayload: {
+      method: 'post',
+      url: `/shops/${ shopId }/orders/${ orderId }/send_to_production.json`,
+    },
+    context: { credsPayload },
+  });
+};
+
 const printifyOrderSubmit = async (
   credsPayload,
   orderId,
   {
     shopId,
+    queueRunOptions,
   } = {},
 ) => {
 
@@ -31,13 +48,16 @@ const printifyOrderSubmit = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return printifyClient.fetch({
-    requestPayload: {
-      method: 'post',
-      url: `/shops/${ shopId }/orders/${ orderId }/send_to_production.json`,
+  return actionSingleOrMultiple(
+    orderId,
+    printifyOrderSubmitSingle,
+    (orderIdItem) => ({
+      args: [credsPayload, orderIdItem, { shopId }],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
     },
-    context: { credsPayload },
-  });
+  );
 };
 
 const funcApiConfig = {

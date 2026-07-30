@@ -1,6 +1,6 @@
 // https://developers.printify.com/#delete-a-product
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, actionSingleOrMultiple } = require('../utils');
 const { credsValidator } = require('../validators');
 const { printifyClient, resolveShopIdFromCreds } = require('../printify/printify.utils');
 
@@ -9,11 +9,28 @@ const argsWarden = new ArgsWarden([
   ['productId'],
 ]);
 
+const printifyProductDeleteSingle = async (
+  credsPayload,
+  productId,
+  {
+    shopId,
+  } = {},
+) => {
+  return printifyClient.fetch({
+    requestPayload: {
+      method: 'delete',
+      url: `/shops/${ shopId }/products/${ productId }.json`,
+    },
+    context: { credsPayload },
+  });
+};
+
 const printifyProductDelete = async (
   credsPayload,
   productId,
   {
     shopId,
+    queueRunOptions,
   } = {},
 ) => {
 
@@ -31,13 +48,16 @@ const printifyProductDelete = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return printifyClient.fetch({
-    requestPayload: {
-      method: 'delete',
-      url: `/shops/${ shopId }/products/${ productId }.json`,
+  return actionSingleOrMultiple(
+    productId,
+    printifyProductDeleteSingle,
+    (productIdItem) => ({
+      args: [credsPayload, productIdItem, { shopId }],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
     },
-    context: { credsPayload },
-  });
+  );
 };
 
 const funcApiConfig = {

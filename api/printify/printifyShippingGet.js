@@ -1,29 +1,27 @@
 // https://developers.printify.com/#retrieve-shipping-information
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, actionSingleOrMultiple, everyIfArray, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
 const { printifyClient } = require('../printify/printify.utils');
 
+const catalogQueryValidator = (catalogQuery) => {
+  return valueProvided(catalogQuery?.blueprintId)
+    && valueProvided(catalogQuery?.printProviderId);
+};
+
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['blueprintId'],
-  ['printProviderId'],
+  ['catalogQuery', (catalogQuery) => everyIfArray(catalogQueryValidator, catalogQuery)],
 ]);
 
-const printifyShippingGet = async (
+const printifyShippingGetSingle = async (
   credsPayload,
-  blueprintId,
-  printProviderId,
+  catalogQuery,
 ) => {
-
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({
-    credsPayload,
+  const {
     blueprintId,
     printProviderId,
-  });
-  if (rejectResponse) {
-    return rejectResponse;
-  }
+  } = catalogQuery;
 
   return printifyClient.fetch({
     requestPayload: {
@@ -32,6 +30,34 @@ const printifyShippingGet = async (
     },
     context: { credsPayload },
   });
+};
+
+const printifyShippingGet = async (
+  credsPayload,
+  catalogQuery,
+  {
+    queueRunOptions,
+  } = {},
+) => {
+
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    catalogQuery,
+  });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  return actionSingleOrMultiple(
+    catalogQuery,
+    printifyShippingGetSingle,
+    (catalogQueryItem) => ({
+      args: [credsPayload, catalogQueryItem],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
+    },
+  );
 };
 
 const funcApiConfig = {
