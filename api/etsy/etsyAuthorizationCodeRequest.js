@@ -2,7 +2,7 @@
 
 const { OAUTH_CONNECT_URL } = require('./etsy.constants');
 const { credsValidator } = require('../validators');
-const { credsFromPayload, ArgsWarden } = require('../utils');
+const { credsFromPayload, ArgsWarden, FetchClient } = require('../utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
@@ -22,10 +22,13 @@ const etsyAuthorizationCodeRequest = async (
     return rejectResponse;
   }
 
-  return {
-    ok: true,
-    url: OAUTH_CONNECT_URL,
-  };
+  const response = await new FetchClient().fetch({
+    requestPayload: {
+      url: OAUTH_CONNECT_URL,
+    },
+  });
+
+  return response;
 };
 
 const funcApiConfig = {
