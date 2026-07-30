@@ -96,6 +96,5 @@ curl -X POST "http://localhost:8000/etsyAuthorizationCodeRequest" \
   -d '{
     "credsPayload": { "credsPath": "etsy" },
     "redirectUrl": "https://www.example.com/some/location",
-    "scopes": ["transactions_r", "transactions_w"]
   }'
 */
