@@ -1,8 +1,9 @@
 // https://developers.printify.com/#retrieve-a-list-of-products
 
-const { ArgsWarden, credsFromPayload } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { printifyGet, printifyGetter } = require('../printify/printifyGet');
+const { resolveShopIdFromCreds } = require('../printify/printify.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
@@ -25,20 +26,11 @@ const printifyThingsGet = async (
     return rejectResponse;
   }
 
-  if (!shopId) {
-    const creds = await credsFromPayload(credsPayload);
-    ({ SHOP_ID: shopId } = creds);
+  const shopIdResponse = await resolveShopIdFromCreds({ shopId, credsPayload });
+  if (!shopIdResponse.ok) {
+    return shopIdResponse;
   }
-
-  if (!shopId) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_ARGS',
-        message: 'shopId option is required if not in creds',
-      },
-    };
-  }
+  ({ data: shopId } = shopIdResponse);
 
   const getterArgs = [
     credsPayload,
