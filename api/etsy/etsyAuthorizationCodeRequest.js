@@ -25,6 +25,9 @@ const etsyAuthorizationCodeRequest = async (
   const response = await new FetchClient().fetch({
     requestPayload: {
       url: OAUTH_CONNECT_URL,
+      params: {
+        response_type: 'code',
+      },
     },
   });
 
