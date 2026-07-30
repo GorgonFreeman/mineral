@@ -1,5 +1,6 @@
 // https://developers.etsy.com/documentation/essentials/authentication/#step-1-request-an-authorization-code
 
+const { v4: uuidv4 } = require('uuid');
 const { OAUTH_CONNECT_URL, OAUTH_ALL_SCOPES } = require('./etsy.constants');
 const { credsValidator } = require('../validators');
 const { credsFromPayload, ArgsWarden, FetchClient } = require('../utils');
@@ -26,6 +27,10 @@ const etsyAuthorizationCodeRequest = async (
   const creds = await credsFromPayload(credsPayload);
   const { API_KEY } = creds;
 
+  const state = uuidv4();
+  // https://developer.etsy.com/documentation/essentials/authentication/#step-2-grant-access
+  console.log('Check this matches the state in the request Etsy makes to the redirect URL:', state);
+
   const response = await new FetchClient().fetch({
     requestPayload: {
       url: OAUTH_CONNECT_URL,
@@ -34,7 +39,7 @@ const etsyAuthorizationCodeRequest = async (
         client_id: API_KEY,
         redirect_uri: redirectUrl,
         scope: scopes.join('%20'),
-        // state,
+        state,
         // code_challenge,
         code_challenge_method: 'S256',
       },
