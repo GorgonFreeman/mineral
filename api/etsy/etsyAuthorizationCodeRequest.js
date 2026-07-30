@@ -1,6 +1,6 @@
 // https://developers.etsy.com/documentation/essentials/authentication/#step-1-request-an-authorization-code
 
-const { OAUTH_CONNECT_URL } = require('./etsy.constants');
+const { OAUTH_CONNECT_URL, OAUTH_ALL_SCOPES } = require('./etsy.constants');
 const { credsValidator } = require('../validators');
 const { credsFromPayload, ArgsWarden, FetchClient } = require('../utils');
 
@@ -11,9 +11,8 @@ const argsWarden = new ArgsWarden([
 const etsyAuthorizationCodeRequest = async (
   credsPayload,
   redirectUrl,
-  scopes,
   {
-    option,
+    scopes = OAUTH_ALL_SCOPES,
   } = {},
 ) => {
 
@@ -34,7 +33,7 @@ const etsyAuthorizationCodeRequest = async (
         response_type: 'code',
         client_id: API_KEY,
         redirect_uri: redirectUrl,
-        scope: scopes.join(' '),
+        scope: scopes.join('%20'),
         // state,
         // code_challenge,
         code_challenge_method: 'S256',
