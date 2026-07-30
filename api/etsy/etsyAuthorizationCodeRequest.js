@@ -1,15 +1,50 @@
 // https://developers.etsy.com/documentation/essentials/authentication/#step-1-request-an-authorization-code
 
+const { execFile } = require('child_process');
+const { promisify } = require('util');
 const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
 const { OAUTH_CONNECT_URL, OAUTH_ALL_SCOPES } = require('./etsy.constants');
+const { HOSTED } = require('../constants');
 const { credsValidator } = require('../validators');
-const { credsFromPayload, ArgsWarden, FetchClient } = require('../utils');
+const { credsFromPayload, ArgsWarden } = require('../utils');
+
+const execFileAsync = promisify(execFile);
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
   ['redirectUrl'],
 ]);
+
+const buildAuthorizationUrl = (params) => {
+  const search = new URLSearchParams(params).toString().replace(/\+/g, '%20');
+  return `${ OAUTH_CONNECT_URL }?${ search }`;
+};
+
+const generateRandomString = (length) => (
+  crypto
+    .randomBytes(Math.ceil(length * 3 / 4))
+    .toString('base64')
+    .slice(0, length)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+);
+
+const generatePkce = () => {
+  const codeVerifier = generateRandomString(64);
+  const codeChallenge = crypto
+    .createHash('sha256')
+    .update(codeVerifier)
+    .digest('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  return {
+    codeVerifier,
+    codeChallenge,
+  };
+};
 
 const etsyAuthorizationCodeRequest = async (
   credsPayload,
@@ -19,7 +54,7 @@ const etsyAuthorizationCodeRequest = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     redirectUrl,
   });
@@ -30,57 +65,50 @@ const etsyAuthorizationCodeRequest = async (
   const creds = await credsFromPayload(credsPayload);
   const { API_KEY } = creds;
 
-  const state = uuidv4();
-  // https://developer.etsy.com/documentation/essentials/authentication/#step-2-grant-access
-  console.log('Check this matches the state in the request Etsy makes to the redirect URL:', state);
-
-  const generateRandomString = (length) => {
-    return crypto
-      .randomBytes(Math.ceil(length * 3 / 4))
-      .toString('base64')
-      .slice(0, length)
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-    ;
-  };
-
-  const generatePkce = () => {
-    const codeVerifier = generateRandomString(64);
-    const codeChallenge = crypto
-      .createHash('sha256')
-      .update(codeVerifier)
-      .digest('base64')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '')
-    ;
-  
+  if (!API_KEY) {
     return {
-      codeVerifier,
-      codeChallenge,
-    };
-  };
-
-  const { codeVerifier, codeChallenge } = generatePkce();
-  console.log('codeVerifier:', codeVerifier);
-  console.log('codeChallenge:', codeChallenge);
-
-  const response = await new FetchClient().fetch({
-    requestPayload: {
-      url: OAUTH_CONNECT_URL,
-      params: {
-        response_type: 'code',
-        client_id: API_KEY,
-        redirect_uri: redirectUrl,
-        scope: scopes.join(' '),
-        state,
-        code_challenge: codeChallenge,
-        code_challenge_method: 'S256',
+      ok: false,
+      error: {
+        code: 'INVALID_CREDS',
+        message: 'API_KEY is required.',
       },
-    },
+    };
+  }
+
+  const state = uuidv4();
+  const { codeVerifier, codeChallenge } = generatePkce();
+
+  const url = buildAuthorizationUrl({
+    response_type: 'code',
+    client_id: API_KEY,
+    redirect_uri: redirectUrl,
+    scope: scopes.join(' '),
+    state,
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
   });
 
-  return response;
+  if (HOSTED) {
+    return {
+      ok: true,
+      data: {
+        url,
+        state,
+        codeVerifier,
+      },
+    };
+  }
+
+  // TODO: support non-Macs
+  await execFileAsync('open', [url]);
+
+  return {
+    ok: true,
+    data: {
+      state,
+      codeVerifier,
+    },
+  };
 };
 
 const funcApiConfig = {
