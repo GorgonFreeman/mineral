@@ -8,6 +8,7 @@ const { credsFromPayload, ArgsWarden, FetchClient } = require('../utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
+  ['redirectUrl'],
 ]);
 
 const etsyAuthorizationCodeRequest = async (
@@ -20,6 +21,7 @@ const etsyAuthorizationCodeRequest = async (
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
     credsPayload,
+    redirectUrl,
   });
   if (rejectResponse) {
     return rejectResponse;
