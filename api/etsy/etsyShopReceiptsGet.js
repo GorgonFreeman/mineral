@@ -1,78 +1,13 @@
 // https://developers.etsy.com/documentation/reference/#operation/getShopReceipts
 
-const { ArgsWarden, Getter } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
-const { MAX_PER_PAGE } = require('./etsy.constants');
-const { etsyClient, resolveShopIdFromCreds } = require('./etsy.utils');
+const { etsyGet, etsyGetter } = require('./etsyGet');
+const { resolveShopIdFromCreds } = require('./etsy.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
-
-const etsyShopReceiptsGetPacket = async (
-  credsPayload,
-  shopId,
-  {
-    params,
-    perPage = MAX_PER_PAGE,
-  } = {},
-) => {
-  return etsyClient.fetch({
-    requestPayload: {
-      method: 'get',
-      url: `/application/shops/${ shopId }/receipts`,
-      params: {
-        limit: perPage,
-        ...params,
-      },
-    },
-    context: {
-      credsPayload,
-      withAccessToken: true,
-    },
-  });
-};
-
-const etsyShopReceiptsGetPaginator = async (currentParams, response) => {
-  if (!response?.ok) {
-    return [true];
-  }
-
-  const { count, results } = response.data ?? {};
-  const itemsOnPage = Array.isArray(results) ? results.length : 0;
-
-  if (count === undefined || !itemsOnPage) {
-    return [true];
-  }
-
-  const { options } = currentParams;
-  const offset = options?.params?.offset ?? 0;
-  const nextOffset = offset + itemsOnPage;
-  const done = nextOffset >= count;
-
-  if (done) {
-    return [true];
-  }
-
-  return [false, {
-    ...currentParams,
-    options: {
-      ...options,
-      params: {
-        ...options.params,
-        offset: nextOffset,
-      },
-    },
-  }];
-};
-
-const etsyShopReceiptsGetDigester = (response) => {
-  if (!response?.ok) {
-    return [];
-  }
-
-  return response.data?.results ?? [];
-};
 
 const etsyShopReceiptsGet = async (
   returnGetter,
@@ -99,32 +34,19 @@ const etsyShopReceiptsGet = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  const getter = new Getter(
+  const getterArgs = [
+    credsPayload,
+    `/application/shops/${ shopId }/receipts`,
     {
-      args: [credsPayload, shopId],
-      options: {
-        params,
-        perPage,
-      },
-    },
-    {
-      func: etsyShopReceiptsGetPacket,
-      digester: etsyShopReceiptsGetDigester,
-      paginator: etsyShopReceiptsGetPaginator,
+      params,
+      perPage,
       ...getterOptions,
     },
-  );
+  ];
 
-  if (returnGetter) {
-    return getter;
-  }
-
-  const data = await getter.run({ returnAll: true });
-
-  return {
-    ok: true,
-    data,
-  };
+  return returnGetter
+    ? etsyGetter(...getterArgs)
+    : etsyGet(...getterArgs);
 };
 
 const funcApiConfig = {
