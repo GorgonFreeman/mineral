@@ -6,22 +6,24 @@ const { etsyClient, resolveShopId } = require('./etsy.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['createPayload'],
+  ['sourceReturnPolicyId'],
+  ['destinationReturnPolicyId'],
 ]);
 
 const etsyShopReturnPoliciesConsolidate = async (
   credsPayload,
-  createPayload,
+  sourceReturnPolicyId,
+  destinationReturnPolicyId,
   {
     shopId,
-    params,
     inspect = false,
   } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    createPayload,
+    sourceReturnPolicyId,
+    destinationReturnPolicyId,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -37,7 +39,10 @@ const etsyShopReturnPoliciesConsolidate = async (
     requestPayload: {
       method: 'post',
       url: `/application/shops/${ shopId }/policies/return/consolidate`,
-      body: createPayload,
+      body: {
+        source_return_policy_id: sourceReturnPolicyId,
+        destination_return_policy_id: destinationReturnPolicyId,
+      },
     },
     context: {
       credsPayload,
@@ -55,3 +60,15 @@ module.exports = {
   etsyShopReturnPoliciesConsolidate,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopReturnPoliciesConsolidate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "sourceReturnPolicyId": "123456789",
+    "destinationReturnPolicyId": "987654321"
+  }'
+*/
