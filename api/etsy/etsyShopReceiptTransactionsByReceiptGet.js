@@ -55,3 +55,14 @@ module.exports = {
   etsyShopReceiptTransactionsByReceiptGet,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopReceiptTransactionsByReceiptGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "receiptId": "3759771968"
+  }'
+*/

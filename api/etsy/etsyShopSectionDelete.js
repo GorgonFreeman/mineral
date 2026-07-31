@@ -54,3 +54,14 @@ module.exports = {
   etsyShopSectionDelete,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopSectionDelete" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "shopSectionId": "12345678"
+  }'
+*/

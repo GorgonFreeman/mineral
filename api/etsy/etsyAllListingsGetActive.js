@@ -76,3 +76,13 @@ module.exports = {
   etsyAllListingsGetActiveGetter: (...args) => etsyAllListingsGetActive(true, ...args),
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyAllListingsGetActive" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    }
+  }'
+*/

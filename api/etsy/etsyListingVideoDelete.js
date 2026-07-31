@@ -57,3 +57,15 @@ module.exports = {
   etsyListingVideoDelete,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyListingVideoDelete" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "listingId": "1234567890",
+    "videoId": "123456789"
+  }'
+*/

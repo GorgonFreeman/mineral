@@ -47,3 +47,16 @@ module.exports = {
   etsyTokenScopes,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyTokenScopes" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "updatePayload": {
+      "token": "<access_token_from_creds>"
+    }
+  }'
+*/

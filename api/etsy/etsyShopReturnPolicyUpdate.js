@@ -58,3 +58,17 @@ module.exports = {
   etsyShopReturnPolicyUpdate,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopReturnPolicyUpdate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "returnPolicyId": "123456789",
+    "updatePayload": {
+      ...
+    }
+  }'
+*/

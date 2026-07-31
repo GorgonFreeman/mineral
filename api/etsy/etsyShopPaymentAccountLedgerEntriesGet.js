@@ -68,3 +68,13 @@ module.exports = {
   etsyShopPaymentAccountLedgerEntriesGetter: (...args) => etsyShopPaymentAccountLedgerEntriesGet(true, ...args),
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopPaymentAccountLedgerEntriesGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    }
+  }'
+*/

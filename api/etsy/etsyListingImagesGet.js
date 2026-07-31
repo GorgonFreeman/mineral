@@ -48,3 +48,14 @@ module.exports = {
   etsyListingImagesGet,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyListingImagesGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "listingId": "1527825785"
+  }'
+*/

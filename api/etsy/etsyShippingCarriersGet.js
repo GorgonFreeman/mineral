@@ -45,3 +45,18 @@ module.exports = {
   etsyShippingCarriersGet,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShippingCarriersGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "options": {
+      "params": {
+        "origin_country_iso": "AU"
+      }
+    }
+  }'
+*/

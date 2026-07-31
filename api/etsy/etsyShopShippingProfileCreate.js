@@ -55,3 +55,16 @@ module.exports = {
   etsyShopShippingProfileCreate,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopShippingProfileCreate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "createPayload": {
+      ...
+    }
+  }'
+*/

@@ -57,3 +57,15 @@ module.exports = {
   etsyShopShippingProfileDestinationDelete,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopShippingProfileDestinationDelete" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "shippingProfileId": "123456789",
+    "shippingProfileDestinationId": "123456789"
+  }'
+*/

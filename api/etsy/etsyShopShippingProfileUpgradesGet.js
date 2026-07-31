@@ -55,3 +55,14 @@ module.exports = {
   etsyShopShippingProfileUpgradesGet,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopShippingProfileUpgradesGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "shippingProfileId": "123456789"
+  }'
+*/

@@ -54,3 +54,14 @@ module.exports = {
   etsyShopReturnPolicyDelete,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopReturnPolicyDelete" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "returnPolicyId": "123456789"
+  }'
+*/

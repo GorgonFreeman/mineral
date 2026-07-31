@@ -58,3 +58,17 @@ module.exports = {
   etsyShopReadinessStateDefinitionUpdate,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopReadinessStateDefinitionUpdate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "readinessStateDefinitionId": "123456789",
+    "updatePayload": {
+      ...
+    }
+  }'
+*/

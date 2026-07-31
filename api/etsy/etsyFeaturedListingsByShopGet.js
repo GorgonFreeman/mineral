@@ -66,3 +66,13 @@ module.exports = {
   etsyFeaturedListingsByShopGetter: (...args) => etsyFeaturedListingsByShopGet(true, ...args),
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyFeaturedListingsByShopGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    }
+  }'
+*/

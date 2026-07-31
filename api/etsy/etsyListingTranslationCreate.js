@@ -61,3 +61,18 @@ module.exports = {
   etsyListingTranslationCreate,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyListingTranslationCreate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "listingId": "1234567890",
+    "language": "en",
+    "createPayload": {
+      ...
+    }
+  }'
+*/

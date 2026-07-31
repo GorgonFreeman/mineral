@@ -58,3 +58,17 @@ module.exports = {
   etsyHolidayPreferencesUpdate,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyHolidayPreferencesUpdate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "holidayId": "123456789",
+    "updatePayload": {
+      ...
+    }
+  }'
+*/

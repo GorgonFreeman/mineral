@@ -66,3 +66,13 @@ module.exports = {
   etsyShopReadinessStateDefinitionsGetter: (...args) => etsyShopReadinessStateDefinitionsGet(true, ...args),
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopReadinessStateDefinitionsGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    }
+  }'
+*/

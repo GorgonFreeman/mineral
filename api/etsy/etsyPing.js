@@ -41,6 +41,8 @@ module.exports = {
 curl -X POST "http://localhost:8000/etsyPing" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "etsy" }
+    "credsPayload": {
+      "credsPath": "etsy"
+    }
   }'
 */

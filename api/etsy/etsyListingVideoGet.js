@@ -51,3 +51,15 @@ module.exports = {
   etsyListingVideoGet,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyListingVideoGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "videoId": "123456789",
+    "listingId": "1234567890"
+  }'
+*/

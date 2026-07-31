@@ -55,3 +55,14 @@ module.exports = {
   etsyShopSectionGet,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopSectionGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "shopSectionId": "12345678"
+  }'
+*/

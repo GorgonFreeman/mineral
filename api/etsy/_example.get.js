@@ -61,9 +61,8 @@ module.exports = {
 curl -X POST "http://localhost:8000/etsyThingsGet" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "etsy" },
-    "options": {
-      "perPage": 25
+    "credsPayload": {
+      "credsPath": "etsy"
     }
   }'
 */

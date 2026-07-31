@@ -47,3 +47,14 @@ module.exports = {
   etsyListingDelete,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyListingDelete" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "listingId": "1234567890"
+  }'
+*/

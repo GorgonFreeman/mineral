@@ -48,3 +48,14 @@ module.exports = {
   etsySellerTaxonomyNodePropertiesGet,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsySellerTaxonomyNodePropertiesGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "taxonomyId": "1"
+  }'
+*/

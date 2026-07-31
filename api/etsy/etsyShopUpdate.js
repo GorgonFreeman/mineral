@@ -55,3 +55,14 @@ module.exports = {
   etsyShopUpdate,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopUpdate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "updatePayload": {}
+  }'
+*/

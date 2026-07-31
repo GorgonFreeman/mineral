@@ -78,7 +78,9 @@ module.exports = {
 curl -X POST "http://localhost:8000/etsyShopSectionListingsGet" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "etsy" },
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
     "sectionId": "12345678"
   }'
 */

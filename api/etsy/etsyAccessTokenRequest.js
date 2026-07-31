@@ -105,7 +105,9 @@ module.exports = {
 curl -X POST "http://localhost:8000/etsyAccessTokenRequest" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "etsy" },
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
     "code": "YOUR_CODE",
     "redirectUri": "https://YOUR_NGROK/logEtsyAuthCodeResponse",
     "codeVerifier": "YOUR_CODE_VERIFIER"

@@ -69,3 +69,14 @@ module.exports = {
   etsyShopShippingProfileDestinationsByShippingProfileGetter: (...args) => etsyShopShippingProfileDestinationsByShippingProfileGet(true, ...args),
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopShippingProfileDestinationsByShippingProfileGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "shippingProfileId": "123456789"
+  }'
+*/

@@ -61,3 +61,18 @@ module.exports = {
   etsyListingPropertyUpdate,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyListingPropertyUpdate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "listingId": "1234567890",
+    "propertyId": "123456789",
+    "updatePayload": {
+      ...
+    }
+  }'
+*/

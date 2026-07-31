@@ -54,3 +54,14 @@ module.exports = {
   etsyShopReadinessStateDefinitionDelete,
   funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/etsyShopReadinessStateDefinitionDelete" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": {
+      "credsPath": "etsy"
+    },
+    "readinessStateDefinitionId": "123456789"
+  }'
+*/
