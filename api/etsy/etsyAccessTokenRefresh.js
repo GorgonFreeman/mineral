@@ -2,7 +2,7 @@
 
 const { credsValidator } = require('../validators');
 const { credsFromPayload, ArgsWarden } = require('../utils');
-const { fetchWithoutTokenRefresh } = require('./etsy.utils');
+const { etsyClient } = require('./etsy.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
@@ -34,7 +34,7 @@ const etsyAccessTokenRefresh = async (
     };
   }
 
-  const response = await fetchWithoutTokenRefresh({
+  const response = await etsyClient.fetch({
     requestPayload: {
       method: 'post',
       url: '/public/oauth/token',

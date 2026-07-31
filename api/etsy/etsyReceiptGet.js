@@ -36,7 +36,7 @@ const etsyReceiptGet = async (
     },
     context: {
       credsPayload,
-      accessToken,
+      withBearer: true,
     },
   });
 
