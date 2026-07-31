@@ -2,7 +2,12 @@ const { BASE_URL } = require('../printify/printify.constants');
 const { resolveCreds, useBaseUrl } = require('../pipelineSteps');
 const { FetchClient, fetchClientCommonSteps, resolveFromCreds } = require('../utils');
 
-const resolveShopIdFromCreds = resolveFromCreds('SHOP_ID');
+const resolveShopIdFromCreds = async ({ shopId, credsPayload }) => {
+  if (shopId) {
+    return { ok: true, data: shopId };
+  }
+  return resolveFromCreds('SHOP_ID')({ credsPayload });
+};
 
 const useAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
