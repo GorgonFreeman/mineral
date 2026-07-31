@@ -11,7 +11,11 @@ const argsWarden = new ArgsWarden([
 ]);
 
 const threeclicksShipmentOrderAdd = async (credsPayload, shipmentNumber, orderNumber) => {
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, shipmentNumber, orderNumber });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    shipmentNumber,
+    orderNumber,
+  });
   if (rejectResponse) return rejectResponse;
   return threeclicksClient.fetch({
     requestPayload: {

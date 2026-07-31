@@ -18,7 +18,10 @@ const shopifyMutationDo = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, mutationName });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    mutationName,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }

@@ -17,7 +17,10 @@ const shopifyPageDelete = async (
   } = {},
 ) => {
 
-  const argsRejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, pageId });
+  const argsRejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    pageId,
+  });
   if (argsRejectResponse) {
     return argsRejectResponse;
   }

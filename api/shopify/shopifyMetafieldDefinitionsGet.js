@@ -19,7 +19,7 @@ const shopifyMetafieldDefinitionsGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     ownerType,
   });

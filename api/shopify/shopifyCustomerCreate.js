@@ -22,8 +22,8 @@ const shopifyCustomerCreate = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
-    credsPayload, 
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
     customerInput,
   });
   if (rejectResponse) {

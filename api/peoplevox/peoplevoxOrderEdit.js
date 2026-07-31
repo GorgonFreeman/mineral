@@ -16,7 +16,10 @@ const peoplevoxOrderEdit = async (
   orderPayload,
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, orderPayload });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    orderPayload,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }

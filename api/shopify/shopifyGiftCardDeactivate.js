@@ -18,7 +18,10 @@ const shopifyGiftCardDeactivate = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, giftCardId });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    giftCardId,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }

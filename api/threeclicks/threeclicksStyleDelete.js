@@ -10,7 +10,10 @@ const argsWarden = new ArgsWarden([
 ]);
 
 const threeclicksStyleDelete = async (credsPayload, styleNumber) => {
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, styleNumber });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    styleNumber,
+  });
   if (rejectResponse) return rejectResponse;
   return threeclicksClient.fetch({
     requestPayload: {

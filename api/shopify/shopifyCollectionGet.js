@@ -29,7 +29,10 @@ const shopifyCollectionGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, collectionIdentifier });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    collectionIdentifier,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }

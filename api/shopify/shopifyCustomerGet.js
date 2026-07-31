@@ -30,7 +30,10 @@ const shopifyCustomerGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, customerIdentifier });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    customerIdentifier,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }

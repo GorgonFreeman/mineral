@@ -29,7 +29,10 @@ const shopifyGiftCardCreate = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, giftCardInput });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    giftCardInput,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }

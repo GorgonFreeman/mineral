@@ -19,7 +19,10 @@ const shopifyThemeDuplicate = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, themeId });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    themeId,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }

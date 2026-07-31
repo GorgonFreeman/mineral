@@ -9,7 +9,9 @@ const argsWarden = new ArgsWarden([
 ]);
 
 const threeclicksCollectionsGet = async (credsPayload) => {
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+  });
   if (rejectResponse) return rejectResponse;
   return threeclicksClient.fetch({
     requestPayload: {

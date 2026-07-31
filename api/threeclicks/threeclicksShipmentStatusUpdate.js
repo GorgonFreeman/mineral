@@ -18,7 +18,11 @@ const threeclicksShipmentStatusUpdate = async (
     isUpdateAllAssociatedOrdersToCompletedStatus = true,
   } = {},
 ) => {
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, shipmentNumber, status });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    shipmentNumber,
+    status,
+  });
   if (rejectResponse) return rejectResponse;
   return threeclicksClient.fetch({
     requestPayload: {

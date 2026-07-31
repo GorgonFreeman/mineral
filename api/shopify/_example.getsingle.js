@@ -20,7 +20,10 @@ const FUNC = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, thingId });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    thingId,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }

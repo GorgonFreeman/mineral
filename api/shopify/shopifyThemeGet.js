@@ -20,8 +20,8 @@ const shopifyThemeGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
-    credsPayload, 
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
     themeId,
   });
   if (rejectResponse) {

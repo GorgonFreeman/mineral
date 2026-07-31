@@ -11,7 +11,11 @@ const argsWarden = new ArgsWarden([
 ]);
 
 const threeclicksStyleColourDelete = async (credsPayload, styleNumber, styleColoursizeId) => {
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, styleNumber, styleColoursizeId });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    styleNumber,
+    styleColoursizeId,
+  });
   if (rejectResponse) return rejectResponse;
   return threeclicksClient.fetch({
     requestPayload: {

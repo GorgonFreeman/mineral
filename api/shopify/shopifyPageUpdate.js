@@ -30,7 +30,11 @@ const shopifyPageUpdate = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, pageId, updatePayload });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    pageId,
+    updatePayload,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }

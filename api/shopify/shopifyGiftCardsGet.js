@@ -17,7 +17,7 @@ const shopifyGiftCardsGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
   });
   if (rejectResponse) {

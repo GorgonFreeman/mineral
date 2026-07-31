@@ -57,7 +57,10 @@ const shopifyOrderGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, orderIdentifier });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    orderIdentifier,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }

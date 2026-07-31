@@ -19,7 +19,9 @@ const printifyWebhooksGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }

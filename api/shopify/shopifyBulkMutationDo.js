@@ -52,8 +52,8 @@ const shopifyBulkMutationDo = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
-    credsPayload, 
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
     createOrResumeBulkOpPayload,
   });
   if (rejectResponse) {

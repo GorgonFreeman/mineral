@@ -20,7 +20,10 @@ const shopifyPageGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, pageId });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    pageId,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }

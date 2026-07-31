@@ -10,7 +10,10 @@ const argsWarden = new ArgsWarden([
 ]);
 
 const threeclicksPurchaseOrderCreate = async (credsPayload, orderPayload) => {
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, orderPayload });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    orderPayload,
+  });
   if (rejectResponse) return rejectResponse;
   return threeclicksClient.fetch({
     requestPayload: {

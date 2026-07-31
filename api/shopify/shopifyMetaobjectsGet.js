@@ -17,7 +17,7 @@ const shopifyMetaobjectsGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     type,
   });

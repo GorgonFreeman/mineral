@@ -14,7 +14,10 @@ const argsWarden = new ArgsWarden([
 ]);
 
 const threeclicksStyleCodesGet = async (credsPayload, codesFor) => {
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, codesFor });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    codesFor,
+  });
   if (rejectResponse) return rejectResponse;
   return threeclicksClient.fetch({
     requestPayload: {

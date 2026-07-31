@@ -19,7 +19,10 @@ const peoplevoxReportGet = async (
   } = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, reportName });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    reportName,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }

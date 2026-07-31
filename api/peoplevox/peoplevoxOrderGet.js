@@ -12,7 +12,10 @@ const peoplevoxOrderGet = async (
   salesOrderNumber,
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, salesOrderNumber });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    salesOrderNumber,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }

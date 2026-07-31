@@ -12,7 +12,10 @@ const upstashDel = async (
   key,
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, key });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    key,
+  });
   if (rejectResponse) {
     return rejectResponse;
   }
