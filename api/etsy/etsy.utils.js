@@ -169,7 +169,36 @@ const resolveShopIdFromCreds = async ({ shopId, credsPayload }) => {
   if (shopId) {
     return { ok: true, data: shopId };
   }
-  return resolveFromCreds('SHOP_ID')({ credsPayload });
+
+  const shopIdFromCredsResponse = await resolveFromCreds('SHOP_ID')({ credsPayload });
+  if (shopIdFromCredsResponse.ok) {
+    return { 
+      ok: true, 
+      data: shopIdFromCredsResponse.data, 
+    };
+  }
+
+  const { etsyMeGet } = require('./etsyMeGet');
+  const meGetResponse = await etsyMeGet(credsPayload);
+  const { ok: meGetOk, data: meGetData } = meGetResponse;
+  if (meGetOk) {
+    ({ shop_id: shopId } = meGetData);
+
+    if (shopId) {
+      return { 
+        ok: true, 
+        data: shopId, 
+      };
+    }
+  }
+
+  return {
+    ok: false,
+    error: {
+      code: 'NO_SHOP_ID',
+      message: 'No shop ID found in creds or me response',
+    },
+  };
 };
 
 module.exports = {
