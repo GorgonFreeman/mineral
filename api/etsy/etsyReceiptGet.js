@@ -3,16 +3,19 @@ const { ArgsWarden } = require('./utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['arg'],
+  ['receiptId'],
 ]);
 
 const etsyReceiptGet = async (
   credsPayload,
-  arg,
+  receiptId,
   options = {},
 ) => {
 
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({ credsPayload, arg });
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({ 
+    credsPayload, 
+    receiptId, 
+  });
   if (rejectResponse) {
     return rejectResponse;
   }
@@ -20,7 +23,7 @@ const etsyReceiptGet = async (
   return {
     ok: true,
     data: {
-      arg,
+      receiptId,
       options,
     },
   };
@@ -39,7 +42,7 @@ module.exports = {
 curl -X POST "http://localhost:8000/etsyReceiptGet" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "shopify.au" },
-    "arg": "1234"
+    "credsPayload": { "credsPath": "etsy" },
+    "receiptId": "1234"
   }'
 */
