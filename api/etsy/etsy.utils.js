@@ -39,12 +39,48 @@ const useEtsyApiKeyHeader = async (state) => {
   };
 };
 
-// OAuth Bearer + token refresh will attach when context.withBearer is true (see bedrock etsy.utils).
+// TODO: resolveEtsyAccessTokenIntoContext — load accessToken into context (refresh when expired) when withBearer.
+const resolveEtsyAccessToken = async () => ({});
+
+const useEtsyBearerFromContext = async (state) => {
+  const { requestPayload, context } = state;
+  const { withBearer, accessToken } = context;
+
+  if (!withBearer) {
+    return {};
+  }
+
+  if (!accessToken) {
+    return {
+      breakChain: true,
+      response: {
+        ok: false,
+        error: {
+          code: 'NO_ACCESS_TOKEN',
+          message: 'context.accessToken is required when withBearer is true.',
+        },
+      },
+    };
+  }
+
+  return {
+    requestPayload: {
+      ...requestPayload,
+      headers: {
+        Authorization: `Bearer ${ accessToken }`,
+        ...requestPayload.headers,
+      },
+    },
+  };
+};
+
 const etsyClient = new FetchClient({
   pipeline: [
     resolveCreds,
+    resolveEtsyAccessToken,
     useEtsyBaseUrl,
     useEtsyApiKeyHeader,
+    useEtsyBearerFromContext,
     'fetch',
     fetchClientCommonSteps.exitEarlyOnNotOk,
   ],
