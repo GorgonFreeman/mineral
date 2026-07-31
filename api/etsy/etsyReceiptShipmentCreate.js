@@ -1,4 +1,4 @@
-// https://developers.etsy.com/documentation/reference/#operation/getShopReceipt
+// https://developers.etsy.com/documentation/reference/#operation/createReceiptShipment
 
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
@@ -7,19 +7,24 @@ const { etsyClient, resolveShopId } = require('./etsy.utils');
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
   ['receiptId'],
+  ['createPayload'],
 ]);
 
-const etsyShopReceiptGet = async (
+const etsyReceiptShipmentCreate = async (
   credsPayload,
   receiptId,
+  createPayload,
   {
     shopId,
+    params,
+    inspect = false,
   } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
     receiptId,
+    createPayload,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -31,18 +36,18 @@ const etsyShopReceiptGet = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  const response = await etsyClient.fetch({
+  return etsyClient.fetch({
     requestPayload: {
-      method: 'get',
-      url: `/application/shops/${ shopId }/receipts/${ receiptId }`,
+      method: 'post',
+      url: `/application/shops/${ shopId }/receipts/${ receiptId }/tracking`,
+      body: createPayload,
     },
     context: {
       credsPayload,
       withAccessToken: true,
     },
+    inspect,
   });
-
-  return response;
 };
 
 const funcApiConfig = {
@@ -50,15 +55,6 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  etsyShopReceiptGet,
+  etsyReceiptShipmentCreate,
   funcApiConfig,
 };
-
-/*
-curl -X POST "http://localhost:8000/etsyShopReceiptGet" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credsPayload": { "credsPath": "etsy" },
-    "receiptId": "3759771968"
-  }'
-*/

@@ -1,4 +1,4 @@
-// https://developers.etsy.com/documentation/reference/#operation/getListingsByShopSectionId
+// https://developers.etsy.com/documentation/reference/#operation/getShopReadinessStateDefinitions
 
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
@@ -7,29 +7,24 @@ const { resolveShopId } = require('./etsy.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['sectionId'],
 ]);
 
-const etsyShopSectionListingsGet = async (
+const etsyShopReadinessStateDefinitionsGet = async (
   returnGetter,
 
   credsPayload,
-  sectionId,
   {
     shopId,
-    shopSectionIds,
-    sortOn,
-    sortOrder,
-    legacy,
     params: paramsOption,
     perPage,
+
+    withAccessToken = true,
     ...getterOptions
   } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    sectionId,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -43,18 +38,16 @@ const etsyShopSectionListingsGet = async (
 
   const params = {
     ...paramsOption,
-    shop_section_ids: shopSectionIds ?? [sectionId],
-    ...(sortOn && { sort_on: sortOn }),
-    ...(sortOrder && { sort_order: sortOrder }),
-    ...(legacy !== undefined && { legacy }),
+
   };
 
   const getterArgs = [
     credsPayload,
-    `/application/shops/${ shopId }/shop-sections/listings`,
+    `/application/shops/${ shopId }/readiness-state-definitions`,
     {
       params,
       perPage,
+      withAccessToken,
       ...getterOptions,
     },
   ];
@@ -69,16 +62,7 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  etsyShopSectionListingsGet: (...args) => etsyShopSectionListingsGet(false, ...args),
-  etsyShopSectionListingsGetter: (...args) => etsyShopSectionListingsGet(true, ...args),
+  etsyShopReadinessStateDefinitionsGet: (...args) => etsyShopReadinessStateDefinitionsGet(false, ...args),
+  etsyShopReadinessStateDefinitionsGetter: (...args) => etsyShopReadinessStateDefinitionsGet(true, ...args),
   funcApiConfig,
 };
-
-/*
-curl -X POST "http://localhost:8000/etsyShopSectionListingsGet" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credsPayload": { "credsPath": "etsy" },
-    "sectionId": "12345678"
-  }'
-*/

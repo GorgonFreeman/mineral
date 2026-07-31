@@ -1,4 +1,4 @@
-// https://developers.etsy.com/documentation/reference/#operation/getShopReceipt
+// https://developers.etsy.com/documentation/reference/#operation/deleteShopShippingProfileUpgrade
 
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
@@ -6,20 +6,25 @@ const { etsyClient, resolveShopId } = require('./etsy.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['receiptId'],
+  ['shippingProfileId'],
+  ['upgradeId'],
 ]);
 
-const etsyShopReceiptGet = async (
+const etsyShopShippingProfileUpgradeDelete = async (
   credsPayload,
-  receiptId,
+  shippingProfileId,
+  upgradeId,
   {
     shopId,
+    params,
+    inspect = false,
   } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    receiptId,
+    shippingProfileId,
+    upgradeId,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -31,18 +36,17 @@ const etsyShopReceiptGet = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  const response = await etsyClient.fetch({
+  return etsyClient.fetch({
     requestPayload: {
-      method: 'get',
-      url: `/application/shops/${ shopId }/receipts/${ receiptId }`,
+      method: 'delete',
+      url: `/application/shops/${ shopId }/shipping-profiles/${ shippingProfileId }/upgrades/${ upgradeId }`,
     },
     context: {
       credsPayload,
       withAccessToken: true,
     },
+    inspect,
   });
-
-  return response;
 };
 
 const funcApiConfig = {
@@ -50,15 +54,6 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  etsyShopReceiptGet,
+  etsyShopShippingProfileUpgradeDelete,
   funcApiConfig,
 };
-
-/*
-curl -X POST "http://localhost:8000/etsyShopReceiptGet" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credsPayload": { "credsPath": "etsy" },
-    "receiptId": "3759771968"
-  }'
-*/

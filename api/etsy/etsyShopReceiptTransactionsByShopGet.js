@@ -1,4 +1,4 @@
-// https://developers.etsy.com/documentation/reference/#operation/getListingsByShopSectionId
+// https://developers.etsy.com/documentation/reference/#operation/getShopReceiptTransactionsByShop
 
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
@@ -7,29 +7,24 @@ const { resolveShopId } = require('./etsy.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['sectionId'],
 ]);
 
-const etsyShopSectionListingsGet = async (
+const etsyShopReceiptTransactionsByShopGet = async (
   returnGetter,
 
   credsPayload,
-  sectionId,
   {
     shopId,
-    shopSectionIds,
-    sortOn,
-    sortOrder,
-    legacy,
     params: paramsOption,
     perPage,
+    legacy,
+    withAccessToken = true,
     ...getterOptions
   } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    sectionId,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -43,18 +38,16 @@ const etsyShopSectionListingsGet = async (
 
   const params = {
     ...paramsOption,
-    shop_section_ids: shopSectionIds ?? [sectionId],
-    ...(sortOn && { sort_on: sortOn }),
-    ...(sortOrder && { sort_order: sortOrder }),
-    ...(legacy !== undefined && { legacy }),
+    ...(legacy !== undefined && { legacy: legacy }),
   };
 
   const getterArgs = [
     credsPayload,
-    `/application/shops/${ shopId }/shop-sections/listings`,
+    `/application/shops/${ shopId }/transactions`,
     {
       params,
       perPage,
+      withAccessToken,
       ...getterOptions,
     },
   ];
@@ -69,16 +62,7 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  etsyShopSectionListingsGet: (...args) => etsyShopSectionListingsGet(false, ...args),
-  etsyShopSectionListingsGetter: (...args) => etsyShopSectionListingsGet(true, ...args),
+  etsyShopReceiptTransactionsByShopGet: (...args) => etsyShopReceiptTransactionsByShopGet(false, ...args),
+  etsyShopReceiptTransactionsByShopGetter: (...args) => etsyShopReceiptTransactionsByShopGet(true, ...args),
   funcApiConfig,
 };
-
-/*
-curl -X POST "http://localhost:8000/etsyShopSectionListingsGet" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credsPayload": { "credsPath": "etsy" },
-    "sectionId": "12345678"
-  }'
-*/

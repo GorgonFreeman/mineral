@@ -1,4 +1,4 @@
-// https://developers.etsy.com/documentation/reference/#operation/getShopReceipt
+// https://developers.etsy.com/documentation/reference/#operation/getShopPaymentByReceiptId
 
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
@@ -9,11 +9,13 @@ const argsWarden = new ArgsWarden([
   ['receiptId'],
 ]);
 
-const etsyShopReceiptGet = async (
+const etsyShopPaymentByReceiptIdGet = async (
   credsPayload,
   receiptId,
   {
     shopId,
+    params,
+    inspect = false,
   } = {},
 ) => {
 
@@ -31,18 +33,18 @@ const etsyShopReceiptGet = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  const response = await etsyClient.fetch({
+  return etsyClient.fetch({
     requestPayload: {
       method: 'get',
-      url: `/application/shops/${ shopId }/receipts/${ receiptId }`,
+      url: `/application/shops/${ shopId }/receipts/${ receiptId }/payments`,
+      ...(params && { params }),
     },
     context: {
       credsPayload,
       withAccessToken: true,
     },
+    inspect,
   });
-
-  return response;
 };
 
 const funcApiConfig = {
@@ -50,15 +52,6 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  etsyShopReceiptGet,
+  etsyShopPaymentByReceiptIdGet,
   funcApiConfig,
 };
-
-/*
-curl -X POST "http://localhost:8000/etsyShopReceiptGet" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credsPayload": { "credsPath": "etsy" },
-    "receiptId": "3759771968"
-  }'
-*/

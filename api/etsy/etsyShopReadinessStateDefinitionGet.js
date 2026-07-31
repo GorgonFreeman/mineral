@@ -1,4 +1,4 @@
-// https://developers.etsy.com/documentation/reference/#operation/getShopReceipt
+// https://developers.etsy.com/documentation/reference/#operation/getShopReadinessStateDefinition
 
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
@@ -6,20 +6,22 @@ const { etsyClient, resolveShopId } = require('./etsy.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['receiptId'],
+  ['readinessStateDefinitionId'],
 ]);
 
-const etsyShopReceiptGet = async (
+const etsyShopReadinessStateDefinitionGet = async (
   credsPayload,
-  receiptId,
+  readinessStateDefinitionId,
   {
     shopId,
+    params,
+    inspect = false,
   } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    receiptId,
+    readinessStateDefinitionId,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -31,18 +33,18 @@ const etsyShopReceiptGet = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  const response = await etsyClient.fetch({
+  return etsyClient.fetch({
     requestPayload: {
       method: 'get',
-      url: `/application/shops/${ shopId }/receipts/${ receiptId }`,
+      url: `/application/shops/${ shopId }/readiness-state-definitions/${ readinessStateDefinitionId }`,
+      ...(params && { params }),
     },
     context: {
       credsPayload,
       withAccessToken: true,
     },
+    inspect,
   });
-
-  return response;
 };
 
 const funcApiConfig = {
@@ -50,15 +52,6 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  etsyShopReceiptGet,
+  etsyShopReadinessStateDefinitionGet,
   funcApiConfig,
 };
-
-/*
-curl -X POST "http://localhost:8000/etsyShopReceiptGet" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credsPayload": { "credsPath": "etsy" },
-    "receiptId": "3759771968"
-  }'
-*/

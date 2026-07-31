@@ -1,0 +1,53 @@
+// https://developers.etsy.com/documentation/reference/#operation/getListingImage
+
+const { ArgsWarden } = require('../utils');
+const { credsValidator } = require('../validators');
+const { etsyClient } = require('./etsy.utils');
+
+const argsWarden = new ArgsWarden([
+  ['credsPayload', credsValidator],
+  ['listingId'],
+  ['imageId'],
+]);
+
+const etsyListingImageGet = async (
+  credsPayload,
+  listingId,
+  imageId,
+  {
+    params,
+    inspect = false,
+  } = {},
+) => {
+
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    listingId,
+    imageId,
+  });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  return etsyClient.fetch({
+    requestPayload: {
+      method: 'get',
+      url: `/application/listings/${ listingId }/images/${ imageId }`,
+      ...(params && { params }),
+    },
+    context: {
+      credsPayload,
+      withAccessToken: false,
+    },
+    inspect,
+  });
+};
+
+const funcApiConfig = {
+  argsWarden,
+};
+
+module.exports = {
+  etsyListingImageGet,
+  funcApiConfig,
+};
