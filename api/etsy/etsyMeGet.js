@@ -11,7 +11,6 @@ const argsWarden = new ArgsWarden([
 const etsyMeGet = async (
   credsPayload,
   {
-    accessToken,
     inspect = false,
   } = {},
 ) => {
@@ -29,7 +28,6 @@ const etsyMeGet = async (
     context: {
       credsPayload,
       withBearer: true,
-      accessToken,
     },
     inspect,
   });
@@ -48,7 +46,6 @@ module.exports = {
 curl -X POST "http://localhost:8000/etsyMeGet" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "etsy" },
-    "options": { "accessToken": "YOUR_TOKEN" }
+    "credsPayload": { "credsPath": "etsy" }
   }'
 */
