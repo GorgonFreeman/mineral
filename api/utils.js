@@ -93,8 +93,11 @@ const resolveFromCreds = (credsKey) => {
 
   return async ({
     credsPayload,
+    creds,
   }) => {
-    const creds = await credsFromPayload(credsPayload);
+    if (!creds) {
+      creds = await credsFromPayload(credsPayload);
+    }
     const values = keys.map((key) => creds?.[key]);
     const missing = keys.filter((key, index) => !valueProvided(values[index]));
 
