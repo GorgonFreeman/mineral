@@ -1,5 +1,5 @@
-const { credsValidator } = require('./validators');
-const { ArgsWarden } = require('./utils');
+const { credsValidator } = require('../validators');
+const { ArgsWarden } = require('../utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
