@@ -89,25 +89,28 @@ const credsFromPayload = async (credsPayload) => {
 };
 
 const resolveFromCreds = (credsKey) => {
+  const keys = [].concat(credsKey);
+
   return async ({
     credsPayload,
   }) => {
     const creds = await credsFromPayload(credsPayload);
-    const value = creds?.[credsKey];
+    const values = keys.map((key) => creds?.[key]);
+    const missing = keys.filter((key, index) => !valueProvided(values[index]));
 
-    if (!valueProvided(value)) {
+    if (missing.length) {
       return {
         ok: false,
         error: {
           code: 'INVALID_ARGS',
-          message: `${ credsKey } not in creds, so needs to be otherwise supplied`,
+          message: `${ missing.join(', ') } not in creds, so needs to be otherwise supplied`,
         },
       };
     }
 
     return {
       ok: true,
-      data: value,
+      data: Array.isArray(credsKey) ? values : values[0],
     };
   };
 };
