@@ -120,6 +120,57 @@ const etsyClient = new FetchClient({
   ],
 });
 
+const fetchWithoutTokenRefresh = etsyClient.fetch.bind(etsyClient);
+
+const etsyAccessTokenExpired = (response) => {
+  const details = response?.error?.details;
+
+  return details?.error === 'invalid_token'
+    && details?.error_description === 'access token is expired';
+};
+
+// TODO: In-memory session map for access/refresh tokens per credsPath.
+etsyClient.fetch = async ({
+  requestPayload,
+  context = {},
+  inspect = false,
+}) => {
+  const response = await fetchWithoutTokenRefresh({
+    requestPayload,
+    context,
+    inspect,
+  });
+
+  if (
+    !context.withBearer
+    || response.ok
+    || !etsyAccessTokenExpired(response)
+    || context.etsyRetriedAfterTokenRefresh
+  ) {
+    return response;
+  }
+
+  const { etsyAccessTokenRefresh } = require('./etsyAccessTokenRefresh');
+  const refreshResponse = await etsyAccessTokenRefresh(context.credsPayload);
+
+  if (!refreshResponse.ok) {
+    return refreshResponse;
+  }
+
+  const { accessToken, refreshToken } = refreshResponse.data;
+
+  return fetchWithoutTokenRefresh({
+    requestPayload,
+    inspect,
+    context: {
+      ...context,
+      accessToken,
+      refreshToken,
+      etsyRetriedAfterTokenRefresh: true,
+    },
+  });
+};
+
 const resolveShopIdFromCreds = async ({ shopId, credsPayload }) => {
   if (shopId) {
     return { ok: true, data: shopId };
@@ -129,5 +180,6 @@ const resolveShopIdFromCreds = async ({ shopId, credsPayload }) => {
 
 module.exports = {
   etsyClient,
+  fetchWithoutTokenRefresh,
   resolveShopIdFromCreds,
 };
