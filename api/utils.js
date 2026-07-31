@@ -89,31 +89,18 @@ const credsFromPayload = async (credsPayload) => {
 };
 
 const resolveFromCreds = (credsKey) => {
-  const optionKey = credsKey
-    .toLowerCase()
-    .split('_')
-    .map((part, index) => (
-      index === 0 ? part : `${ part.charAt(0).toUpperCase() }${ part.slice(1) }`
-    ))
-    .join('');
-
   return async ({
     credsPayload,
-    ...options
   }) => {
-    let value = options[optionKey];
+    const creds = await credsFromPayload(credsPayload);
+    const value = creds?.[credsKey];
 
-    if (!value) {
-      const creds = await credsFromPayload(credsPayload);
-      value = creds?.[credsKey];
-    }
-
-    if (!value) {
+    if (!valueProvided(value)) {
       return {
         ok: false,
         error: {
           code: 'INVALID_ARGS',
-          message: `${ optionKey } option is required if not in creds`,
+          message: `${ credsKey } not in creds, so needs to be otherwise supplied`,
         },
       };
     }
