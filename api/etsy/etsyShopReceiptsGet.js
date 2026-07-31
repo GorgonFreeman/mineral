@@ -3,7 +3,7 @@
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { etsyGet, etsyGetter } = require('./etsyGet');
-const { resolveShopIdFromCreds } = require('./etsy.utils');
+const { resolveShopId } = require('./etsy.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
@@ -28,7 +28,7 @@ const etsyShopReceiptsGet = async (
     return rejectResponse;
   }
 
-  const shopIdResponse = await resolveShopIdFromCreds({ shopId, credsPayload });
+  const shopIdResponse = await resolveShopId({ shopId, credsPayload });
   if (!shopIdResponse.ok) {
     return shopIdResponse;
   }

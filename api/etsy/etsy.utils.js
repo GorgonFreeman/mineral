@@ -165,7 +165,7 @@ const etsyClient = new FetchClient({
   layers: [withEtsyAuthTokenRefresh],
 });
 
-const resolveShopIdFromCreds = async ({ shopId, credsPayload }) => {
+const resolveShopId = async ({ shopId, credsPayload }) => {
   if (shopId) {
     return { ok: true, data: shopId };
   }
@@ -203,5 +203,5 @@ const resolveShopIdFromCreds = async ({ shopId, credsPayload }) => {
 
 module.exports = {
   etsyClient,
-  resolveShopIdFromCreds,
+  resolveShopId,
 };
