@@ -1,31 +1,8 @@
 const { BASE_URL } = require('../printify/printify.constants');
 const { resolveCreds, useBaseUrl } = require('../pipelineSteps');
-const { credsFromPayload, FetchClient, fetchClientCommonSteps } = require('../utils');
+const { FetchClient, fetchClientCommonSteps, resolveFromCreds } = require('../utils');
 
-const resolveShopIdFromCreds = async ({
-  shopId,
-  credsPayload,
-}) => {
-  if (!shopId) {
-    const creds = await credsFromPayload(credsPayload);
-    shopId = creds.SHOP_ID;
-  }
-
-  if (!shopId) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_ARGS',
-        message: 'shopId option is required if not in creds',
-      },
-    };
-  }
-
-  return {
-    ok: true,
-    data: shopId,
-  };
-};
+const resolveShopIdFromCreds = resolveFromCreds('SHOP_ID');
 
 const useAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
