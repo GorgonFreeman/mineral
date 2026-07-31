@@ -1,6 +1,6 @@
 const { BASE_URL } = require('../etsy/etsy.constants');
 const { resolveCreds, useBaseUrl } = require('../pipelineSteps');
-const { FetchClient, fetchClientCommonSteps } = require('../utils');
+const { resolveFromCreds, FetchClient, fetchClientCommonSteps } = require('../utils');
 
 const useEtsyBaseUrl = async (state) => {
   const { creds } = state.context;
@@ -120,6 +120,14 @@ const etsyClient = new FetchClient({
   ],
 });
 
+const resolveShopIdFromCreds = async ({ shopId, credsPayload }) => {
+  if (shopId) {
+    return { ok: true, data: shopId };
+  }
+  return resolveFromCreds('SHOP_ID')({ credsPayload });
+};
+
 module.exports = {
   etsyClient,
+  resolveShopIdFromCreds,
 };
