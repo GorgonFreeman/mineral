@@ -39,8 +39,42 @@ const useEtsyApiKeyHeader = async (state) => {
   };
 };
 
-// TODO: resolveEtsyAccessTokenIntoContext — load accessToken into context (refresh when expired) when withBearer.
-const resolveEtsyAccessToken = async () => ({});
+// TODO: Refresh when access token is expired.
+const tokensFromCredsIfNotContext = async (state) => {
+  const { context } = state;
+  const {
+    withBearer,
+    accessToken,
+    refreshToken,
+    creds,
+  } = context;
+
+  if (!withBearer) {
+    return {};
+  }
+
+  const contextPatch = {};
+
+  const { 
+    ACCESS_TOKEN,
+    REFRESH_TOKEN,
+  } = creds;
+
+  if (!accessToken && ACCESS_TOKEN) {
+    contextPatch.accessToken = ACCESS_TOKEN;
+  }
+
+  if (!refreshToken && REFRESH_TOKEN) {
+    contextPatch.refreshToken = REFRESH_TOKEN;
+  }
+
+  return {
+    context: {
+      ...context,
+      ...contextPatch,
+    },
+  };
+};
 
 const useEtsyBearerFromContext = async (state) => {
   const { requestPayload, context } = state;
@@ -77,7 +111,7 @@ const useEtsyBearerFromContext = async (state) => {
 const etsyClient = new FetchClient({
   pipeline: [
     resolveCreds,
-    resolveEtsyAccessToken,
+    tokensFromCredsIfNotContext,
     useEtsyBaseUrl,
     useEtsyApiKeyHeader,
     useEtsyBearerFromContext,
