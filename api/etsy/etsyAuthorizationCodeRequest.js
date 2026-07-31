@@ -98,6 +98,7 @@ const etsyAuthorizationCodeRequest = async (
     data: {
       state,
       codeVerifier,
+      codeChallenge,
       ...!openAuthUrl && { url },
     },
   };
