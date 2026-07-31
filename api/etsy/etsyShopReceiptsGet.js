@@ -9,7 +9,7 @@ const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
 
-const etsyReceiptsGetPacket = async (
+const etsyShopReceiptsGetPacket = async (
   credsPayload,
   shopId,
   {
@@ -33,7 +33,7 @@ const etsyReceiptsGetPacket = async (
   });
 };
 
-const etsyReceiptsGetPaginator = async (currentParams, response) => {
+const etsyShopReceiptsGetPaginator = async (currentParams, response) => {
   if (!response?.ok) {
     return [true];
   }
@@ -66,7 +66,7 @@ const etsyReceiptsGetPaginator = async (currentParams, response) => {
   }];
 };
 
-const etsyReceiptsGetDigester = (response) => {
+const etsyShopReceiptsGetDigester = (response) => {
   if (!response?.ok) {
     return [];
   }
@@ -74,7 +74,7 @@ const etsyReceiptsGetDigester = (response) => {
   return response.data?.results ?? [];
 };
 
-const etsyReceiptsGet = async (
+const etsyShopReceiptsGet = async (
   returnGetter,
 
   credsPayload,
@@ -108,9 +108,9 @@ const etsyReceiptsGet = async (
       },
     },
     {
-      func: etsyReceiptsGetPacket,
-      digester: etsyReceiptsGetDigester,
-      paginator: etsyReceiptsGetPaginator,
+      func: etsyShopReceiptsGetPacket,
+      digester: etsyShopReceiptsGetDigester,
+      paginator: etsyShopReceiptsGetPaginator,
       ...getterOptions,
     },
   );
@@ -132,13 +132,13 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  etsyReceiptsGet: (...args) => etsyReceiptsGet(false, ...args),
-  etsyReceiptsGetter: (...args) => etsyReceiptsGet(true, ...args),
+  etsyShopReceiptsGet: (...args) => etsyShopReceiptsGet(false, ...args),
+  etsyShopReceiptsGetter: (...args) => etsyShopReceiptsGet(true, ...args),
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/etsyReceiptsGet" \
+curl -X POST "http://localhost:8000/etsyShopReceiptsGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "etsy" }

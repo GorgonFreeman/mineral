@@ -1,3 +1,5 @@
+// https://developers.etsy.com/documentation/reference/#operation/getShopReceipt
+
 const { credsValidator } = require('../validators');
 const { ArgsWarden } = require('../utils');
 const { etsyClient, resolveShopIdFromCreds } = require('./etsy.utils');
@@ -7,7 +9,7 @@ const argsWarden = new ArgsWarden([
   ['receiptId'],
 ]);
 
-const etsyReceiptGet = async (
+const etsyShopReceiptGet = async (
   credsPayload,
   receiptId,
   {
@@ -48,12 +50,12 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  etsyReceiptGet,
+  etsyShopReceiptGet,
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/etsyReceiptGet" \
+curl -X POST "http://localhost:8000/etsyShopReceiptGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "etsy" },
