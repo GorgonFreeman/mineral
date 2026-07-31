@@ -132,6 +132,10 @@ const bodyPassesThrough = (body) => {
     return true;
   }
 
+  if (body instanceof URLSearchParams) {
+    return true;
+  }
+
   return typeof body.getHeaders === 'function';
 };
 
