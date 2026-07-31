@@ -6,7 +6,7 @@ const {
   appendUrlToBase,
   logDeep,
 } = require('../utils');
-const { getSessionId, setSessionId } = require('../peoplevox/peoplevox.sessions');
+const { withPeoplevoxSession } = require('../peoplevox/peoplevox.sessions');
 
 const xml2jsBuilder = new xml2js.Builder({
   headless: true,
@@ -183,44 +183,10 @@ const peoplevoxClient = new FetchClient({
     unwrapSingleDetail,
     hoistDetail,
   ],
+  layers: [
+    withPeoplevoxSession,
+  ],
 });
-
-const fetchWithoutAuth = peoplevoxClient.fetch.bind(peoplevoxClient);
-
-peoplevoxClient.fetch = async ({
-  requestPayload,
-  context = {},
-  inspect = false,
-}) => {
-  const { credsPayload } = context;
-
-  const sessionIdResponse = await getSessionId(credsPayload);
-
-  const {
-    ok: sessionIdOk,
-    data: sessionId,
-  } = sessionIdResponse;
-
-  if (!sessionIdOk) {
-    return sessionIdResponse;
-  }
-
-  const response = await fetchWithoutAuth({
-    requestPayload,
-    context: {
-      ...context,
-      sessionId,
-    },
-    inspect,
-  });
-
-  if (response.ok) {
-    await setSessionId(credsPayload, sessionId);
-  }
-
-  // TODO: Check if it was an auth error, and try another auth method if so
-  return response;
-};
 
 module.exports = {
   peoplevoxClient,

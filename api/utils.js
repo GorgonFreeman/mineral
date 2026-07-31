@@ -484,11 +484,13 @@ class Chain {
 class FetchClient {
   constructor({
     pipeline = ['fetch'], // an array of functions that transform the request and response, including a string 'fetch' step.
+    layers = [], // (payload, next) => …; first layer is innermost around the pipeline
   } = {}) {
     if (!this.pipelineHasFetchStep(pipeline)) {
       throw new Error('Pipeline must have a fetch step');
     }
     this.pipeline = pipeline;
+    this.layers = layers;
   }
 
   pipelineHasFetchStep = (pipeline) => {
@@ -506,7 +508,7 @@ class FetchClient {
     };
   }
 
-  async fetch({
+  async #fetchCore({
     // url, body, etc.
     requestPayload,
 
@@ -520,8 +522,8 @@ class FetchClient {
     const { pipeline } = this;
 
     const pipelineChain = new Chain(pipeline.map(step => {
-      return step === 'fetch' 
-        ? this.#fetch 
+      return step === 'fetch'
+        ? this.#fetch
         : step;
     }));
 
@@ -533,6 +535,42 @@ class FetchClient {
 
     return state.response;
   }
+
+  async fetch(fetchPayload = {}) {
+    let layeredFetch = (payload) => this.#fetchCore(payload);
+
+    for (const layer of this.layers) {
+      const currentNext = layeredFetch;
+      layeredFetch = (payload) => layer(payload, currentNext);
+    }
+
+    return layeredFetch(fetchPayload);
+  }
+
+  /* Example layer
+
+  const withDressColours = async (payload, next) => {
+
+    let response = await next({
+      ...payload,
+      headers: { ...payload.headers, dress: 'blue/white' },
+    });
+
+    if (!response.ok) {
+      console.warn('blue/white failed, retrying with black/gold');
+      response = await next({
+        ...payload,
+        headers: { ...payload.headers, dress: 'black/gold' },
+      });
+    }
+
+    return response;
+
+  };
+
+  new FetchClient({ pipeline, layers: [withDressColours] });
+
+  */
 }
 
 const fetchClientCommonSteps = {
