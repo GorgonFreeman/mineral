@@ -78,7 +78,7 @@ const directoriesToScan = ({
   return [MINERAL_API_DIR, ...extraDirs];
 };
 
-const addHandlerFromFile = (filePath, handlers) => {
+const addHandlerFromFile = (filePath, handlers, apiScanRoot) => {
   const moduleExports = require(filePath);
   if (!moduleExports || typeof moduleExports !== 'object') {
     return;
@@ -96,12 +96,14 @@ const addHandlerFromFile = (filePath, handlers) => {
   });
 
   const route = `/${ routeName }`;
-  if (handlers.has(route)) {
-    const existing = handlers.get(route);
+  const existing = handlers.get(route);
+
+  if (existing && existing.apiScanRoot === apiScanRoot) {
     throw new Error(`Duplicate route '${ route }' from ${ filePath } and ${ existing.filePath }`);
   }
 
   handlers.set(route, {
+    apiScanRoot,
     filePath,
     routeName,
     handler: funcApiConfig ? funcApi(handlerFn, funcApiConfig) : handlerFn,
@@ -112,9 +114,9 @@ const addHandlerFromFile = (filePath, handlers) => {
 const loadHandlers = (config) => {
   const handlers = new Map();
 
-  for (const directory of directoriesToScan(config)) {
-    for (const filePath of listJsFiles(directory)) {
-      addHandlerFromFile(filePath, handlers);
+  for (const apiScanRoot of directoriesToScan(config)) {
+    for (const filePath of listJsFiles(apiScanRoot)) {
+      addHandlerFromFile(filePath, handlers, apiScanRoot);
     }
   }
 
