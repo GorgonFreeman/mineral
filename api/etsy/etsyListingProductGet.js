@@ -35,7 +35,7 @@ const etsyListingProductGet = async (
     },
     context: {
       credsPayload,
-      withBearer: true,
+      withAccessToken: true,
     },
     inspect,
   });

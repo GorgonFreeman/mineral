@@ -12,7 +12,7 @@ const etsyAccessTokenExpired = (response) => {
 const withEtsyAuthTokenRefresh = async (fetchPayload, next) => {
   const { context = {} } = fetchPayload;
 
-  if (!context.withBearer) {
+  if (!context.withAccessToken) {
     return next(fetchPayload);
   }
 
@@ -86,13 +86,13 @@ const useEtsyApiKeyHeader = async (state) => {
 const tokensFromCredsIfNotContext = async (state) => {
   const { context } = state;
   const {
-    withBearer,
+    withAccessToken,
     accessToken,
     refreshToken,
     creds,
   } = context;
 
-  if (!withBearer) {
+  if (!withAccessToken) {
     return {};
   }
 
@@ -121,9 +121,9 @@ const tokensFromCredsIfNotContext = async (state) => {
 
 const useEtsyBearerFromContext = async (state) => {
   const { requestPayload, context } = state;
-  const { withBearer, accessToken } = context;
+  const { withAccessToken, accessToken } = context;
 
-  if (!withBearer) {
+  if (!withAccessToken) {
     return {};
   }
 
@@ -134,7 +134,7 @@ const useEtsyBearerFromContext = async (state) => {
         ok: false,
         error: {
           code: 'NO_ACCESS_TOKEN',
-          message: 'context.accessToken is required when withBearer is true.',
+          message: 'context.accessToken is required when withAccessToken is true.',
         },
       },
     };

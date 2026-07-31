@@ -29,7 +29,7 @@ const etsyMeGet = async (
     },
     context: {
       credsPayload,
-      withBearer: true,
+      withAccessToken: true,
     },
     inspect,
   });
