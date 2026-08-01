@@ -574,6 +574,10 @@ class FetchClient {
 }
 
 const fetchClientCommonSteps = {
+  unwrapData: async (state) => {
+    const { response } = state;
+    return { response: response?.data || response };
+  },
   stripEdgesAndNodes: async (state) => {
     const { response } = state;
 

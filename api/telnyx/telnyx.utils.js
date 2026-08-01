@@ -27,6 +27,7 @@ const telnyxClient = new FetchClient({
     useBaseUrl(TELNYX_API_BASE_URL),
     useAuthHeaders,
     'fetch',
+    fetchClientCommonSteps.unwrapData,
     fetchClientCommonSteps.exitEarlyOnNotOk,
   ],
 });
