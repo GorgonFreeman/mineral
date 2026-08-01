@@ -12,6 +12,11 @@ Notes for AI assistants working in this directory. **Read this file at the start
 - If you make a new .env or .creds.yml variable, update the correlating .sample file.
 - In Shopify, don't normalise and take gids as inputs if you can just take the id - the non-gid number - instead.
 - Use trailing commas wherever possible, for future git diff readability.
+- Each platform gets its own directory, within which {platform}.constants.js holds constant values like a fixed API base URL or the max objects an API will return per page, docs.md links to documentation and briefly describes the API shape and auth, {platform}.utils.js provides a FetchClient to perform http requests, and the other files are mostly flat functions like {platform}ThingDo.js. If needed, {platform}Get.js can provide a paginated get function for reuse in e.g. {platform}ThingsGet.js.
+- Do not deviate from the project's existing patterns unless you ask the user first. This includes nested structures, use of libraries, and layout of functions.
+- Refer to _example.js files for reference on how functions are laid out, e.g. use of argsWarden.
+- If other functions in the platform use fetchClient as passed through options, support it as well.
+- skim an existing platform of the same shape before considering inventing a new pattern.
 
 ## API clients
 - Base URLs for platform clients should live in `{platform}.constants.js`, not creds, if they are static for all users of the API.
