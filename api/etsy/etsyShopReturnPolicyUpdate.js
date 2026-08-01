@@ -18,6 +18,7 @@ const etsyShopReturnPolicyUpdate = async (
     shopId,
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -36,7 +37,7 @@ const etsyShopReturnPolicyUpdate = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'put',
       url: `/application/shops/${ shopId }/policies/return/${ returnPolicyId }`,

@@ -16,6 +16,7 @@ const peoplevoxReportGet = async (
     filter,
     orderBy,
     columns,
+    fetchClient = peoplevoxClient,
   } = {},
 ) => {
 
@@ -27,7 +28,7 @@ const peoplevoxReportGet = async (
     return rejectResponse;
   }
 
-  const reportGetResponse = await peoplevoxClient.fetch({
+  const reportGetResponse = await fetchClient.fetch({
     requestPayload: {
       method: 'post',
       body: {

@@ -14,6 +14,9 @@ const argsWarden = new ArgsWarden([
 const peoplevoxOrderEdit = async (
   credsPayload,
   orderPayload,
+  {
+    fetchClient = peoplevoxClient,
+  } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
@@ -39,7 +42,7 @@ const peoplevoxOrderEdit = async (
     };
   }
 
-  return peoplevoxClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'post',
       body: {

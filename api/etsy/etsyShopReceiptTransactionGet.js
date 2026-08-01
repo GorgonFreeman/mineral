@@ -16,6 +16,7 @@ const etsyShopReceiptTransactionGet = async (
     shopId,
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -33,7 +34,7 @@ const etsyShopReceiptTransactionGet = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: `/application/shops/${ shopId }/transactions/${ transactionId }`,

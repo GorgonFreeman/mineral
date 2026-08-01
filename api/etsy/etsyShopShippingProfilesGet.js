@@ -14,6 +14,7 @@ const etsyShopShippingProfilesGet = async (
     shopId,
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -30,7 +31,7 @@ const etsyShopShippingProfilesGet = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: `/application/shops/${ shopId }/shipping-profiles`,

@@ -15,6 +15,7 @@ const etsyUserGet = async (
   {
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -26,7 +27,7 @@ const etsyUserGet = async (
     return rejectResponse;
   }
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: `/application/users/${ userId }`,

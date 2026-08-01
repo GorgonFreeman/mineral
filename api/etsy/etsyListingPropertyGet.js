@@ -17,6 +17,7 @@ const etsyListingPropertyGet = async (
   {
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -29,7 +30,7 @@ const etsyListingPropertyGet = async (
     return rejectResponse;
   }
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: `/application/listings/${ listingId }/properties/${ propertyId }`,

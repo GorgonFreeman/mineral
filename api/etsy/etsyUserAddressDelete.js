@@ -15,6 +15,7 @@ const etsyUserAddressDelete = async (
   {
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -26,7 +27,7 @@ const etsyUserAddressDelete = async (
     return rejectResponse;
   }
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'delete',
       url: `/application/user/addresses/${ addressId }`,

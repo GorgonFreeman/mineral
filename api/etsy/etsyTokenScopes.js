@@ -14,6 +14,7 @@ const etsyTokenScopes = async (
   updatePayload,
   {
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -25,7 +26,7 @@ const etsyTokenScopes = async (
     return rejectResponse;
   }
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'post',
       url: `/application/scopes`,

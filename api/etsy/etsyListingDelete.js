@@ -15,6 +15,7 @@ const etsyListingDelete = async (
   {
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -26,7 +27,7 @@ const etsyListingDelete = async (
     return rejectResponse;
   }
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'delete',
       url: `/application/listings/${ listingId }`,

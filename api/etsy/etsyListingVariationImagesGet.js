@@ -16,6 +16,7 @@ const etsyListingVariationImagesGet = async (
     shopId,
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -33,7 +34,7 @@ const etsyListingVariationImagesGet = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: `/application/shops/${ shopId }/listings/${ listingId }/variation-images`,

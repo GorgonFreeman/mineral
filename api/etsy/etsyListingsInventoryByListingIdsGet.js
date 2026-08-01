@@ -13,6 +13,7 @@ const etsyListingsInventoryByListingIdsGet = async (
   {
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -23,7 +24,7 @@ const etsyListingsInventoryByListingIdsGet = async (
     return rejectResponse;
   }
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: `/application/listings/batch/inventory`,

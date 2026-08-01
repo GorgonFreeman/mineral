@@ -16,6 +16,7 @@ const etsyListingPersonalizationDelete = async (
     shopId,
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -33,7 +34,7 @@ const etsyListingPersonalizationDelete = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'delete',
       url: `/application/shops/${ shopId }/listings/${ listingId }/personalization`,

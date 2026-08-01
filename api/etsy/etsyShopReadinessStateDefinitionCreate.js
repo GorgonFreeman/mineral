@@ -16,6 +16,7 @@ const etsyShopReadinessStateDefinitionCreate = async (
     shopId,
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -33,7 +34,7 @@ const etsyShopReadinessStateDefinitionCreate = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'post',
       url: `/application/shops/${ shopId }/readiness-state-definitions`,

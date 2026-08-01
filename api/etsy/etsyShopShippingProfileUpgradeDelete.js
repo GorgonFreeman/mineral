@@ -18,6 +18,7 @@ const etsyShopShippingProfileUpgradeDelete = async (
     shopId,
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -36,7 +37,7 @@ const etsyShopShippingProfileUpgradeDelete = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'delete',
       url: `/application/shops/${ shopId }/shipping-profiles/${ shippingProfileId }/upgrades/${ upgradeId }`,

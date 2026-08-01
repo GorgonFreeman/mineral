@@ -13,6 +13,7 @@ const etsyShippingCarriersGet = async (
   {
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -23,7 +24,7 @@ const etsyShippingCarriersGet = async (
     return rejectResponse;
   }
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: `/application/shipping-carriers`,

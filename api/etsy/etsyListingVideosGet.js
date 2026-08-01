@@ -15,6 +15,7 @@ const etsyListingVideosGet = async (
   {
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -26,7 +27,7 @@ const etsyListingVideosGet = async (
     return rejectResponse;
   }
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: `/application/listings/${ listingId }/videos`,

@@ -16,6 +16,7 @@ const etsyShopReturnPolicyDelete = async (
     shopId,
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -33,7 +34,7 @@ const etsyShopReturnPolicyDelete = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'delete',
       url: `/application/shops/${ shopId }/policies/return/${ returnPolicyId }`,

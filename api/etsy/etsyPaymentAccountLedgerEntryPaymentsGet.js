@@ -14,6 +14,7 @@ const etsyPaymentAccountLedgerEntryPaymentsGet = async (
     shopId,
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -30,7 +31,7 @@ const etsyPaymentAccountLedgerEntryPaymentsGet = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: `/application/shops/${ shopId }/payment-account/ledger-entries/payments`,

@@ -19,6 +19,7 @@ const etsyListingOfferingGet = async (
   {
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -32,7 +33,7 @@ const etsyListingOfferingGet = async (
     return rejectResponse;
   }
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: `/application/listings/${ listingId }/products/${ productId }/offerings/${ productOfferingId }`,

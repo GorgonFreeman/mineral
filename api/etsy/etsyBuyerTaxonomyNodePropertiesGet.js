@@ -15,6 +15,7 @@ const etsyBuyerTaxonomyNodePropertiesGet = async (
   {
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -26,7 +27,7 @@ const etsyBuyerTaxonomyNodePropertiesGet = async (
     return rejectResponse;
   }
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: `/application/buyer-taxonomy/nodes/${ taxonomyId }/properties`,

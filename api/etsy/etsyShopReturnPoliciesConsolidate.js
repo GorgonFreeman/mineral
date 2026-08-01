@@ -17,6 +17,7 @@ const etsyShopReturnPoliciesConsolidate = async (
   {
     shopId,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -35,7 +36,7 @@ const etsyShopReturnPoliciesConsolidate = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'post',
       url: `/application/shops/${ shopId }/policies/return/consolidate`,

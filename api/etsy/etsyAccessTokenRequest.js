@@ -16,6 +16,9 @@ const etsyAccessTokenRequest = async (
   code,
   redirectUri,
   codeVerifier,
+  {
+    fetchClient = etsyClient,
+  } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
@@ -41,7 +44,7 @@ const etsyAccessTokenRequest = async (
     };
   }
 
-  const response = await etsyClient.fetch({
+  const response = await fetchClient.fetch({
     requestPayload: {
       method: 'post',
       url: '/public/oauth/token',

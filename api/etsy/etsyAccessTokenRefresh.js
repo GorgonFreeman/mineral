@@ -11,6 +11,9 @@ const argsWarden = new ArgsWarden([
 const etsyAccessTokenRefresh = async (
   credsPayload,
   refreshToken,
+  {
+    fetchClient = etsyClient,
+  } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
@@ -34,7 +37,7 @@ const etsyAccessTokenRefresh = async (
     };
   }
 
-  const response = await etsyClient.fetch({
+  const response = await fetchClient.fetch({
     requestPayload: {
       method: 'post',
       url: '/public/oauth/token',

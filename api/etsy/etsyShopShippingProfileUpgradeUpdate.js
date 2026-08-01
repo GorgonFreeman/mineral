@@ -20,6 +20,7 @@ const etsyShopShippingProfileUpgradeUpdate = async (
     shopId,
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -39,7 +40,7 @@ const etsyShopShippingProfileUpgradeUpdate = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'put',
       url: `/application/shops/${ shopId }/shipping-profiles/${ shippingProfileId }/upgrades/${ upgradeId }`,

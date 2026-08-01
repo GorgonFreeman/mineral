@@ -20,6 +20,7 @@ const etsyListingPropertyUpdate = async (
     shopId,
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -39,7 +40,7 @@ const etsyListingPropertyUpdate = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'put',
       url: `/application/shops/${ shopId }/listings/${ listingId }/properties/${ propertyId }`,

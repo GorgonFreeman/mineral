@@ -16,6 +16,7 @@ const etsyListingProductGet = async (
   productId,
   {
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -28,7 +29,7 @@ const etsyListingProductGet = async (
     return rejectResponse;
   }
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: `/application/listings/${ listingId }/inventory/products/${ productId }`,

@@ -17,6 +17,7 @@ const etsyListingInventoryUpdate = async (
   {
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -29,7 +30,7 @@ const etsyListingInventoryUpdate = async (
     return rejectResponse;
   }
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'put',
       url: `/application/listings/${ listingId }/inventory`,

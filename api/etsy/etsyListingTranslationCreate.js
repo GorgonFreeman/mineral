@@ -20,6 +20,7 @@ const etsyListingTranslationCreate = async (
     shopId,
     params,
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -39,7 +40,7 @@ const etsyListingTranslationCreate = async (
   }
   ({ data: shopId } = shopIdResponse);
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'post',
       url: `/application/shops/${ shopId }/listings/${ listingId }/translations/${ language }`,
