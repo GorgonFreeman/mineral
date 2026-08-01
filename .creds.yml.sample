@@ -99,3 +99,7 @@ pipe17:
   API_KEY: ____________________________________
   sandbox:
     API_KEY: ____________________________________
+
+google:
+  SERVICE_ACCOUNT_JSON:
+    ...

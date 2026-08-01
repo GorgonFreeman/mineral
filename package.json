@@ -23,6 +23,7 @@
     "@upstash/redis": "^1.28.4",
     "csvtojson": "^2.0.14",
     "dotenv": "^17.2.0",
+    "googleapis": "^165.0.0",
     "json-2-csv": "^5.5.9",
     "xml2js": "^0.6.2",
     "yaml": "^2.9.0"
