@@ -10,6 +10,9 @@ const argsWarden = new ArgsWarden([
 
 const etsyPing = async (
   credsPayload,
+  {
+    fetchClient = etsyClient,
+  } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
@@ -19,7 +22,7 @@ const etsyPing = async (
     return rejectResponse;
   }
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: '/application/openapi-ping',

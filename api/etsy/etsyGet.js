@@ -15,9 +15,11 @@ const etsyGetPacket = async (
     params,
     perPage = MAX_PER_PAGE,
     withAccessToken = true,
+    fetchClient = etsyClient,
   } = {},
 ) => {
-  return etsyClient.fetch({
+
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url,
@@ -83,6 +85,7 @@ const etsyGet = async (
     params,
     perPage = MAX_PER_PAGE,
     withAccessToken,
+    fetchClient,
     ...getterOptions
   } = {},
 ) => {
@@ -102,6 +105,7 @@ const etsyGet = async (
         params,
         perPage,
         withAccessToken,
+        fetchClient,
       },
     },
     {

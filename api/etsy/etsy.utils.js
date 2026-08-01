@@ -203,5 +203,6 @@ const resolveShopId = async ({ shopId, credsPayload }) => {
 
 module.exports = {
   etsyClient,
+  etsyAccessTokenExpired,
   resolveShopId,
 };

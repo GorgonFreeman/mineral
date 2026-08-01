@@ -12,6 +12,7 @@ const etsyMeGet = async (
   credsPayload,
   {
     inspect = false,
+    fetchClient = etsyClient,
   } = {},
 ) => {
 
@@ -22,7 +23,7 @@ const etsyMeGet = async (
     return rejectResponse;
   }
 
-  return etsyClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: '/application/users/me',
