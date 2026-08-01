@@ -44,4 +44,11 @@ curl -X POST "http://localhost:8000/googlecalendarCalendarsGet" \
   -d '{
     "credsPayload": { "credsPath": "google" }
   }'
+
+curl -X POST "http://localhost:8000/googlecalendarCalendarsGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "google" },
+    "options": { "subject": "x@y.com" }
+  }'
 */
