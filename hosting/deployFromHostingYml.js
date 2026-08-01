@@ -141,7 +141,7 @@ const deployFunction = async ({
   console.log(deployCommand);
 
   try {
-    await execCommand(deployCommand);
+    await execCommand(deployCommand, { interactive: true });
   } catch (error) {
     console.error(`Error deploying function ${ functionName }:`, error);
     return;
@@ -188,7 +188,7 @@ const deployFunction = async ({
       ].join(' ');
 
       console.log(schedulerCommand);
-      await execCommand(schedulerCommand);
+      await execCommand(schedulerCommand, { interactive: true });
     } catch (error) {
       console.error(`Error handling scheduler job ${ jobName }:`, error);
     }
