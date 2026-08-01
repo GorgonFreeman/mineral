@@ -5,8 +5,8 @@ const { credsValidator } = require('../validators');
 const { etsyClient } = require('./etsy.utils');
 
 const updatePayloadWithListingIdValidator = (updatePayloadWithListingId) => {
-  return valueProvided(updatePayloadWithListingId?.listingId)
-    && valueProvided(updatePayloadWithListingId?.updatePayload);
+  const { listingId, ...updatePayload } = updatePayloadWithListingId;
+  return valueProvided(listingId) && Object.keys(updatePayload).length > 0;
 };
 
 const argsWarden = new ArgsWarden([
@@ -24,9 +24,9 @@ const etsyListingupdatePayloadWithListingIdSingle = async (
   } = {},
 ) => {
 
-  const { 
-    listingId, 
-    ...updatePayload 
+  const {
+    listingId,
+    ...updatePayload
   } = updatePayloadWithListingId;
 
   return fetchClient.fetch({
@@ -93,7 +93,7 @@ curl -X POST "http://localhost:8000/etsyListingupdatePayloadWithListingId" \
     },
     "updatePayloadWithListingId": {
       "listingId": "1234567890",
-      "updatePayload": {}
+      "products": []
     }
   }'
 */
