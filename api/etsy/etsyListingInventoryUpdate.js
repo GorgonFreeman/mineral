@@ -14,7 +14,7 @@ const argsWarden = new ArgsWarden([
   ['updatePayloadWithListingId', (updatePayloadWithListingId) => everyIfArray(updatePayloadWithListingIdValidator, updatePayloadWithListingId)],
 ]);
 
-const etsyListingupdatePayloadWithListingIdSingle = async (
+const etsyListingInventoryUpdateSingle = async (
   credsPayload,
   updatePayloadWithListingId,
   {
@@ -44,7 +44,7 @@ const etsyListingupdatePayloadWithListingIdSingle = async (
   });
 };
 
-const etsyListingupdatePayloadWithListingId = async (
+const etsyListingInventoryUpdate = async (
   credsPayload,
   updatePayloadWithListingId,
   {
@@ -65,7 +65,7 @@ const etsyListingupdatePayloadWithListingId = async (
 
   return actionSingleOrMultiple(
     updatePayloadWithListingId,
-    etsyListingupdatePayloadWithListingIdSingle,
+    etsyListingInventoryUpdateSingle,
     (updatePayloadWithListingIdItem) => ({
       args: [credsPayload, updatePayloadWithListingIdItem, { params, inspect, fetchClient }],
     }),
@@ -80,12 +80,12 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  etsyListingupdatePayloadWithListingId,
+  etsyListingInventoryUpdate,
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/etsyListingupdatePayloadWithListingId" \
+curl -X POST "http://localhost:8000/etsyListingInventoryUpdate" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": {
