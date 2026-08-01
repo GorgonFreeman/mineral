@@ -1,6 +1,6 @@
 {
   "name": "@foxtware/mineral",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "bin": {
     "mineral": "bin/mineral.js"
   },
