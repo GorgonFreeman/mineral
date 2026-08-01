@@ -16,7 +16,9 @@ const peoplevoxGetSingle = async (
   credsPayload,
   templateName,
   searchParameters = {},
-  options = {},
+  {
+    fetchClient = peoplevoxClient,
+  } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
@@ -31,7 +33,7 @@ const peoplevoxGetSingle = async (
   const { searchClause, id, idName } = searchParameters;
   const resolvedSearchClause = searchClause || `${ idName }.Equals("${ id }")`;
 
-  const response = await peoplevoxClient.fetch({
+  const response = await fetchClient.fetch({
     requestPayload: {
       method: 'post',
       body: {

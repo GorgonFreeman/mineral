@@ -10,6 +10,7 @@ const argsWarden = new ArgsWarden([
 const peoplevoxOrderGet = async (
   credsPayload,
   salesOrderNumber,
+  options = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
@@ -27,6 +28,7 @@ const peoplevoxOrderGet = async (
       id: salesOrderNumber,
       idName: 'SalesOrderNumber',
     },
+    options,
   );
 };
 
