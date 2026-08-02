@@ -20,27 +20,61 @@ const fileDataValidator = (fileData) => {
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['bucketId'],
+  ['bucketIdentifier'],
   ['fileData', fileDataValidator],
 ]);
 
 const backblazeFileUpload = async (
   credsPayload,
-  bucketId,
+  bucketIdentifier,
   fileData,
   {
-    bucketName,
     contentType = 'b2/x-auto',
   } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    bucketId,
+    bucketIdentifier,
     fileData,
   });
   if (rejectResponse) {
     return rejectResponse;
+  }
+  
+  const { 
+    bucketId,
+    bucketName,
+  } = bucketIdentifier;
+
+  if (!bucketId) {
+    const bucketsResponse = await backblazeBucketsGet(credsPayload);
+    if (!bucketsResponse.ok) {
+      return bucketsResponse;
+    }
+
+    const bucket = bucketsResponse.data.find(bucket => bucket.name === bucketName);
+
+    if (!bucket) {
+      return {
+        ok: false,
+        error: {
+          code: 'BUCKET_NOT_FOUND',
+          message: `Bucket ${ bucketName } not found`,
+        },
+      };
+    }
+
+    bucketId = bucket.id;
+  }
+
+  if (!bucketId) {
+    return {
+      ok: false,
+      error: {
+        code: 'BUCKET_NOT_FOUND',
+      },
+    };
   }
 
   let {
@@ -121,8 +155,7 @@ curl -X POST "http://localhost:8000/backblazeFileUpload" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "backblaze" },
-    "bucketId": "REPLACE_BUCKET_ID",
-    "fileData": { "fileName": "hello.txt", "fileSource": "hello world" },
-    "options": { "bucketName": "my-public-bucket" }
+    "bucketIdentifier": { "bucketName": "crabs" },
+    "fileData": { "fileName": "crab.txt", "fileSource": "one big claw, one small" }
   }'
 */
