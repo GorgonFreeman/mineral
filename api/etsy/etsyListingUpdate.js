@@ -39,7 +39,7 @@ const etsyListingUpdate = async (
 
   return fetchClient.fetch({
     requestPayload: {
-      method: 'patch',
+      method: 'PATCH',
       url: `/application/shops/${ shopId }/listings/${ listingId }`,
       body: updatePayload,
     },
