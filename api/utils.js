@@ -166,6 +166,10 @@ const bodyPassesThrough = (body) => {
     return true;
   }
 
+  if (Buffer.isBuffer(body)) {
+    return true;
+  }
+
   return typeof body.getHeaders === 'function';
 };
 
