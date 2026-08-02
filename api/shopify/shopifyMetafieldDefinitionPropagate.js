@@ -2,36 +2,9 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/queries/metafieldDefinition
 
 const { credsValidator } = require('../validators');
-const { ArgsWarden, credsFromPayload, objHasAny } = require('../utils');
-const { shopifyClient } = require('./shopify.utils');
-const { shopifyMutationDo } = require('./shopifyMutationDo');
-
-const sourceMetafieldDefinitionAttrs = `
-  name
-  namespace
-  key
-  description
-  ownerType
-  pinnedPosition
-  type {
-    name
-  }
-  validations {
-    name
-    value
-  }
-  capabilities {
-    adminFilterable {
-      enabled
-    }
-    smartCollectionCondition {
-      enabled
-    }
-    uniqueValues {
-      enabled
-    }
-  }
-`.trim();
+const { ArgsWarden, objHasAny } = require('../utils');
+const { shopifyMetafieldDefinitionGet } = require('./shopifyMetafieldDefinitionGet');
+const { shopifyMetafieldDefinitionCreate } = require('./shopifyMetafieldDefinitionCreate');
 
 const defaultReturnCreatedDefinitionAttrs = 'id name namespace key ownerType type { name }';
 
@@ -96,37 +69,6 @@ const metafieldDefinitionInputFromDefinition = (sourceDefinition) => {
   return definitionInput;
 };
 
-const fetchSourceMetafieldDefinition = async (
-  fromStoreCredsPayload,
-  metafieldDefinitionIdentifier,
-  {
-    apiVersion,
-  } = {},
-) => {
-  const creds = await credsFromPayload(fromStoreCredsPayload);
-
-  return shopifyClient.fetch({
-    method: 'post',
-    body: {
-      query: `
-        query GetMetafieldDefinition($identifier: MetafieldDefinitionIdentifierInput!) {
-          metafieldDefinition(identifier: $identifier) {
-            ${ sourceMetafieldDefinitionAttrs }
-          }
-        }
-      `,
-      variables: {
-        identifier: metafieldDefinitionIdentifier,
-      },
-    },
-    context: {
-      creds,
-      apiVersion,
-      resultPath: 'data.metafieldDefinition',
-    },
-  });
-};
-
 const shopifyMetafieldDefinitionPropagate = async (
   fromStoreCredsPayload,
   toStoreCredsPayload,
@@ -146,7 +88,7 @@ const shopifyMetafieldDefinitionPropagate = async (
     return rejectResponse;
   }
 
-  const sourceResponse = await fetchSourceMetafieldDefinition(
+  const sourceResponse = await shopifyMetafieldDefinitionGet(
     fromStoreCredsPayload,
     metafieldDefinitionIdentifier,
     { apiVersion },
@@ -169,20 +111,34 @@ const shopifyMetafieldDefinitionPropagate = async (
 
   const definitionInput = metafieldDefinitionInputFromDefinition(sourceResponse.data);
 
-  return shopifyMutationDo(
+  const {
+    ownerType,
+    namespace,
+    key,
+    name,
+    type,
+    description,
+    pin,
+    validations,
+    capabilities,
+  } = definitionInput;
+
+  return shopifyMetafieldDefinitionCreate(
     toStoreCredsPayload,
-    'metafieldDefinitionCreate',
+    ownerType,
+    namespace,
+    key,
+    name,
+    type,
     {
-      mutationVariables: {
-        definition: {
-          type: 'MetafieldDefinitionInput!',
-          value: definitionInput,
-        },
-      },
+      apiVersion,
+      ...(description && { description }),
+      ...(pin != null && { pin }),
+      ...(validations && { validations }),
+      ...(capabilities && { capabilities }),
       returnSchema: `
         createdDefinition { ${ returnCreatedDefinitionAttrs } }
       `.trim(),
-      apiVersion,
     },
   );
 };

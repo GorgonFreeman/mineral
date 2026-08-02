@@ -39,6 +39,7 @@ const shopifyMetafieldDefinitionCreate = async (
     pin,
     useAsCollectionCondition,
     validations,
+    capabilities,
     returnSchema = defaultReturnSchema,
   } = {},
 ) => {
@@ -73,6 +74,7 @@ const shopifyMetafieldDefinitionCreate = async (
             ...(pin && { pin }),
             ...(useAsCollectionCondition && { useAsCollectionCondition }),
             ...(validations && { validations }),
+            ...(capabilities && { capabilities }),
           },
         },
       },
