@@ -3,7 +3,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
 const {
   backblazeUploadFileBytes,
@@ -12,11 +12,10 @@ const {
 } = require('../backblaze/backblaze.utils');
 
 const fileDataValidator = (fileData) => {
-  if (fileData?.filePath) {
-    return true;
-  }
-
-  return Boolean(fileData?.fileName && fileData?.fileSource !== undefined);
+  const { filePath, fileName, fileSource } = fileData;
+  return valueProvided(filePath) 
+    || (valueProvided(fileName) && valueProvided(fileSource))
+    ;
 };
 
 const argsWarden = new ArgsWarden([
