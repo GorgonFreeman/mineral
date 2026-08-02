@@ -17,6 +17,7 @@ Notes for AI assistants working in this directory. **Read this file at the start
 - Refer to _example.js files for reference on how functions are laid out, e.g. use of argsWarden.
 - If other functions in the platform use fetchClient as passed through options, support it as well.
 - skim an existing platform of the same shape before considering inventing a new pattern.
+- docs.md in each platform should not describe the details of our implementation, handlers or anything relating to Mineral. It is for describing the platform's API itself and does not change based on what we do with it. It should also be brief.
 
 ## API clients
 - Base URLs for platform clients should live in `{platform}.constants.js`, not creds, if they are static for all users of the API.
