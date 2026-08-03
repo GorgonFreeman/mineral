@@ -5,6 +5,7 @@ const path = require('path');
 
 const { ArgsWarden, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
+const { backblazeBucketsGet } = require('../backblaze/backblazeBucketsGet');
 const {
   backblazeUploadFileBytes,
   getBackblazeSession,
