@@ -5,23 +5,24 @@ const path = require('path');
 
 const { ArgsWarden, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
-const { backblazeBucketsGet } = require('../backblaze/backblazeBucketsGet');
 const {
   backblazeUploadFileBytes,
+  bucketIdentifierValidator,
   getBackblazeSession,
   publicFileUrlForBucketName,
+  resolveBucketIdFromIdentifier,
 } = require('../backblaze/backblaze.utils');
 
 const fileDataValidator = (fileData) => {
   const { filePath, fileName, fileSource } = fileData;
-  return valueProvided(filePath) 
+  return valueProvided(filePath)
     || (valueProvided(fileName) && valueProvided(fileSource))
     ;
 };
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['bucketIdentifier'],
+  ['bucketIdentifier', bucketIdentifierValidator],
   ['fileData', fileDataValidator],
 ]);
 
@@ -42,46 +43,20 @@ const backblazeFileUpload = async (
   if (rejectResponse) {
     return rejectResponse;
   }
-  
+
   const {
     bucketName,
   } = bucketIdentifier;
 
-  let {
-    bucketId,
-  } = bucketIdentifier;
-
-  if (!bucketId) {
-    const bucketsResponse = await backblazeBucketsGet(credsPayload);
-    if (!bucketsResponse.ok) {
-      return bucketsResponse;
-    }
-
-    const bucket = bucketsResponse.data.find(
-      (candidate) => candidate.bucketName === bucketName,
-    );
-
-    if (!bucket) {
-      return {
-        ok: false,
-        error: {
-          code: 'BUCKET_NOT_FOUND',
-          message: `Bucket ${ bucketName } not found`,
-        },
-      };
-    }
-
-    bucketId = bucket.bucketId;
+  const bucketIdResponse = await resolveBucketIdFromIdentifier(
+    credsPayload,
+    bucketIdentifier,
+  );
+  if (!bucketIdResponse.ok) {
+    return bucketIdResponse;
   }
 
-  if (!bucketId) {
-    return {
-      ok: false,
-      error: {
-        code: 'BUCKET_NOT_FOUND',
-      },
-    };
-  }
+  const { data: bucketId } = bucketIdResponse;
 
   let {
     filePath,

@@ -3,32 +3,48 @@
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { B2_API_VERSION_PATH } = require('../backblaze/backblaze.constants');
+const {
+  bucketIdentifierValidator,
+  resolveBucketIdFromIdentifier,
+} = require('../backblaze/backblaze.utils');
 const { backblazeGet, backblazeGetter } = require('../backblaze/backblazeGet');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['bucketId'],
+  ['bucketIdentifier', bucketIdentifierValidator],
 ]);
 
 const backblazeFilesGet = async (
   returnGetter,
 
   credsPayload,
-  bucketId,
+  bucketIdentifier,
   {
     prefix,
     maxFileCount,
+    fetchClient,
     ...getterOptions
   } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    bucketId,
+    bucketIdentifier,
   });
   if (rejectResponse) {
     return rejectResponse;
   }
+
+  const bucketIdResponse = await resolveBucketIdFromIdentifier(
+    credsPayload,
+    bucketIdentifier,
+    { fetchClient },
+  );
+  if (!bucketIdResponse.ok) {
+    return bucketIdResponse;
+  }
+
+  const { data: bucketId } = bucketIdResponse;
 
   const getterArgs = [
     credsPayload,
@@ -39,6 +55,7 @@ const backblazeFilesGet = async (
         ...prefix && { prefix },
       },
       ...maxFileCount && { maxFileCount },
+      ...fetchClient && { fetchClient },
       ...getterOptions,
     },
   ];
@@ -63,6 +80,6 @@ curl -X POST "http://localhost:8000/backblazeFilesGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "backblaze" },
-    "bucketId": "REPLACE_BUCKET_ID"
+    "bucketIdentifier": { "bucketName": "crabs" }
   }'
 */

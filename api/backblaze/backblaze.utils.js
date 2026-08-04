@@ -8,7 +8,15 @@ const {
   customFetch,
   FetchClient,
   fetchClientCommonSteps,
+  objHasAny,
 } = require('../utils');
+
+const bucketIdentifierValidator = (bucketIdentifier) => {
+  return objHasAny(bucketIdentifier, [
+    'bucketId',
+    'bucketName',
+  ]);
+};
 
 const sessionCacheKeyForCredsPayload = (credsPayload) => {
   if (credsPayload?.credsPath) {
@@ -244,9 +252,71 @@ const backblazeUploadFileBytes = async ({
   });
 };
 
+const resolveBucketIdFromIdentifier = async (
+  credsPayload,
+  bucketIdentifier,
+  {
+    fetchClient,
+  } = {},
+) => {
+  const {
+    bucketId,
+    bucketName,
+  } = bucketIdentifier;
+
+  if (bucketId) {
+    return {
+      ok: true,
+      data: bucketId,
+    };
+  }
+
+  if (!bucketName) {
+    return {
+      ok: false,
+      error: {
+        code: 'BUCKET_NOT_FOUND',
+        message: 'Provide bucketId or bucketName',
+      },
+    };
+  }
+
+  const { backblazeBucketsGet } = require('../backblaze/backblazeBucketsGet');
+
+  const bucketsResponse = await backblazeBucketsGet(credsPayload, {
+    bucketName,
+    fetchClient,
+  });
+
+  if (!bucketsResponse.ok) {
+    return bucketsResponse;
+  }
+
+  const bucket = bucketsResponse.data?.find(
+    (candidate) => candidate.bucketName === bucketName,
+  );
+
+  if (!bucket?.bucketId) {
+    return {
+      ok: false,
+      error: {
+        code: 'BUCKET_NOT_FOUND',
+        message: `Bucket ${ bucketName } not found`,
+      },
+    };
+  }
+
+  return {
+    ok: true,
+    data: bucket.bucketId,
+  };
+};
+
 module.exports = {
   backblazeClient,
+  bucketIdentifierValidator,
   getBackblazeSession,
   publicFileUrlForBucketName,
   backblazeUploadFileBytes,
+  resolveBucketIdFromIdentifier,
 };
