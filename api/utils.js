@@ -661,7 +661,7 @@ const fetchClientCommonSteps = {
     const resultPathNodes = pathAsArray(resultPath);
     const dataAtPath = objectDigNodeAtPath(data, resultPathNodes);
 
-    if (!valueProvided(dataAtPath)) {
+    if (dataAtPath === undefined) {
       return {
         response: {
           ok: false,
