@@ -45,6 +45,7 @@ const backblazeBucketsGet = async (
     context: {
       credsPayload,
       session,
+      resultPath: 'buckets',
     },
   });
 };

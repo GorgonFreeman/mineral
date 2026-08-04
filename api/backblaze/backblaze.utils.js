@@ -153,6 +153,7 @@ const backblazeClient = new FetchClient({
     useBackblazeApiUrl,
     'fetch',
     fetchClientCommonSteps.exitEarlyOnNotOk,
+    fetchClientCommonSteps.digToPath,
   ],
 });
 
