@@ -28,7 +28,7 @@ const linearIssuesGet = async (
     ? { team: { id: { eq: teamId } } }
     : undefined;
 
-  const response = await linearClient.fetch({
+  return linearClient.fetch({
     requestPayload: {
       body: {
         query: `
@@ -63,20 +63,12 @@ const linearIssuesGet = async (
         },
       },
     },
-    context: { credsPayload },
+    context: {
+      credsPayload,
+      resultPath: 'data.issues.nodes',
+    },
     inspect,
   });
-
-  if (!response.ok) {
-    return response;
-  }
-
-  const issues = response.data?.data?.issues?.nodes ?? [];
-
-  return {
-    ok: true,
-    data: issues,
-  };
 };
 
 const funcApiConfig = {

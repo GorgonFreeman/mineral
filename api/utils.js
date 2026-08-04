@@ -22,6 +22,8 @@ const sentenceCaseString = (string) => `${ string[0].toLowerCase() }${ string.sl
 
 const normalise = (value) => (value || '').toString().trim().toLowerCase();
 
+const valueProvided = (value) => value !== undefined && value !== null;
+
 const credsByPath = (credsPath, credsObject) => {
   const pathNodes = pathAsArray(credsPath);
 
@@ -652,14 +654,14 @@ const fetchClientCommonSteps = {
     const { resultPath } = context;
     const { data } = response;
 
-    if (!data || !resultPath) {
+    if (!valueProvided(data) || !valueProvided(resultPath)) {
       return {};
     }
 
     const resultPathNodes = pathAsArray(resultPath);
     const dataAtPath = objectDigNodeAtPath(data, resultPathNodes);
 
-    if (!dataAtPath) {
+    if (!valueProvided(dataAtPath)) {
       return {
         response: {
           ok: false,
@@ -679,8 +681,6 @@ const fetchClientCommonSteps = {
     };
   },
 };
-
-const valueProvided = (value) => value !== undefined && value !== null;
 
 const ensureArray = (value) => {
   if (Array.isArray(value)) {

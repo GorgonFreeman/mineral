@@ -32,7 +32,7 @@ const starshipitOrderGet = async (
     orderNumber,
   } = orderIdentifier;
 
-  const response = await starshipitClient.fetch({
+  return starshipitClient.fetch({
     requestPayload: {
       url: '/orders',
       params: {
@@ -42,17 +42,9 @@ const starshipitOrderGet = async (
     },
     context: {
       credsPayload,
+      resultPath: 'order',
     },
   });
-
-  if (!response?.ok) {
-    return response;
-  }
-
-  return {
-    ...response,
-    data: response.data?.order ?? response.data,
-  };
 };
 
 const funcApiConfig = {

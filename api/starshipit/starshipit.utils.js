@@ -63,6 +63,7 @@ const starshipitClient = new FetchClient({
     'fetch',
     fetchClientCommonSteps.exitEarlyOnNotOk,
     interpretStarshipitResponse,
+    fetchClientCommonSteps.digToPath,
   ],
 });
 

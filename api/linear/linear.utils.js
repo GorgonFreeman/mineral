@@ -30,6 +30,7 @@ const linearClient = new FetchClient({
     'fetch',
     fetchClientCommonSteps.exitEarlyOnNotOk,
     fetchClientCommonSteps.exitEarlyOnGraphqlErrors,
+    fetchClientCommonSteps.digToPath,
   ],
 });
 
