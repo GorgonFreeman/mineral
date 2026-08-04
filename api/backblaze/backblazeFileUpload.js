@@ -43,9 +43,12 @@ const backblazeFileUpload = async (
     return rejectResponse;
   }
   
-  const { 
-    bucketId,
+  const {
     bucketName,
+  } = bucketIdentifier;
+
+  let {
+    bucketId,
   } = bucketIdentifier;
 
   if (!bucketId) {
@@ -54,7 +57,9 @@ const backblazeFileUpload = async (
       return bucketsResponse;
     }
 
-    const bucket = bucketsResponse.data.find(bucket => bucket.name === bucketName);
+    const bucket = bucketsResponse.data.find(
+      (candidate) => candidate.bucketName === bucketName,
+    );
 
     if (!bucket) {
       return {
@@ -66,7 +71,7 @@ const backblazeFileUpload = async (
       };
     }
 
-    bucketId = bucket.id;
+    bucketId = bucket.bucketId;
   }
 
   if (!bucketId) {
