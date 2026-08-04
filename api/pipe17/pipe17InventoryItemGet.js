@@ -31,7 +31,7 @@ const pipe17InventoryItemGet = async (
     '/inventory',
     inventoryItemId,
     {
-      resultKey: 'inventory',
+      resultPath: 'result.inventory',
       inspect,
       fetchClient,
     },

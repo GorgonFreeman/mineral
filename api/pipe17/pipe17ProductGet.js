@@ -31,7 +31,7 @@ const pipe17ProductGet = async (
     '/products',
     productId,
     {
-      resultKey: 'product',
+      resultPath: 'result.product',
       inspect,
       fetchClient,
     },

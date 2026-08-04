@@ -2,7 +2,7 @@
 
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
-const { pipe17Client } = require('../pipe17/pipe17.utils');
+const { pipe17GetSingle } = require('../pipe17/pipe17.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
@@ -14,7 +14,7 @@ const pipe17JobGet = async (
   jobId,
   {
     inspect = false,
-    fetchClient = pipe17Client,
+    fetchClient,
   } = {},
 ) => {
 
@@ -26,29 +26,16 @@ const pipe17JobGet = async (
     return rejectResponse;
   }
 
-  const response = await fetchClient.fetch({
-    requestPayload: {
-      method: 'get',
-      url: `/jobs/${ jobId }`,
+  return pipe17GetSingle(
+    credsPayload,
+    '/jobs',
+    jobId,
+    {
+      resultPath: 'result.job',
+      inspect,
+      fetchClient,
     },
-    context: { credsPayload },
-    inspect,
-  });
-
-  if (!response.ok) {
-    return response;
-  }
-
-  const job = response.data?.result?.job
-    ?? response.data?.job;
-  if (job !== undefined) {
-    return {
-      ...response,
-      data: job,
-    };
-  }
-
-  return response;
+  );
 };
 
 const funcApiConfig = {

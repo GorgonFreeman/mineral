@@ -31,7 +31,7 @@ const pipe17ReturnGet = async (
     '/returns',
     returnId,
     {
-      resultKey: 'return',
+      resultPath: 'result.return',
       inspect,
       fetchClient,
     },

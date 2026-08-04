@@ -75,6 +75,7 @@ const pipe17Client = new FetchClient({
     'fetch',
     fetchClientCommonSteps.exitEarlyOnNotOk,
     interpretPipe17Response,
+    fetchClientCommonSteps.digToPath,
   ],
 });
 
@@ -83,37 +84,23 @@ const pipe17GetSingle = async (
   collectionPath,
   id,
   {
-    resultKey,
+    resultPath,
     inspect = false,
     fetchClient = pipe17Client,
   } = {},
 ) => {
 
-  const response = await fetchClient.fetch({
+  return fetchClient.fetch({
     requestPayload: {
       method: 'get',
       url: `${ collectionPath }/${ id }`,
     },
-    context: { credsPayload },
+    context: {
+      credsPayload,
+      resultPath,
+    },
     inspect,
   });
-
-  if (!response.ok) {
-    return response;
-  }
-
-  const resolvedResultKey = resultKey ?? collectionPath.replace(/^\//, '').replace(/s$/, '');
-  const entity = response.data?.result?.[resolvedResultKey]
-    ?? response.data?.[resolvedResultKey];
-
-  if (entity !== undefined) {
-    return {
-      ...response,
-      data: entity,
-    };
-  }
-
-  return response;
 };
 
 module.exports = {

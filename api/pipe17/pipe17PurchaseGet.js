@@ -31,7 +31,7 @@ const pipe17PurchaseGet = async (
     '/purchases',
     purchaseId,
     {
-      resultKey: 'purchase',
+      resultPath: 'result.purchase',
       inspect,
       fetchClient,
     },

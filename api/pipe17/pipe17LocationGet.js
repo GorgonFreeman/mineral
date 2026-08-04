@@ -31,7 +31,7 @@ const pipe17LocationGet = async (
     '/locations',
     locationId,
     {
-      resultKey: 'location',
+      resultPath: 'result.location',
       inspect,
       fetchClient,
     },

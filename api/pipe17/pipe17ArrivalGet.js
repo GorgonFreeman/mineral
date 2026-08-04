@@ -52,7 +52,7 @@ const pipe17ArrivalGet = async (
     '/arrivals',
     resolveArrivalId(arrivalIdentifier),
     {
-      resultKey: 'arrival',
+      resultPath: 'result.arrival',
       inspect,
       fetchClient,
     },

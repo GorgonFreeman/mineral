@@ -43,7 +43,7 @@ const pipe17FulfillmentGet = async (
     '/fulfillments',
     resolveFulfillmentId(fulfillmentIdentifier),
     {
-      resultKey: 'fulfillment',
+      resultPath: 'result.fulfillment',
       inspect,
       fetchClient,
     },

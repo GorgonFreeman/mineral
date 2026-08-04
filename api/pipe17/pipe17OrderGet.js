@@ -45,7 +45,7 @@ const pipe17OrderGet = async (
     '/orders',
     resolveOrderId(orderIdentifier),
     {
-      resultKey: 'order',
+      resultPath: 'result.order',
       inspect,
       fetchClient,
     },
