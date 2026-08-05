@@ -18,6 +18,8 @@ Notes for AI assistants working in this directory. **Read this file at the start
 - If other functions in the platform use fetchClient as passed through options, support it as well.
 - skim an existing platform of the same shape before considering inventing a new pattern.
 - docs.md in each platform should not describe the details of our implementation, handlers or anything relating to Mineral. It is for describing the platform's API itself and does not change based on what we do with it. It should also be brief.
+- Usually when making a function that gets multiples of a resource, it should be implemented as a Getter, with a paginator and digester. If done in this way, export platformThingGet and platformThingGetter, using the .bind() syntax seen in other Get functions.
+- When making functions that act on single resources, consider using actionSingleOrMultiple to allow a queue of actions.
 
 ## API clients
 - Base URLs for platform clients should live in `{platform}.constants.js`, not creds, if they are static for all users of the API.
