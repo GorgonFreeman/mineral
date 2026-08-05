@@ -3,6 +3,8 @@ const { resolveCreds } = require('../pipelineSteps');
 const {
   FetchClient,
   fetchClientCommonSteps,
+  pathAsArray,
+  objectDigNodeAtPath,
 } = require('../utils');
 
 const useAuthHeaders = async (state) => {
@@ -23,11 +25,36 @@ const useAuthHeaders = async (state) => {
   };
 };
 
+const movePageInfoToMeta = async (state) => {
+  const { response, context } = state;
+  const { resultPath } = context ?? {};
+
+  if (!response?.ok || !response?.data || !resultPath) {
+    return {};
+  }
+
+  const connection = objectDigNodeAtPath(response.data, pathAsArray(resultPath));
+
+  if (!connection?.pageInfo) {
+    return {};
+  }
+
+  return {
+    response: {
+      meta: {
+        pageInfo: connection.pageInfo,
+      },
+    },
+  };
+};
+
 const linearClient = new FetchClient({
   pipeline: [
     resolveCreds,
     useAuthHeaders,
     'fetch',
+    movePageInfoToMeta,
+    fetchClientCommonSteps.stripEdgesAndNodes,
     fetchClientCommonSteps.exitEarlyOnNotOk,
     fetchClientCommonSteps.exitEarlyOnGraphqlErrors,
     fetchClientCommonSteps.digToPath,
@@ -39,7 +66,7 @@ const linearConnectionDigester = (response) => {
     return [];
   }
 
-  return response?.data?.nodes ?? [];
+  return response?.data ?? [];
 };
 
 const linearConnectionPaginator = async (currentParams, response) => {
@@ -49,7 +76,7 @@ const linearConnectionPaginator = async (currentParams, response) => {
     return [true];
   }
 
-  const pageInfo = response?.data?.pageInfo;
+  const pageInfo = response?.meta?.pageInfo;
   if (!pageInfo?.hasNextPage || !pageInfo?.endCursor) {
     return [true];
   }
