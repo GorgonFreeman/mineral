@@ -13,7 +13,7 @@ const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
 
-const linearIssuesGetPacket = async (
+const linearProjectsGetPacket = async (
   credsPayload,
   {
     filter,
@@ -32,17 +32,17 @@ const linearIssuesGetPacket = async (
     requestPayload: {
       body: {
         query: `
-          query IssuesGet(
-            $filter: IssueFilter
+          query ProjectsGet(
+            $filter: ProjectFilter
             $before: String
             $after: String
             $first: Int
             $last: Int
             $includeArchived: Boolean
             $orderBy: PaginationOrderBy
-            $sort: [IssueSortInput!]
+            $sort: [ProjectSortInput!]
           ) {
-            issues(
+            projects(
               filter: $filter
               before: $before
               after: $after
@@ -54,23 +54,12 @@ const linearIssuesGetPacket = async (
             ) {
               nodes {
                 id
-                identifier
-                title
-                priority
+                name
+                description
+                url
+                state
                 createdAt
                 updatedAt
-                state {
-                  id
-                  name
-                }
-                team {
-                  id
-                  name
-                }
-                assignee {
-                  id
-                  name
-                }
               }
               pageInfo {
                 hasNextPage
@@ -95,13 +84,13 @@ const linearIssuesGetPacket = async (
     },
     context: {
       credsPayload,
-      resultPath: 'data.issues',
+      resultPath: 'data.projects',
     },
     inspect,
   });
 };
 
-const linearIssuesGet = async (
+const linearProjectsGet = async (
   returnGetter,
 
   credsPayload,
@@ -144,7 +133,7 @@ const linearIssuesGet = async (
       },
     },
     {
-      func: linearIssuesGetPacket,
+      func: linearProjectsGetPacket,
       digester: linearConnectionDigester,
       paginator: linearConnectionPaginator,
       ...getterOptions,
@@ -168,18 +157,18 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearIssuesGet: (...args) => linearIssuesGet(false, ...args),
-  linearIssuesGetter: (...args) => linearIssuesGet(true, ...args),
+  linearProjectsGet: (...args) => linearProjectsGet(false, ...args),
+  linearProjectsGetter: (...args) => linearProjectsGet(true, ...args),
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/linearIssuesGet" \
+curl -X POST "http://localhost:8000/linearProjectsGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
     "options": {
-      "limit": 5
+      "limit": 10
     }
   }'
 */

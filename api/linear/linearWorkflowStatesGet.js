@@ -13,7 +13,7 @@ const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
 
-const linearIssuesGetPacket = async (
+const linearWorkflowStatesGetPacket = async (
   credsPayload,
   {
     filter,
@@ -22,7 +22,6 @@ const linearIssuesGetPacket = async (
     last,
     includeArchived,
     orderBy,
-    sort,
     perPage = MAX_PER_PAGE,
     inspect = false,
     fetchClient = linearClient,
@@ -32,17 +31,16 @@ const linearIssuesGetPacket = async (
     requestPayload: {
       body: {
         query: `
-          query IssuesGet(
-            $filter: IssueFilter
+          query WorkflowStatesGet(
+            $filter: WorkflowStateFilter
             $before: String
             $after: String
             $first: Int
             $last: Int
             $includeArchived: Boolean
             $orderBy: PaginationOrderBy
-            $sort: [IssueSortInput!]
           ) {
-            issues(
+            workflowStates(
               filter: $filter
               before: $before
               after: $after
@@ -50,24 +48,13 @@ const linearIssuesGetPacket = async (
               last: $last
               includeArchived: $includeArchived
               orderBy: $orderBy
-              sort: $sort
             ) {
               nodes {
                 id
-                identifier
-                title
-                priority
-                createdAt
-                updatedAt
-                state {
-                  id
-                  name
-                }
+                name
+                type
+                position
                 team {
-                  id
-                  name
-                }
-                assignee {
                   id
                   name
                 }
@@ -89,19 +76,18 @@ const linearIssuesGetPacket = async (
           last,
           includeArchived,
           orderBy,
-          sort,
         },
       },
     },
     context: {
       credsPayload,
-      resultPath: 'data.issues',
+      resultPath: 'data.workflowStates',
     },
     inspect,
   });
 };
 
-const linearIssuesGet = async (
+const linearWorkflowStatesGet = async (
   returnGetter,
 
   credsPayload,
@@ -112,7 +98,6 @@ const linearIssuesGet = async (
     last,
     includeArchived,
     orderBy,
-    sort,
     perPage = MAX_PER_PAGE,
     inspect = false,
     fetchClient = linearClient,
@@ -137,14 +122,13 @@ const linearIssuesGet = async (
         last,
         includeArchived,
         orderBy,
-        sort,
         perPage,
         inspect,
         fetchClient,
       },
     },
     {
-      func: linearIssuesGetPacket,
+      func: linearWorkflowStatesGetPacket,
       digester: linearConnectionDigester,
       paginator: linearConnectionPaginator,
       ...getterOptions,
@@ -168,18 +152,21 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearIssuesGet: (...args) => linearIssuesGet(false, ...args),
-  linearIssuesGetter: (...args) => linearIssuesGet(true, ...args),
+  linearWorkflowStatesGet: (...args) => linearWorkflowStatesGet(false, ...args),
+  linearWorkflowStatesGetter: (...args) => linearWorkflowStatesGet(true, ...args),
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/linearIssuesGet" \
+curl -X POST "http://localhost:8000/linearWorkflowStatesGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
     "options": {
-      "limit": 5
+      "limit": 20,
+      "filter": {
+        "team": { "id": { "eq": "f2387dcd-61ac-49aa-8d7a-7f62a0b5cca0" } }
+      }
     }
   }'
 */

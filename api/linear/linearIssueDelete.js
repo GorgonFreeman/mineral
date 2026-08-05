@@ -4,17 +4,16 @@ const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { linearClient } = require('../linear/linear.utils');
 
-const inputValidator = (input) => Boolean(input?.title && input?.teamId);
-
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['input', inputValidator],
+  ['id'],
 ]);
 
-const linearIssueCreate = async (
+const linearIssueDelete = async (
   credsPayload,
-  input,
+  id,
   {
+    permanentlyDelete,
     inspect = false,
     fetchClient = linearClient,
   } = {},
@@ -22,7 +21,7 @@ const linearIssueCreate = async (
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    input,
+    id,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -32,41 +31,25 @@ const linearIssueCreate = async (
     requestPayload: {
       body: {
         query: `
-          mutation IssueCreate($input: IssueCreateInput!) {
-            issueCreate(input: $input) {
+          mutation IssueDelete($id: String!, $permanentlyDelete: Boolean) {
+            issueDelete(id: $id, permanentlyDelete: $permanentlyDelete) {
               success
-              issue {
+              entity {
                 id
                 identifier
-                title
-                url
-                priority
-                createdAt
-                updatedAt
-                state {
-                  id
-                  name
-                }
-                team {
-                  id
-                  name
-                }
-                assignee {
-                  id
-                  name
-                }
               }
             }
           }
         `,
         variables: {
-          input,
+          id,
+          permanentlyDelete,
         },
       },
     },
     context: {
       credsPayload,
-      resultPath: 'data.issueCreate',
+      resultPath: 'data.issueDelete',
     },
     inspect,
   });
@@ -77,18 +60,15 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearIssueCreate,
+  linearIssueDelete,
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/linearIssueCreate" \
+curl -X POST "http://localhost:8000/linearIssueDelete" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
-    "input": {
-      "title": "Example issue",
-      "teamId": "f2387dcd-61ac-49aa-8d7a-7f62a0b5cca0"
-    }
+    "id": "WHI-267"
   }'
 */

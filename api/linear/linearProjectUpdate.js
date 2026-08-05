@@ -1,18 +1,18 @@
 // https://linear.app/developers/graphql
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
 const { linearClient } = require('../linear/linear.utils');
 
-const inputValidator = (input) => Boolean(input?.title && input?.teamId);
-
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['input', inputValidator],
+  ['id'],
+  ['input', valueProvided],
 ]);
 
-const linearIssueCreate = async (
+const linearProjectUpdate = async (
   credsPayload,
+  id,
   input,
   {
     inspect = false,
@@ -22,6 +22,7 @@ const linearIssueCreate = async (
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
+    id,
     input,
   });
   if (rejectResponse) {
@@ -32,41 +33,26 @@ const linearIssueCreate = async (
     requestPayload: {
       body: {
         query: `
-          mutation IssueCreate($input: IssueCreateInput!) {
-            issueCreate(input: $input) {
+          mutation ProjectUpdate($id: String!, $input: ProjectUpdateInput!) {
+            projectUpdate(id: $id, input: $input) {
               success
-              issue {
+              project {
                 id
-                identifier
-                title
+                name
                 url
-                priority
-                createdAt
-                updatedAt
-                state {
-                  id
-                  name
-                }
-                team {
-                  id
-                  name
-                }
-                assignee {
-                  id
-                  name
-                }
               }
             }
           }
         `,
         variables: {
+          id,
           input,
         },
       },
     },
     context: {
       credsPayload,
-      resultPath: 'data.issueCreate',
+      resultPath: 'data.projectUpdate',
     },
     inspect,
   });
@@ -77,18 +63,18 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearIssueCreate,
+  linearProjectUpdate,
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/linearIssueCreate" \
+curl -X POST "http://localhost:8000/linearProjectUpdate" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
+    "id": "PROJECT_ID",
     "input": {
-      "title": "Example issue",
-      "teamId": "f2387dcd-61ac-49aa-8d7a-7f62a0b5cca0"
+      "name": "Updated project"
     }
   }'
 */

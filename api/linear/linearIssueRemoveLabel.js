@@ -4,16 +4,16 @@ const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { linearClient } = require('../linear/linear.utils');
 
-const inputValidator = (input) => Boolean(input?.title && input?.teamId);
-
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['input', inputValidator],
+  ['id'],
+  ['labelId'],
 ]);
 
-const linearIssueCreate = async (
+const linearIssueRemoveLabel = async (
   credsPayload,
-  input,
+  id,
+  labelId,
   {
     inspect = false,
     fetchClient = linearClient,
@@ -22,7 +22,8 @@ const linearIssueCreate = async (
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    input,
+    id,
+    labelId,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -32,41 +33,25 @@ const linearIssueCreate = async (
     requestPayload: {
       body: {
         query: `
-          mutation IssueCreate($input: IssueCreateInput!) {
-            issueCreate(input: $input) {
+          mutation IssueRemoveLabel($id: String!, $labelId: String!) {
+            issueRemoveLabel(id: $id, labelId: $labelId) {
               success
               issue {
                 id
                 identifier
-                title
-                url
-                priority
-                createdAt
-                updatedAt
-                state {
-                  id
-                  name
-                }
-                team {
-                  id
-                  name
-                }
-                assignee {
-                  id
-                  name
-                }
               }
             }
           }
         `,
         variables: {
-          input,
+          id,
+          labelId,
         },
       },
     },
     context: {
       credsPayload,
-      resultPath: 'data.issueCreate',
+      resultPath: 'data.issueRemoveLabel',
     },
     inspect,
   });
@@ -77,18 +62,16 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearIssueCreate,
+  linearIssueRemoveLabel,
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/linearIssueCreate" \
+curl -X POST "http://localhost:8000/linearIssueRemoveLabel" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
-    "input": {
-      "title": "Example issue",
-      "teamId": "f2387dcd-61ac-49aa-8d7a-7f62a0b5cca0"
-    }
+    "id": "WHI-267",
+    "labelId": "LABEL_ID"
   }'
 */

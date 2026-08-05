@@ -34,6 +34,37 @@ const linearClient = new FetchClient({
   ],
 });
 
+const linearConnectionDigester = (response) => {
+  if (!response?.ok) {
+    return [];
+  }
+
+  return response?.data?.nodes ?? [];
+};
+
+const linearConnectionPaginator = async (currentParams, response) => {
+  const { args, options } = currentParams;
+
+  if (!response?.ok) {
+    return [true];
+  }
+
+  const pageInfo = response?.data?.pageInfo;
+  if (!pageInfo?.hasNextPage || !pageInfo?.endCursor) {
+    return [true];
+  }
+
+  return [false, {
+    args,
+    options: {
+      ...options,
+      after: pageInfo.endCursor,
+    },
+  }];
+};
+
 module.exports = {
   linearClient,
+  linearConnectionDigester,
+  linearConnectionPaginator,
 };

@@ -1,20 +1,21 @@
 // https://linear.app/developers/graphql
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
 const { linearClient } = require('../linear/linear.utils');
 
-const inputValidator = (input) => Boolean(input?.title && input?.teamId);
-
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['input', inputValidator],
+  ['input', valueProvided],
 ]);
 
-const linearIssueCreate = async (
+const linearProjectCreate = async (
   credsPayload,
   input,
   {
+    aiConversationId,
+    projectDraftId,
+    slackChannelName,
     inspect = false,
     fetchClient = linearClient,
   } = {},
@@ -32,41 +33,38 @@ const linearIssueCreate = async (
     requestPayload: {
       body: {
         query: `
-          mutation IssueCreate($input: IssueCreateInput!) {
-            issueCreate(input: $input) {
+          mutation ProjectCreate(
+            $input: ProjectCreateInput!
+            $aiConversationId: String
+            $projectDraftId: String
+            $slackChannelName: String
+          ) {
+            projectCreate(
+              input: $input
+              aiConversationId: $aiConversationId
+              projectDraftId: $projectDraftId
+              slackChannelName: $slackChannelName
+            ) {
               success
-              issue {
+              project {
                 id
-                identifier
-                title
+                name
                 url
-                priority
-                createdAt
-                updatedAt
-                state {
-                  id
-                  name
-                }
-                team {
-                  id
-                  name
-                }
-                assignee {
-                  id
-                  name
-                }
               }
             }
           }
         `,
         variables: {
           input,
+          aiConversationId,
+          projectDraftId,
+          slackChannelName,
         },
       },
     },
     context: {
       credsPayload,
-      resultPath: 'data.issueCreate',
+      resultPath: 'data.projectCreate',
     },
     inspect,
   });
@@ -77,18 +75,18 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearIssueCreate,
+  linearProjectCreate,
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/linearIssueCreate" \
+curl -X POST "http://localhost:8000/linearProjectCreate" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
     "input": {
-      "title": "Example issue",
-      "teamId": "f2387dcd-61ac-49aa-8d7a-7f62a0b5cca0"
+      "name": "Example project",
+      "teamIds": ["f2387dcd-61ac-49aa-8d7a-7f62a0b5cca0"]
     }
   }'
 */

@@ -1,20 +1,19 @@
 // https://linear.app/developers/graphql
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
 const { linearClient } = require('../linear/linear.utils');
 
-const inputValidator = (input) => Boolean(input?.title && input?.teamId);
-
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['input', inputValidator],
+  ['input', valueProvided],
 ]);
 
-const linearIssueCreate = async (
+const linearIssueLabelCreate = async (
   credsPayload,
   input,
   {
+    replaceTeamLabels,
     inspect = false,
     fetchClient = linearClient,
   } = {},
@@ -32,41 +31,29 @@ const linearIssueCreate = async (
     requestPayload: {
       body: {
         query: `
-          mutation IssueCreate($input: IssueCreateInput!) {
-            issueCreate(input: $input) {
+          mutation IssueLabelCreate(
+            $input: IssueLabelCreateInput!
+            $replaceTeamLabels: Boolean
+          ) {
+            issueLabelCreate(input: $input, replaceTeamLabels: $replaceTeamLabels) {
               success
-              issue {
+              issueLabel {
                 id
-                identifier
-                title
-                url
-                priority
-                createdAt
-                updatedAt
-                state {
-                  id
-                  name
-                }
-                team {
-                  id
-                  name
-                }
-                assignee {
-                  id
-                  name
-                }
+                name
+                color
               }
             }
           }
         `,
         variables: {
           input,
+          replaceTeamLabels,
         },
       },
     },
     context: {
       credsPayload,
-      resultPath: 'data.issueCreate',
+      resultPath: 'data.issueLabelCreate',
     },
     inspect,
   });
@@ -77,17 +64,17 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearIssueCreate,
+  linearIssueLabelCreate,
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/linearIssueCreate" \
+curl -X POST "http://localhost:8000/linearIssueLabelCreate" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
     "input": {
-      "title": "Example issue",
+      "name": "bug",
       "teamId": "f2387dcd-61ac-49aa-8d7a-7f62a0b5cca0"
     }
   }'

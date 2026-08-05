@@ -4,16 +4,14 @@ const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { linearClient } = require('../linear/linear.utils');
 
-const inputValidator = (input) => Boolean(input?.title && input?.teamId);
-
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['input', inputValidator],
+  ['id'],
 ]);
 
-const linearIssueCreate = async (
+const linearIssueGet = async (
   credsPayload,
-  input,
+  id,
   {
     inspect = false,
     fetchClient = linearClient,
@@ -22,7 +20,7 @@ const linearIssueCreate = async (
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    input,
+    id,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -32,41 +30,39 @@ const linearIssueCreate = async (
     requestPayload: {
       body: {
         query: `
-          mutation IssueCreate($input: IssueCreateInput!) {
-            issueCreate(input: $input) {
-              success
-              issue {
+          query IssueGet($id: String!) {
+            issue(id: $id) {
+              id
+              identifier
+              title
+              description
+              url
+              priority
+              createdAt
+              updatedAt
+              state {
                 id
-                identifier
-                title
-                url
-                priority
-                createdAt
-                updatedAt
-                state {
-                  id
-                  name
-                }
-                team {
-                  id
-                  name
-                }
-                assignee {
-                  id
-                  name
-                }
+                name
+              }
+              team {
+                id
+                name
+              }
+              assignee {
+                id
+                name
               }
             }
           }
         `,
         variables: {
-          input,
+          id,
         },
       },
     },
     context: {
       credsPayload,
-      resultPath: 'data.issueCreate',
+      resultPath: 'data.issue',
     },
     inspect,
   });
@@ -77,18 +73,15 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearIssueCreate,
+  linearIssueGet,
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/linearIssueCreate" \
+curl -X POST "http://localhost:8000/linearIssueGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
-    "input": {
-      "title": "Example issue",
-      "teamId": "f2387dcd-61ac-49aa-8d7a-7f62a0b5cca0"
-    }
+    "id": "WHI-267"
   }'
 */

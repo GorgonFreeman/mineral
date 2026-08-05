@@ -1,17 +1,15 @@
 // https://linear.app/developers/graphql
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
 const { linearClient } = require('../linear/linear.utils');
 
-const inputValidator = (input) => Boolean(input?.title && input?.teamId);
-
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['input', inputValidator],
+  ['input', valueProvided],
 ]);
 
-const linearIssueCreate = async (
+const linearAttachmentCreate = async (
   credsPayload,
   input,
   {
@@ -32,29 +30,13 @@ const linearIssueCreate = async (
     requestPayload: {
       body: {
         query: `
-          mutation IssueCreate($input: IssueCreateInput!) {
-            issueCreate(input: $input) {
+          mutation AttachmentCreate($input: AttachmentCreateInput!) {
+            attachmentCreate(input: $input) {
               success
-              issue {
+              attachment {
                 id
-                identifier
                 title
                 url
-                priority
-                createdAt
-                updatedAt
-                state {
-                  id
-                  name
-                }
-                team {
-                  id
-                  name
-                }
-                assignee {
-                  id
-                  name
-                }
               }
             }
           }
@@ -66,7 +48,7 @@ const linearIssueCreate = async (
     },
     context: {
       credsPayload,
-      resultPath: 'data.issueCreate',
+      resultPath: 'data.attachmentCreate',
     },
     inspect,
   });
@@ -77,18 +59,19 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearIssueCreate,
+  linearAttachmentCreate,
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/linearIssueCreate" \
+curl -X POST "http://localhost:8000/linearAttachmentCreate" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
     "input": {
-      "title": "Example issue",
-      "teamId": "f2387dcd-61ac-49aa-8d7a-7f62a0b5cca0"
+      "issueId": "WHI-267",
+      "url": "https://example.com/file.pdf",
+      "title": "File"
     }
   }'
 */

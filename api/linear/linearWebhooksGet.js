@@ -13,16 +13,14 @@ const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
 
-const linearIssuesGetPacket = async (
+const linearWebhooksGetPacket = async (
   credsPayload,
   {
-    filter,
     before,
     after,
     last,
     includeArchived,
     orderBy,
-    sort,
     perPage = MAX_PER_PAGE,
     inspect = false,
     fetchClient = linearClient,
@@ -32,45 +30,26 @@ const linearIssuesGetPacket = async (
     requestPayload: {
       body: {
         query: `
-          query IssuesGet(
-            $filter: IssueFilter
+          query WebhooksGet(
             $before: String
             $after: String
             $first: Int
             $last: Int
             $includeArchived: Boolean
             $orderBy: PaginationOrderBy
-            $sort: [IssueSortInput!]
           ) {
-            issues(
-              filter: $filter
+            webhooks(
               before: $before
               after: $after
               first: $first
               last: $last
               includeArchived: $includeArchived
               orderBy: $orderBy
-              sort: $sort
             ) {
               nodes {
                 id
-                identifier
-                title
-                priority
-                createdAt
-                updatedAt
-                state {
-                  id
-                  name
-                }
-                team {
-                  id
-                  name
-                }
-                assignee {
-                  id
-                  name
-                }
+                url
+                enabled
               }
               pageInfo {
                 hasNextPage
@@ -82,37 +61,33 @@ const linearIssuesGetPacket = async (
           }
         `,
         variables: {
-          filter,
           before,
           after,
           first: Math.min(perPage, MAX_PER_PAGE),
           last,
           includeArchived,
           orderBy,
-          sort,
         },
       },
     },
     context: {
       credsPayload,
-      resultPath: 'data.issues',
+      resultPath: 'data.webhooks',
     },
     inspect,
   });
 };
 
-const linearIssuesGet = async (
+const linearWebhooksGet = async (
   returnGetter,
 
   credsPayload,
   {
-    filter,
     before,
     after,
     last,
     includeArchived,
     orderBy,
-    sort,
     perPage = MAX_PER_PAGE,
     inspect = false,
     fetchClient = linearClient,
@@ -131,20 +106,18 @@ const linearIssuesGet = async (
     {
       args: [credsPayload],
       options: {
-        filter,
         before,
         after,
         last,
         includeArchived,
         orderBy,
-        sort,
         perPage,
         inspect,
         fetchClient,
       },
     },
     {
-      func: linearIssuesGetPacket,
+      func: linearWebhooksGetPacket,
       digester: linearConnectionDigester,
       paginator: linearConnectionPaginator,
       ...getterOptions,
@@ -168,18 +141,18 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearIssuesGet: (...args) => linearIssuesGet(false, ...args),
-  linearIssuesGetter: (...args) => linearIssuesGet(true, ...args),
+  linearWebhooksGet: (...args) => linearWebhooksGet(false, ...args),
+  linearWebhooksGetter: (...args) => linearWebhooksGet(true, ...args),
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/linearIssuesGet" \
+curl -X POST "http://localhost:8000/linearWebhooksGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
     "options": {
-      "limit": 5
+      "limit": 10
     }
   }'
 */

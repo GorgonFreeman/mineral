@@ -13,7 +13,7 @@ const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
 
-const linearIssuesGetPacket = async (
+const linearTeamsGetPacket = async (
   credsPayload,
   {
     filter,
@@ -22,7 +22,6 @@ const linearIssuesGetPacket = async (
     last,
     includeArchived,
     orderBy,
-    sort,
     perPage = MAX_PER_PAGE,
     inspect = false,
     fetchClient = linearClient,
@@ -32,17 +31,16 @@ const linearIssuesGetPacket = async (
     requestPayload: {
       body: {
         query: `
-          query IssuesGet(
-            $filter: IssueFilter
+          query TeamsGet(
+            $filter: TeamFilter
             $before: String
             $after: String
             $first: Int
             $last: Int
             $includeArchived: Boolean
             $orderBy: PaginationOrderBy
-            $sort: [IssueSortInput!]
           ) {
-            issues(
+            teams(
               filter: $filter
               before: $before
               after: $after
@@ -50,27 +48,12 @@ const linearIssuesGetPacket = async (
               last: $last
               includeArchived: $includeArchived
               orderBy: $orderBy
-              sort: $sort
             ) {
               nodes {
                 id
-                identifier
-                title
-                priority
-                createdAt
-                updatedAt
-                state {
-                  id
-                  name
-                }
-                team {
-                  id
-                  name
-                }
-                assignee {
-                  id
-                  name
-                }
+                name
+                key
+                description
               }
               pageInfo {
                 hasNextPage
@@ -89,19 +72,18 @@ const linearIssuesGetPacket = async (
           last,
           includeArchived,
           orderBy,
-          sort,
         },
       },
     },
     context: {
       credsPayload,
-      resultPath: 'data.issues',
+      resultPath: 'data.teams',
     },
     inspect,
   });
 };
 
-const linearIssuesGet = async (
+const linearTeamsGet = async (
   returnGetter,
 
   credsPayload,
@@ -112,7 +94,6 @@ const linearIssuesGet = async (
     last,
     includeArchived,
     orderBy,
-    sort,
     perPage = MAX_PER_PAGE,
     inspect = false,
     fetchClient = linearClient,
@@ -137,14 +118,13 @@ const linearIssuesGet = async (
         last,
         includeArchived,
         orderBy,
-        sort,
         perPage,
         inspect,
         fetchClient,
       },
     },
     {
-      func: linearIssuesGetPacket,
+      func: linearTeamsGetPacket,
       digester: linearConnectionDigester,
       paginator: linearConnectionPaginator,
       ...getterOptions,
@@ -168,18 +148,18 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearIssuesGet: (...args) => linearIssuesGet(false, ...args),
-  linearIssuesGetter: (...args) => linearIssuesGet(true, ...args),
+  linearTeamsGet: (...args) => linearTeamsGet(false, ...args),
+  linearTeamsGetter: (...args) => linearTeamsGet(true, ...args),
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/linearIssuesGet" \
+curl -X POST "http://localhost:8000/linearTeamsGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
     "options": {
-      "limit": 5
+      "limit": 10
     }
   }'
 */

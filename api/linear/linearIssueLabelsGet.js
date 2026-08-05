@@ -13,7 +13,7 @@ const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
 
-const linearIssuesGetPacket = async (
+const linearIssueLabelsGetPacket = async (
   credsPayload,
   {
     filter,
@@ -22,7 +22,6 @@ const linearIssuesGetPacket = async (
     last,
     includeArchived,
     orderBy,
-    sort,
     perPage = MAX_PER_PAGE,
     inspect = false,
     fetchClient = linearClient,
@@ -32,17 +31,16 @@ const linearIssuesGetPacket = async (
     requestPayload: {
       body: {
         query: `
-          query IssuesGet(
-            $filter: IssueFilter
+          query IssueLabelsGet(
+            $filter: IssueLabelFilter
             $before: String
             $after: String
             $first: Int
             $last: Int
             $includeArchived: Boolean
             $orderBy: PaginationOrderBy
-            $sort: [IssueSortInput!]
           ) {
-            issues(
+            issueLabels(
               filter: $filter
               before: $before
               after: $after
@@ -50,27 +48,12 @@ const linearIssuesGetPacket = async (
               last: $last
               includeArchived: $includeArchived
               orderBy: $orderBy
-              sort: $sort
             ) {
               nodes {
                 id
-                identifier
-                title
-                priority
-                createdAt
-                updatedAt
-                state {
-                  id
-                  name
-                }
-                team {
-                  id
-                  name
-                }
-                assignee {
-                  id
-                  name
-                }
+                name
+                color
+                description
               }
               pageInfo {
                 hasNextPage
@@ -89,19 +72,18 @@ const linearIssuesGetPacket = async (
           last,
           includeArchived,
           orderBy,
-          sort,
         },
       },
     },
     context: {
       credsPayload,
-      resultPath: 'data.issues',
+      resultPath: 'data.issueLabels',
     },
     inspect,
   });
 };
 
-const linearIssuesGet = async (
+const linearIssueLabelsGet = async (
   returnGetter,
 
   credsPayload,
@@ -112,7 +94,6 @@ const linearIssuesGet = async (
     last,
     includeArchived,
     orderBy,
-    sort,
     perPage = MAX_PER_PAGE,
     inspect = false,
     fetchClient = linearClient,
@@ -137,14 +118,13 @@ const linearIssuesGet = async (
         last,
         includeArchived,
         orderBy,
-        sort,
         perPage,
         inspect,
         fetchClient,
       },
     },
     {
-      func: linearIssuesGetPacket,
+      func: linearIssueLabelsGetPacket,
       digester: linearConnectionDigester,
       paginator: linearConnectionPaginator,
       ...getterOptions,
@@ -168,18 +148,18 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearIssuesGet: (...args) => linearIssuesGet(false, ...args),
-  linearIssuesGetter: (...args) => linearIssuesGet(true, ...args),
+  linearIssueLabelsGet: (...args) => linearIssueLabelsGet(false, ...args),
+  linearIssueLabelsGetter: (...args) => linearIssueLabelsGet(true, ...args),
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/linearIssuesGet" \
+curl -X POST "http://localhost:8000/linearIssueLabelsGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
     "options": {
-      "limit": 5
+      "limit": 20
     }
   }'
 */

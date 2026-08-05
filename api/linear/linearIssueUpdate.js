@@ -1,18 +1,18 @@
 // https://linear.app/developers/graphql
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
 const { linearClient } = require('../linear/linear.utils');
 
-const inputValidator = (input) => Boolean(input?.title && input?.teamId);
-
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['input', inputValidator],
+  ['id'],
+  ['input', valueProvided],
 ]);
 
-const linearIssueCreate = async (
+const linearIssueUpdate = async (
   credsPayload,
+  id,
   input,
   {
     inspect = false,
@@ -22,6 +22,7 @@ const linearIssueCreate = async (
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
+    id,
     input,
   });
   if (rejectResponse) {
@@ -32,8 +33,8 @@ const linearIssueCreate = async (
     requestPayload: {
       body: {
         query: `
-          mutation IssueCreate($input: IssueCreateInput!) {
-            issueCreate(input: $input) {
+          mutation IssueUpdate($id: String!, $input: IssueUpdateInput!) {
+            issueUpdate(id: $id, input: $input) {
               success
               issue {
                 id
@@ -60,13 +61,14 @@ const linearIssueCreate = async (
           }
         `,
         variables: {
+          id,
           input,
         },
       },
     },
     context: {
       credsPayload,
-      resultPath: 'data.issueCreate',
+      resultPath: 'data.issueUpdate',
     },
     inspect,
   });
@@ -77,18 +79,18 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearIssueCreate,
+  linearIssueUpdate,
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/linearIssueCreate" \
+curl -X POST "http://localhost:8000/linearIssueUpdate" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
+    "id": "WHI-267",
     "input": {
-      "title": "Example issue",
-      "teamId": "f2387dcd-61ac-49aa-8d7a-7f62a0b5cca0"
+      "title": "Updated title"
     }
   }'
 */
