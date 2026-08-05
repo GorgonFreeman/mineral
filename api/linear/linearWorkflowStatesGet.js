@@ -1,106 +1,28 @@
 // https://linear.app/developers/graphql
 
-const { ArgsWarden, Getter } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
-const { MAX_PER_PAGE } = require('../linear/linear.constants');
-const {
-  linearClient,
-  linearConnectionDigester,
-  linearConnectionPaginator,
-} = require('../linear/linear.utils');
+const { linearGet, linearGetter } = require('./linearGet');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
-
-const linearWorkflowStatesGetPacket = async (
-  credsPayload,
-  {
-    filter,
-    before,
-    after,
-    last,
-    includeArchived,
-    orderBy,
-    perPage = MAX_PER_PAGE,
-    inspect = false,
-    fetchClient = linearClient,
-  } = {},
-) => {
-  return fetchClient.fetch({
-    requestPayload: {
-      body: {
-        query: `
-          query WorkflowStatesGet(
-            $filter: WorkflowStateFilter
-            $before: String
-            $after: String
-            $first: Int
-            $last: Int
-            $includeArchived: Boolean
-            $orderBy: PaginationOrderBy
-          ) {
-            workflowStates(
-              filter: $filter
-              before: $before
-              after: $after
-              first: $first
-              last: $last
-              includeArchived: $includeArchived
-              orderBy: $orderBy
-            ) {
-              nodes {
-                id
-                name
-                type
-                position
-                team {
-                  id
-                  name
-                }
-              }
-              pageInfo {
-                hasNextPage
-                endCursor
-                hasPreviousPage
-                startCursor
-              }
-            }
-          }
-        `,
-        variables: {
-          filter,
-          before,
-          after,
-          first: Math.min(perPage, MAX_PER_PAGE),
-          last,
-          includeArchived,
-          orderBy,
-        },
-      },
-    },
-    context: {
-      credsPayload,
-      resultPath: 'data.workflowStates',
-    },
-    inspect,
-  });
-};
 
 const linearWorkflowStatesGet = async (
   returnGetter,
 
   credsPayload,
   {
-    filter,
-    before,
-    after,
-    last,
-    includeArchived,
-    orderBy,
-    perPage = MAX_PER_PAGE,
-    inspect = false,
-    fetchClient = linearClient,
+    attrs = `
+      id
+      name
+      type
+      position
+      team {
+        id
+        name
+      }
+    `,
     ...getterOptions
   } = {},
 ) => {
@@ -112,39 +34,18 @@ const linearWorkflowStatesGet = async (
     return rejectResponse;
   }
 
-  const getter = new Getter(
+  const getterArgs = [
+    credsPayload,
+    'workflowState',
     {
-      args: [credsPayload],
-      options: {
-        filter,
-        before,
-        after,
-        last,
-        includeArchived,
-        orderBy,
-        perPage,
-        inspect,
-        fetchClient,
-      },
-    },
-    {
-      func: linearWorkflowStatesGetPacket,
-      digester: linearConnectionDigester,
-      paginator: linearConnectionPaginator,
+      attrs,
       ...getterOptions,
     },
-  );
+  ];
 
-  if (returnGetter) {
-    return getter;
-  }
-
-  const data = await getter.run({ returnAll: true });
-
-  return {
-    ok: true,
-    data,
-  };
+  return returnGetter
+    ? linearGetter(...getterArgs)
+    : linearGet(...getterArgs);
 };
 
 const funcApiConfig = {
@@ -152,8 +53,8 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearWorkflowStatesGet: (...args) => linearWorkflowStatesGet(false, ...args),
-  linearWorkflowStatesGetter: (...args) => linearWorkflowStatesGet(true, ...args),
+  linearWorkflowStatesGet: linearWorkflowStatesGet.bind(null, false),
+  linearWorkflowStatesGetter: linearWorkflowStatesGet.bind(null, true),
   funcApiConfig,
 };
 

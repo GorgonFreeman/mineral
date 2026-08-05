@@ -1,106 +1,28 @@
 // https://linear.app/developers/graphql
 
-const { ArgsWarden, Getter } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
-const { MAX_PER_PAGE } = require('../linear/linear.constants');
-const {
-  linearClient,
-  linearConnectionDigester,
-  linearConnectionPaginator,
-} = require('../linear/linear.utils');
+const { linearGet, linearGetter } = require('./linearGet');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
-
-const linearCommentsGetPacket = async (
-  credsPayload,
-  {
-    filter,
-    before,
-    after,
-    last,
-    includeArchived,
-    orderBy,
-    perPage = MAX_PER_PAGE,
-    inspect = false,
-    fetchClient = linearClient,
-  } = {},
-) => {
-  return fetchClient.fetch({
-    requestPayload: {
-      body: {
-        query: `
-          query CommentsGet(
-            $filter: CommentFilter
-            $before: String
-            $after: String
-            $first: Int
-            $last: Int
-            $includeArchived: Boolean
-            $orderBy: PaginationOrderBy
-          ) {
-            comments(
-              filter: $filter
-              before: $before
-              after: $after
-              first: $first
-              last: $last
-              includeArchived: $includeArchived
-              orderBy: $orderBy
-            ) {
-              nodes {
-                id
-                body
-                createdAt
-                updatedAt
-                user {
-                  id
-                  name
-                }
-              }
-              pageInfo {
-                hasNextPage
-                endCursor
-                hasPreviousPage
-                startCursor
-              }
-            }
-          }
-        `,
-        variables: {
-          filter,
-          before,
-          after,
-          first: Math.min(perPage, MAX_PER_PAGE),
-          last,
-          includeArchived,
-          orderBy,
-        },
-      },
-    },
-    context: {
-      credsPayload,
-      resultPath: 'data.comments',
-    },
-    inspect,
-  });
-};
 
 const linearCommentsGet = async (
   returnGetter,
 
   credsPayload,
   {
-    filter,
-    before,
-    after,
-    last,
-    includeArchived,
-    orderBy,
-    perPage = MAX_PER_PAGE,
-    inspect = false,
-    fetchClient = linearClient,
+    attrs = `
+      id
+      body
+      createdAt
+      updatedAt
+      user {
+        id
+        name
+      }
+    `,
     ...getterOptions
   } = {},
 ) => {
@@ -112,39 +34,18 @@ const linearCommentsGet = async (
     return rejectResponse;
   }
 
-  const getter = new Getter(
+  const getterArgs = [
+    credsPayload,
+    'comment',
     {
-      args: [credsPayload],
-      options: {
-        filter,
-        before,
-        after,
-        last,
-        includeArchived,
-        orderBy,
-        perPage,
-        inspect,
-        fetchClient,
-      },
-    },
-    {
-      func: linearCommentsGetPacket,
-      digester: linearConnectionDigester,
-      paginator: linearConnectionPaginator,
+      attrs,
       ...getterOptions,
     },
-  );
+  ];
 
-  if (returnGetter) {
-    return getter;
-  }
-
-  const data = await getter.run({ returnAll: true });
-
-  return {
-    ok: true,
-    data,
-  };
+  return returnGetter
+    ? linearGetter(...getterArgs)
+    : linearGet(...getterArgs);
 };
 
 const funcApiConfig = {
@@ -152,8 +53,8 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearCommentsGet: (...args) => linearCommentsGet(false, ...args),
-  linearCommentsGetter: (...args) => linearCommentsGet(true, ...args),
+  linearCommentsGet: linearCommentsGet.bind(null, false),
+  linearCommentsGetter: linearCommentsGet.bind(null, true),
   funcApiConfig,
 };
 

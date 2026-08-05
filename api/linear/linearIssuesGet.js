@@ -1,121 +1,39 @@
 // https://linear.app/developers/graphql
 
-const { ArgsWarden, Getter } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
-const { MAX_PER_PAGE } = require('../linear/linear.constants');
-const {
-  linearClient,
-  linearConnectionDigester,
-  linearConnectionPaginator,
-} = require('../linear/linear.utils');
+const { linearGet, linearGetter } = require('./linearGet');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
-
-const linearIssuesGetPacket = async (
-  credsPayload,
-  {
-    filter,
-    before,
-    after,
-    last,
-    includeArchived,
-    orderBy,
-    sort,
-    perPage = MAX_PER_PAGE,
-    inspect = false,
-    fetchClient = linearClient,
-  } = {},
-) => {
-  return fetchClient.fetch({
-    requestPayload: {
-      body: {
-        query: `
-          query IssuesGet(
-            $filter: IssueFilter
-            $before: String
-            $after: String
-            $first: Int
-            $last: Int
-            $includeArchived: Boolean
-            $orderBy: PaginationOrderBy
-            $sort: [IssueSortInput!]
-          ) {
-            issues(
-              filter: $filter
-              before: $before
-              after: $after
-              first: $first
-              last: $last
-              includeArchived: $includeArchived
-              orderBy: $orderBy
-              sort: $sort
-            ) {
-              nodes {
-                id
-                identifier
-                title
-                priority
-                createdAt
-                updatedAt
-                state {
-                  id
-                  name
-                }
-                team {
-                  id
-                  name
-                }
-                assignee {
-                  id
-                  name
-                }
-              }
-              pageInfo {
-                hasNextPage
-                endCursor
-                hasPreviousPage
-                startCursor
-              }
-            }
-          }
-        `,
-        variables: {
-          filter,
-          before,
-          after,
-          first: Math.min(perPage, MAX_PER_PAGE),
-          last,
-          includeArchived,
-          orderBy,
-          sort,
-        },
-      },
-    },
-    context: {
-      credsPayload,
-      resultPath: 'data.issues',
-    },
-    inspect,
-  });
-};
 
 const linearIssuesGet = async (
   returnGetter,
 
   credsPayload,
   {
-    filter,
-    before,
-    after,
-    last,
-    includeArchived,
-    orderBy,
-    sort,
-    perPage = MAX_PER_PAGE,
-    inspect = false,
-    fetchClient = linearClient,
+    attrs = `
+      id
+      identifier
+      title
+      priority
+      createdAt
+      updatedAt
+      state {
+        id
+        name
+      }
+      team {
+        id
+        name
+      }
+      assignee {
+        id
+        name
+      }
+    `,
+    sortType = true,
     ...getterOptions
   } = {},
 ) => {
@@ -127,40 +45,19 @@ const linearIssuesGet = async (
     return rejectResponse;
   }
 
-  const getter = new Getter(
+  const getterArgs = [
+    credsPayload,
+    'issue',
     {
-      args: [credsPayload],
-      options: {
-        filter,
-        before,
-        after,
-        last,
-        includeArchived,
-        orderBy,
-        sort,
-        perPage,
-        inspect,
-        fetchClient,
-      },
-    },
-    {
-      func: linearIssuesGetPacket,
-      digester: linearConnectionDigester,
-      paginator: linearConnectionPaginator,
+      attrs,
+      sortType,
       ...getterOptions,
     },
-  );
+  ];
 
-  if (returnGetter) {
-    return getter;
-  }
-
-  const data = await getter.run({ returnAll: true });
-
-  return {
-    ok: true,
-    data,
-  };
+  return returnGetter
+    ? linearGetter(...getterArgs)
+    : linearGet(...getterArgs);
 };
 
 const funcApiConfig = {
@@ -168,8 +65,8 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearIssuesGet: (...args) => linearIssuesGet(false, ...args),
-  linearIssuesGetter: (...args) => linearIssuesGet(true, ...args),
+  linearIssuesGet: linearIssuesGet.bind(null, false),
+  linearIssuesGetter: linearIssuesGet.bind(null, true),
   funcApiConfig,
 };
 

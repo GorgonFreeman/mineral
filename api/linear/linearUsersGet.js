@@ -1,113 +1,27 @@
 // https://linear.app/developers/graphql
 
-const { ArgsWarden, Getter } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
-const { MAX_PER_PAGE } = require('../linear/linear.constants');
-const {
-  linearClient,
-  linearConnectionDigester,
-  linearConnectionPaginator,
-} = require('../linear/linear.utils');
+const { linearGet, linearGetter } = require('./linearGet');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
-
-const linearUsersGetPacket = async (
-  credsPayload,
-  {
-    filter,
-    includeDisabled,
-    before,
-    after,
-    last,
-    includeArchived,
-    orderBy,
-    sort,
-    perPage = MAX_PER_PAGE,
-    inspect = false,
-    fetchClient = linearClient,
-  } = {},
-) => {
-  return fetchClient.fetch({
-    requestPayload: {
-      body: {
-        query: `
-          query UsersGet(
-            $filter: UserFilter
-            $includeDisabled: Boolean
-            $before: String
-            $after: String
-            $first: Int
-            $last: Int
-            $includeArchived: Boolean
-            $orderBy: PaginationOrderBy
-            $sort: [UserSortInput!]
-          ) {
-            users(
-              filter: $filter
-              includeDisabled: $includeDisabled
-              before: $before
-              after: $after
-              first: $first
-              last: $last
-              includeArchived: $includeArchived
-              orderBy: $orderBy
-              sort: $sort
-            ) {
-              nodes {
-                id
-                name
-                displayName
-                email
-                active
-              }
-              pageInfo {
-                hasNextPage
-                endCursor
-                hasPreviousPage
-                startCursor
-              }
-            }
-          }
-        `,
-        variables: {
-          filter,
-          includeDisabled,
-          before,
-          after,
-          first: Math.min(perPage, MAX_PER_PAGE),
-          last,
-          includeArchived,
-          orderBy,
-          sort,
-        },
-      },
-    },
-    context: {
-      credsPayload,
-      resultPath: 'data.users',
-    },
-    inspect,
-  });
-};
 
 const linearUsersGet = async (
   returnGetter,
 
   credsPayload,
   {
-    filter,
-    includeDisabled,
-    before,
-    after,
-    last,
-    includeArchived,
-    orderBy,
-    sort,
-    perPage = MAX_PER_PAGE,
-    inspect = false,
-    fetchClient = linearClient,
+    attrs = `
+      id
+      name
+      displayName
+      email
+      active
+    `,
+    sortType = true,
+    supportsIncludeDisabled = true,
     ...getterOptions
   } = {},
 ) => {
@@ -119,41 +33,20 @@ const linearUsersGet = async (
     return rejectResponse;
   }
 
-  const getter = new Getter(
+  const getterArgs = [
+    credsPayload,
+    'user',
     {
-      args: [credsPayload],
-      options: {
-        filter,
-        includeDisabled,
-        before,
-        after,
-        last,
-        includeArchived,
-        orderBy,
-        sort,
-        perPage,
-        inspect,
-        fetchClient,
-      },
-    },
-    {
-      func: linearUsersGetPacket,
-      digester: linearConnectionDigester,
-      paginator: linearConnectionPaginator,
+      attrs,
+      sortType,
+      supportsIncludeDisabled,
       ...getterOptions,
     },
-  );
+  ];
 
-  if (returnGetter) {
-    return getter;
-  }
-
-  const data = await getter.run({ returnAll: true });
-
-  return {
-    ok: true,
-    data,
-  };
+  return returnGetter
+    ? linearGetter(...getterArgs)
+    : linearGet(...getterArgs);
 };
 
 const funcApiConfig = {
@@ -161,8 +54,8 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  linearUsersGet: (...args) => linearUsersGet(false, ...args),
-  linearUsersGetter: (...args) => linearUsersGet(true, ...args),
+  linearUsersGet: linearUsersGet.bind(null, false),
+  linearUsersGetter: linearUsersGet.bind(null, true),
   funcApiConfig,
 };
 
