@@ -400,6 +400,10 @@ const stripGraphqlEdgesAndNodes = (value) => {
     return value.edges.map((edge) => stripGraphqlEdgesAndNodes(edge?.node));
   }
 
+  if (Array.isArray(value.nodes)) {
+    return value.nodes.map(stripGraphqlEdgesAndNodes);
+  }
+
   const output = {};
   for (const [key, nestedValue] of Object.entries(value)) {
     output[key] = stripGraphqlEdgesAndNodes(nestedValue);
