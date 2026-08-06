@@ -53,7 +53,21 @@ const ensureLoggedIn = () => {
       stdio: 'pipe',
     });
   } catch {
-    throw new Error('Not logged in to npm. Run `npm login` with an account that can publish @foxtware/mineral.');
+    console.log('Not logged in to npm. Running `npm login`…');
+    execSync('npm login', {
+      cwd: mineralRoot,
+      stdio: 'inherit',
+    });
+
+    try {
+      execSync('npm whoami', {
+        cwd: mineralRoot,
+        encoding: 'utf8',
+        stdio: 'pipe',
+      });
+    } catch {
+      throw new Error('Still not logged in to npm. Use an account that can publish @foxtware/mineral.');
+    }
   }
 };
 
