@@ -2,19 +2,28 @@ const { credsValidator } = require('../validators');
 const { ArgsWarden } = require('../utils');
 
 const argsWarden = new ArgsWarden([
-  ['credsPayload', credsValidator],
-  ['arg', Boolean],
+  ['fromCredsPayload', credsValidator],
+  ['toCredsPayload', credsValidator],
+  ['fromThemeId'],
+  ['toThemeId'],
+  ['filepath'],
 ]);
 
 const shopifyThemeFilePropagate = async (
-  credsPayload,
-  arg,
+  fromCredsPayload,
+  toCredsPayload,
+  fromThemeId,
+  toThemeId,
+  filepath,
   options = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
-    credsPayload,
-    arg,
+    fromCredsPayload,
+    toCredsPayload,
+    fromThemeId,
+    toThemeId,
+    filepath,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -23,7 +32,11 @@ const shopifyThemeFilePropagate = async (
   return {
     ok: true,
     data: {
-      arg,
+      fromCredsPayload,
+      toCredsPayload,
+      fromThemeId,
+      toThemeId,
+      filepath,
       options,
     },
   };
@@ -42,7 +55,10 @@ module.exports = {
 curl -X POST "http://localhost:8000/shopifyThemeFilePropagate" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "shopify.au" },
-    "arg": "1234"
+    "fromCredsPayload": { "credsPath": "shopify.au" },
+    "toCredsPayload": { "credsPath": "shopify.au" },
+    "fromThemeId": "1234",
+    "toThemeId": "1234",
+    "filepath": "sections/product.json"
   }'
 */
