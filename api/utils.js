@@ -199,7 +199,19 @@ const customFetch = async (url, {
   }
 
   if (params) {
-    const search = new URLSearchParams(params);
+    const search = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value === undefined || value === null) {
+        continue;
+      }
+      if (Array.isArray(value)) {
+        for (const entry of value) {
+          search.append(key, entry);
+        }
+      } else {
+        search.append(key, value);
+      }
+    }
     url += (url.includes('?') ? '&' : '?') + search.toString();
   }
 
