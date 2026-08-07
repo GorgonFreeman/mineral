@@ -1,8 +1,8 @@
-// https://shopify.dev/docs/api/admin-graphql/latest/mutations/pageDelete
-
 const { credsValidator } = require('../validators');
 const { ArgsWarden } = require('../utils');
-const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
+const { objHasAll, objHasAny } = require('../utils');
+const { shopifyOrderGet } = require('../shopify/shopifyOrderGet');
+const { shopifyFulfillmentCreate } = require('../shopify/shopifyFulfillmentCreate');
 
 const orderIdentifierValidator = (orderIdentifier) => {
   return objHasAny(orderIdentifier, [
@@ -110,6 +110,7 @@ const shopifyOrderFulfill = async (
 
   const {
     fulfillable,
+    fulfillmentOrders,
   } = order;
 
   if (!fulfillable) {
@@ -121,6 +122,28 @@ const shopifyOrderFulfill = async (
   }
   
   // if using fulfillAll, fulfill them
+  if (fulfillAll === true) {
+    return shopifyFulfillmentCreate(
+      credsPayload,
+      fulfillmentOrders.map(fulfillmentOrder => {
+        const {
+          id: fulfillmentOrderGid,
+        } = fulfillmentOrder;
+
+        return {
+          lineItemsByFulfillmentOrder: [{
+            id: fulfillmentOrderGid,
+          }],
+          notifyCustomer,
+          originAddress,
+          trackingInfo,
+        };
+      }),
+      {
+        apiVersion,
+      },
+    );
+  }
   
   // if using itemsBySku, iterate over unfulfilled line items and decrement until complete, making a queue of fulfillments to action
   
