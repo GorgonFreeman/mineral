@@ -366,10 +366,15 @@ const selectDirInteractive = async (dirs) => {
   }
 
   const dirIndex = await askQuestion(`Where does your new function live? \n${
-    dirs.map((dir, index) => {
-      return `[${ index + 1 }] ${ dir }`;
-    }).join('\n')
+    [
+      '[0] api/ (root)',
+      ...dirs.map((dir, index) => `[${ index + 1 }] ${ dir }`),
+    ].join('\n')
   }\n`);
+
+  if (String(dirIndex) === '0') {
+    return '';
+  }
 
   const dir = dirs[dirIndex - 1];
 
@@ -510,8 +515,8 @@ const createNewFunction = async () => {
       name: cliArgs.name,
     });
 
-    if (dir === null || (!dirs.includes(dir) && !(dir === '' && dirs.length === 0 && !context.inMineral))) {
-      const availableDirs = dirs.length ? dirs.join(', ') : 'api/ (flat)';
+    if (dir === null || (dir !== '' && !dirs.includes(dir))) {
+      const availableDirs = dirs.length ? `api/ (root), ${ dirs.join(', ') }` : 'api/ (flat)';
       console.error(`Invalid --dir "${ cliArgs.dir }". Available: ${ availableDirs }`);
       process.exitCode = 1;
       return;
