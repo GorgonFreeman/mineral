@@ -2,7 +2,7 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/queries/metafieldDefinition
 
 const { credsValidator } = require('../validators');
-const { ArgsWarden, objHasAny } = require('../utils');
+const { ArgsWarden, actionSingleOrMultiple, everyIfArray, objHasAny } = require('../utils');
 const { shopifyMetafieldDefinitionGet } = require('./shopifyMetafieldDefinitionGet');
 const { shopifyMetafieldDefinitionCreate } = require('./shopifyMetafieldDefinitionCreate');
 
@@ -18,8 +18,8 @@ const metafieldDefinitionIdentifierValidator = (metafieldDefinitionIdentifier) =
 
 const argsWarden = new ArgsWarden([
   ['fromStoreCredsPayload', credsValidator],
-  ['toStoreCredsPayload', credsValidator],
-  ['metafieldDefinitionIdentifier', metafieldDefinitionIdentifierValidator],
+  ['toStoreCredsPayload', (i) => everyIfArray(credsValidator, i)],
+  ['metafieldDefinitionIdentifier', (i) => everyIfArray(metafieldDefinitionIdentifierValidator, i)],
 ]);
 
 const metafieldDefinitionInputFromDefinition = (sourceDefinition) => {
@@ -69,7 +69,7 @@ const metafieldDefinitionInputFromDefinition = (sourceDefinition) => {
   return definitionInput;
 };
 
-const shopifyMetafieldDefinitionPropagate = async (
+const shopifyMetafieldDefinitionPropagateSingle = async (
   fromStoreCredsPayload,
   toStoreCredsPayload,
   metafieldDefinitionIdentifier,
@@ -78,15 +78,6 @@ const shopifyMetafieldDefinitionPropagate = async (
     returnCreatedDefinitionAttrs = defaultReturnCreatedDefinitionAttrs,
   } = {},
 ) => {
-
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({
-    fromStoreCredsPayload,
-    toStoreCredsPayload,
-    metafieldDefinitionIdentifier,
-  });
-  if (rejectResponse) {
-    return rejectResponse;
-  }
 
   const sourceResponse = await shopifyMetafieldDefinitionGet(
     fromStoreCredsPayload,
@@ -143,6 +134,43 @@ const shopifyMetafieldDefinitionPropagate = async (
   );
 };
 
+const shopifyMetafieldDefinitionPropagate = async (
+  fromStoreCredsPayload,
+  toStoreCredsPayload,
+  metafieldDefinitionIdentifier,
+  {
+    queueRunOptions,
+    apiVersion,
+    returnCreatedDefinitionAttrs = defaultReturnCreatedDefinitionAttrs,
+  } = {},
+) => {
+
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    fromStoreCredsPayload,
+    toStoreCredsPayload,
+    metafieldDefinitionIdentifier,
+  });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  return actionSingleOrMultiple(
+    [toStoreCredsPayload, metafieldDefinitionIdentifier],
+    shopifyMetafieldDefinitionPropagateSingle,
+    (toStoreCredsPayloadItem, metafieldDefinitionIdentifierItem) => ({
+      args: [
+        fromStoreCredsPayload,
+        toStoreCredsPayloadItem,
+        metafieldDefinitionIdentifierItem,
+        { apiVersion, returnCreatedDefinitionAttrs },
+      ],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
+    },
+  );
+};
+
 const funcApiConfig = {
   argsWarden,
 };
@@ -160,8 +188,8 @@ curl -X POST "http://localhost:8000/shopifyMetafieldDefinitionPropagate" \
     "toStoreCredsPayload": { "credsPath": "shopify.us" },
     "metafieldDefinitionIdentifier": {
       "ownerType": "PRODUCT",
-      "namespace": "custom",
-      "key": "outfit_builder_image"
+      "namespace": "merch",
+      "key": "associations"
     }
   }'
 */
