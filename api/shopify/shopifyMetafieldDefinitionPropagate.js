@@ -185,7 +185,7 @@ curl -X POST "http://localhost:8000/shopifyMetafieldDefinitionPropagate" \
   -H "Content-Type: application/json" \
   -d '{
     "fromStoreCredsPayload": { "credsPath": "shopify.au" },
-    "toStoreCredsPayload": { "credsPath": "shopify.us" },
+    "toStoreCredsPayload": [{ "credsPath": "shopify.us" }, { "credsPath": "shopify.uk" }],
     "metafieldDefinitionIdentifier": {
       "ownerType": "PRODUCT",
       "namespace": "merch",
