@@ -17,6 +17,7 @@ const fulfillmentPayloadValidator = (fulfillmentPayload) => {
     all, 
     itemsBySku,
     // TODO: Support fulfilling items by line item id
+    
   } = fulfillmentPayload;
 
   if (all === true) {
@@ -75,9 +76,18 @@ module.exports = {
 /*
 curl -X POST "http://localhost:8000/shopifyOrderFulfill" \
   -H "Content-Type: application/json" \
-  -d '{
+  -d `{
     "credsPayload": { "credsPath": "shopify.au" },
     "orderIdentifier": { "orderId": "104188477512" },
-    "fulfillmentPayload": { "all": true }
-  }'
+    "fulfillmentPayload": { 
+      "all": true,
+      "notifyCustomer": true,
+      "originAddress": { "countryCode": "AU" },
+      "trackingInfo": { 
+        "number": "1234567890", 
+        "company": "Kiki's Delivery Service", 
+        "url": "https://www.studioghibli.com.au/kikisdeliveryservice" 
+      }
+    }
+  }`
 */
