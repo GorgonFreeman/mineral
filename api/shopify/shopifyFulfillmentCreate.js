@@ -1,7 +1,7 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/fulfillmentCreate
 
 const { credsValidator } = require('../validators');
-const { ArgsWarden, valueProvided } = require('../utils');
+const { actionSingleOrMultiple, everyIfArray, ArgsWarden, valueProvided } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
 const fulfillmentInputValidator = (fulfillmentInput) => {
@@ -27,7 +27,7 @@ const fulfillmentInputValidator = (fulfillmentInput) => {
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['fulfillmentInput', fulfillmentInputValidator],
+  ['fulfillmentInput', (i) => everyIfArray(fulfillmentInputValidator, i)],
 ]);
 
 const defaultReturnFulfillmentAttrs = `
@@ -40,7 +40,7 @@ const defaultReturnFulfillmentAttrs = `
   }
 `.trim();
 
-const shopifyFulfillmentCreate = async (
+const shopifyFulfillmentCreateSingle = async (
   credsPayload,
   fulfillmentInput,
   {
@@ -49,14 +49,6 @@ const shopifyFulfillmentCreate = async (
     returnFulfillmentAttrs = defaultReturnFulfillmentAttrs,
   } = {},
 ) => {
-
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({
-    credsPayload,
-    fulfillmentInput,
-  });
-  if (rejectResponse) {
-    return rejectResponse;
-  }
 
   return shopifyMutationDo(
     credsPayload,
@@ -78,6 +70,41 @@ const shopifyFulfillmentCreate = async (
         fulfillment { ${ returnFulfillmentAttrs } }
       `.trim(),
       apiVersion,
+    },
+  );
+};
+
+const shopifyFulfillmentCreate = async (
+  credsPayload,
+  fulfillmentInput,
+  {
+    queueRunOptions,
+    apiVersion,
+    message,
+    returnFulfillmentAttrs = defaultReturnFulfillmentAttrs,
+  } = {},
+) => {
+
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    fulfillmentInput,
+  });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  return actionSingleOrMultiple(
+    fulfillmentInput,
+    shopifyFulfillmentCreateSingle,
+    (fulfillmentInputItem) => ({
+      args: [
+        credsPayload,
+        fulfillmentInputItem,
+        { apiVersion, message, returnFulfillmentAttrs },
+      ],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
     },
   );
 };
@@ -115,23 +142,37 @@ curl -X POST "http://localhost:8000/shopifyFulfillmentCreate" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
-    "fulfillmentInput": {
-      "lineItemsByFulfillmentOrder": [
-        {
-          "fulfillmentOrderId": "gid://shopify/FulfillmentOrder/1234567890",
-          "fulfillmentOrderLineItems": [
-            {
-              "id": "gid://shopify/FulfillmentOrderLineItem/9876543210",
-              "quantity": 1
-            }
-          ]
+    "fulfillmentInput": [
+      {
+        "lineItemsByFulfillmentOrder": [
+          {
+            "fulfillmentOrderId": "gid://shopify/FulfillmentOrder/1234567890"
+          }
+        ],
+        "notifyCustomer": true,
+        "trackingInfo": {
+          "number": "1234567890",
+          "company": "Australia Post"
         }
-      ],
-      "notifyCustomer": false,
-      "originAddress": {
-        "countryCode": "AU"
+      },
+      {
+        "lineItemsByFulfillmentOrder": [
+          {
+            "fulfillmentOrderId": "gid://shopify/FulfillmentOrder/0987654321",
+            "fulfillmentOrderLineItems": [
+              {
+                "id": "gid://shopify/FulfillmentOrderLineItem/9876543210",
+                "quantity": 1
+              }
+            ]
+          }
+        ],
+        "notifyCustomer": false,
+        "originAddress": {
+          "countryCode": "AU"
+        }
       }
-    },
+    ],
     "options": {
       "message": "Partial fulfillment"
     }
