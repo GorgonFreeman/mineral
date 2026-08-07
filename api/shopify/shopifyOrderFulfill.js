@@ -14,13 +14,13 @@ const orderIdentifierValidator = (orderIdentifier) => {
 const fulfillmentPayloadValidator = (fulfillmentPayload) => {
 
   const { 
-    all, 
+    fulfillAll, 
     itemsBySku,
     // TODO: Support fulfilling items by line item id
     
   } = fulfillmentPayload;
 
-  if (all === true) {
+  if (fulfillAll === true) {
     return true;
   }
 
