@@ -67,17 +67,20 @@ const shopifyOrderFulfill = async (
     trackingInfo,
   } = fulfillmentPayload;
 
+  const fetchFulfillmentOrdersLimit = 10;
+  const fetchLineItemsLimit = 250;
+
   const openFulfillmentOrdersQuery = `displayable:true AND (request_status:UNSUBMITTED OR request_status:ACCEPTED)`;
 
   const ORDER_ATTRS = `
     fulfillable
-    fulfillmentOrders(first: 10, query: "${ openFulfillmentOrdersQuery }") {
+    fulfillmentOrders(first: ${ fetchFulfillmentOrdersLimit }, query: "${ openFulfillmentOrdersQuery }") {
       edges {
         node {
           id
           requestStatus
           ${ itemsBySku ? `
-            lineItems (first: 250) {
+            lineItems (first: ${ fetchLineItemsLimit }) {
               edges {
                 node {
                   id
@@ -112,6 +115,17 @@ const shopifyOrderFulfill = async (
     fulfillable,
     fulfillmentOrders,
   } = order;
+
+  if (fulfillmentOrders.length >= fetchFulfillmentOrdersLimit) {
+    return {
+      ok: false,
+      error: {
+        code: 'LIMIT_REACHED',
+        message: `We retrieved ${ fetchFulfillmentOrdersLimit } open fulfillment orders, so there may be more. Please adjust the function.`,
+      },
+      data: order,
+    };
+  }
 
   if (!fulfillable) {
     return {
