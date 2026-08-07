@@ -8,9 +8,19 @@ const {
 const interpretStarshipitResponse = async (state) => {
   const { response } = state;
 
-  const { success, results, errors } = response.data;
+  const responseData = response.data || {};
+  const {
+    success,
+    succeeded,
+    results,
+    errors,
+    data: nestedData,
+    ...rest
+  } = responseData;
 
-  if (!success) {
+  const ok = success === true || succeeded === true;
+
+  if (!ok) {
     const firstError = errors?.[0];
 
     // TODO: Consider removing data if errors
@@ -27,10 +37,25 @@ const interpretStarshipitResponse = async (state) => {
     };
   }
 
+  let data;
+  if (results !== undefined) {
+    data = results;
+  } else if (nestedData && typeof nestedData === 'object' && !Array.isArray(nestedData)) {
+    // List endpoints return { page_*, data: { orders|products }, succeeded }
+    data = {
+      ...rest,
+      ...nestedData,
+      ...success !== undefined && { success },
+      ...succeeded !== undefined && { succeeded },
+    };
+  } else {
+    data = responseData;
+  }
+
   return {
     response: {
       ...response,
-      data: results ?? response.data,
+      data,
     },
   };
 };
