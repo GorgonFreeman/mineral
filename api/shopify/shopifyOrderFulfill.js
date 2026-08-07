@@ -59,8 +59,38 @@ const shopifyOrderFulfill = async (
     return rejectResponse;
   }
 
+  const {
+    fulfillAll = false,
+    itemsBySku,
+    notifyCustomer = false,
+    originAddress,
+    trackingInfo,
+  } = fulfillmentPayload;
+
+  const openFulfillmentOrdersQuery = `displayable:true AND (request_status:UNSUBMITTED OR request_status:ACCEPTED)`;
+
   const ORDER_ATTRS = `
     fulfillable
+    fulfillmentOrders(first: 10, query: "${ openFulfillmentOrdersQuery }") {
+      edges {
+        node {
+          id
+          requestStatus
+          ${ itemsBySku ? `
+            lineItems (first: 250) {
+              edges {
+                node {
+                  id
+                  sku
+                  remainingQuantity
+                  requiresShipping
+                }
+              }
+            }
+          ` : '' }
+        }
+      }
+    }
   `;
 
   // Get open fulfillment orders
@@ -115,7 +145,7 @@ curl -X POST "http://localhost:8000/shopifyOrderFulfill" \
     "credsPayload": { "credsPath": "shopify.au" },
     "orderIdentifier": { "orderId": "104188477512" },
     "fulfillmentPayload": { 
-      "all": true,
+      "fulfillAll": true,
       "notifyCustomer": true,
       "originAddress": { "countryCode": "AU" },
       "trackingInfo": { 
