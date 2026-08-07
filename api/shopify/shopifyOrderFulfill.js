@@ -58,6 +58,41 @@ const shopifyOrderFulfill = async (
   if (rejectResponse) {
     return rejectResponse;
   }
+
+  const ORDER_ATTRS = `
+    fulfillable
+  `;
+
+  // Get open fulfillment orders
+  const orderResponse = await shopifyOrderGet(
+    credsPayload,
+    orderIdentifier,
+    {
+      apiVersion,
+      returnSchema: ORDER_ATTRS,
+    },
+  );
+
+  const { ok: orderOk, data: order } = orderResponse;
+  if (!orderOk) {
+    return orderResponse;
+  }
+
+  const {
+    fulfillable,
+  } = order;
+
+  if (!fulfillable) {
+    return {
+      ok: false,
+      error: 'Order is not fulfillable',
+      data: order,
+    };
+  }
+  
+  // if using fulfillAll, fulfill them
+  
+  // if using itemsBySku, iterate over unfulfilled line items and decrement until complete, making a queue of fulfillments to action
   
   return {
     ok: true,
