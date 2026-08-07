@@ -100,6 +100,29 @@ const shopifyMetafieldDefinitionPropagateSingle = async (
     };
   }
 
+  const existingResponse = await shopifyMetafieldDefinitionGet(
+    toStoreCredsPayload,
+    metafieldDefinitionIdentifier,
+    {
+      apiVersion,
+      attrs: returnCreatedDefinitionAttrs,
+    },
+  );
+
+  if (!existingResponse.ok) {
+    return existingResponse;
+  }
+
+  if (existingResponse.data) {
+    return {
+      ok: true,
+      data: existingResponse.data,
+      meta: {
+        alreadyExisted: true,
+      },
+    };
+  }
+
   const definitionInput = metafieldDefinitionInputFromDefinition(sourceResponse.data);
 
   const {
