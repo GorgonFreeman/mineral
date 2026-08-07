@@ -12,8 +12,24 @@ const orderIdentifierValidator = (orderIdentifier) => {
 };
 
 const fulfillmentPayloadValidator = (fulfillmentPayload) => {
-  // TODO: Support fulfilling whole order, items by sku, or items by id
-  return true;
+
+  const { 
+    all, 
+    itemsBySku,
+    // TODO: Support fulfilling items by line item id
+  } = fulfillmentPayload;
+
+  if (all === true) {
+    return true;
+  }
+
+  if (itemsBySku) {
+    return itemsBySku.every((item) => {
+      return objHasAll(item, ['sku', 'quantity']);
+    });
+  }
+
+  return false;
 };
 
 const argsWarden = new ArgsWarden([
