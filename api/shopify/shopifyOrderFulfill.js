@@ -162,7 +162,11 @@ const shopifyOrderFulfill = async (
   // if using itemsBySku, iterate over unfulfilled line items and decrement until complete, making a queue of fulfillments to action
   
   return {
-    ok: true,
+    ok: false,
+    error: {
+      message: `Not implemented`,
+    },
+    data: order,
   };
 };
 
