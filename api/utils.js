@@ -849,6 +849,16 @@ class OperationQueue {
   }
 }
 
+const operationQueueRunner = async (func, payloads, { queueRunOptions = {} } = {}) => {
+  const queue = new OperationQueue(payloads.map(payload => new Operation(
+    func,
+    { args: payload },
+  )));
+
+  const queueResponses = await queue.run(queueRunOptions);
+  return responseArrayToResponse(queueResponses);
+};
+
 const simpleSort = (arr, prop, { reverse } = {}) => {
   return [...arr].sort((a, b) =>
     reverse ? b[prop] - a[prop] : a[prop] - b[prop],
@@ -1287,6 +1297,7 @@ module.exports = {
   responseResultsByOutcome,
   Operation,
   OperationQueue,
+  operationQueueRunner,
   actionSingleOrMultiple,
   Processor,
   Getter,
