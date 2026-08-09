@@ -1248,6 +1248,17 @@ const gidToId = (gid) => {
   return gid.split('/').pop();
 };
 
+const objectToArray = (object, { keyProp } = {}) => {
+  if (!keyProp) {
+    return Object.values(object);
+  }
+
+  return Object.entries(object).map(([key, value]) => ({
+    [keyProp]: key,
+    ...value,
+  }));
+};
+
 module.exports = {
   wait,
   timeMs,
@@ -1283,4 +1294,5 @@ module.exports = {
   ArgsWarden,
   gidToId,
   valueProvided,
+  objectToArray,
 };
