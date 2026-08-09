@@ -102,7 +102,7 @@ const shopifyOrderFulfill = async (
     orderIdentifier,
     {
       apiVersion,
-      returnSchema: ORDER_ATTRS,
+      attrs: ORDER_ATTRS,
     },
   );
 
