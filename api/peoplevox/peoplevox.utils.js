@@ -100,6 +100,30 @@ const stripEnvelope = (state) => {
   };
 };
 
+// Peoplevox returns HTTP 200 with ResponseId -1 on failure; Detail holds the message.
+const rejectNegativeResponseId = (state) => {
+  const { response } = state;
+  const { data } = response || {};
+
+  if (!response?.ok || data == null || typeof data !== 'object') {
+    return {};
+  }
+
+  if (Number(data.ResponseId) !== -1) {
+    return {};
+  }
+
+  return {
+    response: {
+      ok: false,
+      data,
+      error: {
+        detail: data.Detail,
+      },
+    },
+  };
+};
+
 const tryToParseDetailAsCsv = async (state) => {
   const { response } = state;
 
@@ -179,6 +203,7 @@ const peoplevoxClient = new FetchClient({
     useSoapEnvelope,
     'fetch',
     stripEnvelope,
+    rejectNegativeResponseId,
     tryToParseDetailAsCsv,
     unwrapSingleDetail,
     hoistDetail,
