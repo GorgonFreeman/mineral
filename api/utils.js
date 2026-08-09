@@ -17,6 +17,14 @@ const objHasAny = (obj, keys) => {
   return keys.some((key) => obj[key] !== undefined);
 };
 
+const objHasAll = (obj, keys) => {
+  if (obj == null || typeof obj !== 'object') {
+    return false;
+  }
+
+  return keys.every((key) => obj[key] !== undefined);
+};
+
 const capitaliseString = (string) => `${ string[0].toUpperCase() }${ string.slice(1) }`;
 const sentenceCaseString = (string) => `${ string[0].toLowerCase() }${ string.slice(1) }`;
 
@@ -1273,6 +1281,7 @@ module.exports = {
   wait,
   timeMs,
   objHasAny,
+  objHasAll,
   capitaliseString,
   normalise,
   credsFromPayload,
