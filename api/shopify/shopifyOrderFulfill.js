@@ -113,7 +113,7 @@ const shopifyOrderFulfill = async (
   );
 
   const { ok: orderOk, data: order } = orderResponse;
-  if (!orderOk) {
+  if (!orderOk || !order) {
     return orderResponse;
   }
 
