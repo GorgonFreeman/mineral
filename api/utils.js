@@ -810,6 +810,7 @@ class OperationQueue {
   async run({
     interval = false,
     verbose = true,
+    inspect = false,
   } = {}) {
 
     // Run at interval
@@ -845,7 +846,10 @@ class OperationQueue {
     // Run in sequence
     const results = [];
     for (const op of this.queue) {
+      inspect && logDeep({ op });
       const result = await op.run();
+      inspect && logDeep({ result });
+      inspect && await askQuestion('Continue?');
       results.push(result);
       if (verbose) {
         console.log(`${ results.length } / ${ this.queue.length }`);
