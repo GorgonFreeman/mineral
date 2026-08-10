@@ -1,5 +1,5 @@
 const { credsValidator } = require('../validators');
-const { ArgsWarden, askQuestion, logDeep } = require('../utils');
+const { ArgsWarden, operationQueueRunner } = require('../utils');
 const { objHasAny } = require('../utils');
 const { shopifyOrderGet } = require('../shopify/shopifyOrderGet');
 const { shopifyFulfillmentCreate } = require('../shopify/shopifyFulfillmentCreate');
@@ -145,7 +145,7 @@ const shopifyOrderFulfill = async (
 
         return {
           lineItemsByFulfillmentOrder: [{
-            id: fulfillmentOrderGid,
+            fulfillmentOrderId: fulfillmentOrderGid,
           }],
           notifyCustomer,
           originAddress,
@@ -159,16 +159,86 @@ const shopifyOrderFulfill = async (
   }
   
   // if using itemsBySku, iterate over unfulfilled line items and decrement until complete, making a queue of fulfillments to action
-  logDeep({ order, itemsBySku });
-  await askQuestion('Continue?');
-  
-  return {
-    ok: false,
-    error: {
-      message: `Not implemented`,
-    },
-    data: order,
-  };
+  const depletableItemsBySku = { ...itemsBySku };
+  const shopifyFulfillmentCreatePayloads = [];
+
+  for (const fulfillmentOrder of fulfillmentOrders) {
+    const {
+      id: fulfillmentOrderGid,
+      lineItems = [],
+    } = fulfillmentOrder;
+
+    if (lineItems.length >= fetchLineItemsLimit) {
+      return {
+        ok: false,
+        error: {
+          code: 'LIMIT_REACHED',
+          message: `We retrieved ${ fetchLineItemsLimit } line items on a fulfillment order, so there may be more. Please adjust the function.`,
+        },
+        data: order,
+      };
+    }
+
+    const fulfillmentOrderLineItems = [];
+
+    for (const lineItem of lineItems) {
+      const {
+        id: lineItemGid,
+        sku,
+        remainingQuantity,
+        requiresShipping,
+      } = lineItem;
+
+      if (!requiresShipping || remainingQuantity <= 0) {
+        continue;
+      }
+
+      const depletableQuantity = depletableItemsBySku[sku];
+      if (!depletableQuantity) {
+        continue;
+      }
+
+      const quantity = Math.min(remainingQuantity, depletableQuantity);
+      fulfillmentOrderLineItems.push({
+        id: lineItemGid,
+        quantity,
+      });
+      depletableItemsBySku[sku] -= quantity;
+    }
+
+    if (fulfillmentOrderLineItems.length > 0) {
+      shopifyFulfillmentCreatePayloads.push([
+        credsPayload,
+        {
+          lineItemsByFulfillmentOrder: [{
+            fulfillmentOrderId: fulfillmentOrderGid,
+            fulfillmentOrderLineItems,
+          }],
+          notifyCustomer,
+          originAddress,
+          trackingInfo,
+        },
+        {
+          apiVersion,
+        },
+      ]);
+    }
+  }
+
+  if (shopifyFulfillmentCreatePayloads.length === 0) {
+    return {
+      ok: false,
+      error: {
+        message: 'No fulfillable line items found',
+      },
+      data: order,
+    };
+  }
+
+  return operationQueueRunner(
+    shopifyFulfillmentCreate,
+    shopifyFulfillmentCreatePayloads,
+  );
 };
 
 const funcApiConfig = {
