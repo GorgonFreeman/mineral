@@ -849,7 +849,10 @@ class OperationQueue {
       
       const result = await op.run();
 
-      if (inspect !== false && (inspect === true || objectMatchesPartial(result, inspect))) {
+      if (inspect !== false && (
+        inspect === true
+        || (typeof inspect === 'function' ? inspect(result) : objectMatchesPartial(result, inspect))
+      )) {
         inspect && logDeep({ op });
         inspect && logDeep({ result });
         inspect && await askQuestion('Continue?');
