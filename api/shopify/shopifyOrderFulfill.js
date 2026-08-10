@@ -1,6 +1,6 @@
 const { credsValidator } = require('../validators');
 const { ArgsWarden, askQuestion, logDeep } = require('../utils');
-const { objHasAll, objHasAny } = require('../utils');
+const { objHasAny } = require('../utils');
 const { shopifyOrderGet } = require('../shopify/shopifyOrderGet');
 const { shopifyFulfillmentCreate } = require('../shopify/shopifyFulfillmentCreate');
 
@@ -25,9 +25,8 @@ const fulfillmentPayloadValidator = (fulfillmentPayload) => {
   }
 
   if (itemsBySku) {
-    return itemsBySku.every((item) => {
-      return objHasAll(item, ['sku', 'quantity']);
-    });
+    const quantities = Object.values(itemsBySku);
+    return quantities.length > 0 && quantities.every(quantity => typeof quantity === 'number');
   }
 
   return false;
