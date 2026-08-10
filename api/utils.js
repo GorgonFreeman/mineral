@@ -846,10 +846,15 @@ class OperationQueue {
     // Run in sequence
     const results = [];
     for (const op of this.queue) {
-      inspect && logDeep({ op });
+      
       const result = await op.run();
-      inspect && logDeep({ result });
-      inspect && await askQuestion('Continue?');
+
+      if (inspect !== false && (inspect === true || objectMatchesPartial(result, inspect))) {
+        inspect && logDeep({ op });
+        inspect && logDeep({ result });
+        inspect && await askQuestion('Continue?');
+      }
+      
       results.push(result);
       if (verbose) {
         console.log(`${ results.length } / ${ this.queue.length }`);
@@ -1281,6 +1286,32 @@ const objectToArray = (object, { keyProp } = {}) => {
   }));
 };
 
+const objectMatchesPartial = (object, partial) => {
+  if (object === partial) {
+    return true;
+  }
+
+  if (
+    partial === null
+    || typeof partial !== 'object'
+    || object === null
+    || typeof object !== 'object'
+  ) {
+    return false;
+  }
+
+  if (Array.isArray(partial)) {
+    if (!Array.isArray(object)) {
+      return false;
+    }
+    return partial.every((item, i) => objectMatchesPartial(object[i], item));
+  }
+
+  return Object.entries(partial).every(([key, value]) => (
+    objectMatchesPartial(object[key], value)
+  ));
+};
+
 module.exports = {
   wait,
   timeMs,
@@ -1319,4 +1350,5 @@ module.exports = {
   gidToId,
   valueProvided,
   objectToArray,
+  objectMatchesPartial,
 };
