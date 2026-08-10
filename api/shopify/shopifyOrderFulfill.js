@@ -67,12 +67,19 @@ const shopifyOrderFulfill = async (
   } = fulfillmentPayload;
 
   const fetchFulfillmentOrdersLimit = 10;
+  const fetchFulfillmentsLimit = 10;
+  const fetchTrackingInfoLimit = 10;
   const fetchLineItemsLimit = 250;
 
   const openFulfillmentOrdersQuery = `displayable:true AND (request_status:UNSUBMITTED OR request_status:ACCEPTED)`;
 
   const ORDER_ATTRS = `
     fulfillable
+    fulfillments(first: ${ fetchFulfillmentsLimit }) {
+      trackingInfo(first: ${ fetchTrackingInfoLimit }) {
+        number
+      }
+    }
     fulfillmentOrders(first: ${ fetchFulfillmentOrdersLimit }, query: "${ openFulfillmentOrdersQuery }") {
       edges {
         node {
@@ -112,8 +119,31 @@ const shopifyOrderFulfill = async (
 
   const {
     fulfillable,
+    fulfillments,
     fulfillmentOrders,
   } = order;
+
+  if (fulfillments.length >= fetchFulfillmentsLimit) {
+    return {
+      ok: false,
+      error: {
+        code: 'LIMIT_REACHED',
+        message: `We retrieved ${ fetchFulfillmentsLimit } fulfillments, so there may be more. Please adjust the function.`,
+      },
+      data: order,
+    };
+  }
+
+  if (fulfillments.some(f => f?.trackingInfo?.length > fetchTrackingInfoLimit)) {
+    return {
+      ok: false,
+      error: {
+        code: 'LIMIT_REACHED',
+        message: `We retrieved ${ fetchTrackingInfoLimit } tracking info, so there may be more. Please adjust the function.`,
+      },
+      data: order,
+    };
+  }
 
   if (fulfillmentOrders.length >= fetchFulfillmentOrdersLimit) {
     return {
@@ -131,6 +161,18 @@ const shopifyOrderFulfill = async (
       ok: false,
       error: 'Order is not fulfillable',
       data: order,
+    };
+  }
+
+  const seenTrackingNumbers = fulfillments.map(f => f?.trackingInfo?.map(t => t.number)).flat().filter(Boolean);
+
+  if (trackingInfo?.number && seenTrackingNumbers.includes(trackingInfo.number)) {
+    return {
+      ok: true,
+      meta: {
+        alreadyFulfilled: true,
+        trackingNumber: trackingInfo.number,
+      },
     };
   }
   
