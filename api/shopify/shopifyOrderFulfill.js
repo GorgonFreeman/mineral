@@ -278,9 +278,6 @@ const shopifyOrderFulfill = async (
       };
     }
 
-    logDeep({ depletableItemsBySku, shopifyFulfillmentCreatePayloads });
-    await askQuestion('Continue?');
-
     return operationQueueRunner(
       shopifyFulfillmentCreate,
       shopifyFulfillmentCreatePayloads,
