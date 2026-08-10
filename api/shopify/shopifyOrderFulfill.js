@@ -201,6 +201,7 @@ const shopifyOrderFulfill = async (
   }
   
   // if using itemsBySku, iterate over unfulfilled line items and decrement until complete, making a queue of fulfillments to action
+  if (itemsBySku) {
   const depletableItemsBySku = { ...itemsBySku };
   const shopifyFulfillmentCreatePayloads = [];
 
@@ -284,6 +285,12 @@ const shopifyOrderFulfill = async (
     shopifyFulfillmentCreate,
     shopifyFulfillmentCreatePayloads,
   );
+  }
+
+  return {
+    ok: false,
+    error: `I guess we don't do that yet`,
+  };
 };
 
 const funcApiConfig = {
