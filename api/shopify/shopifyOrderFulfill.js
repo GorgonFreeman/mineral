@@ -1,5 +1,5 @@
 const { credsValidator } = require('../validators');
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, askQuestion, logDeep } = require('../utils');
 const { objHasAll, objHasAny } = require('../utils');
 const { shopifyOrderGet } = require('../shopify/shopifyOrderGet');
 const { shopifyFulfillmentCreate } = require('../shopify/shopifyFulfillmentCreate');
@@ -160,6 +160,8 @@ const shopifyOrderFulfill = async (
   }
   
   // if using itemsBySku, iterate over unfulfilled line items and decrement until complete, making a queue of fulfillments to action
+  logDeep({ order, itemsBySku });
+  await askQuestion('Continue?');
   
   return {
     ok: false,
