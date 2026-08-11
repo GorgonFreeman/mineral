@@ -262,25 +262,29 @@ const spinOff = async (argv = process.argv.slice(2)) => {
 
   console.log(`\nSpinning off "${ name }" into ${ target }\n`);
 
-  // 1. Create the folders.
+  // 1. Create the target directory itself if it doesn't exist yet.
+  fs.mkdirSync(target, { recursive: true });
+  console.log(`  (directory ready) ${ target }`);
+
+  // 2. Create the folders.
   console.log('Folders:');
   for (const dir of DIRECTORIES) {
     fs.mkdirSync(path.join(target, dir), { recursive: true });
     console.log(`  + ${ dir }/`);
   }
 
-  // 2. Copy mineral's structure.
+  // 3. Copy mineral's structure.
   console.log('\nStructure (copied from mineral):');
   for (const relativePath of FILES_TO_COPY) {
     copyFile(relativePath, target, { force: args.force });
   }
 
-  // 3. Workspace-specific files.
+  // 4. Workspace-specific files.
   console.log('\nGenerated:');
   writeFile(target, 'package.json', packageJson(name), { force: args.force });
   writeFile(target, path.join('api', `${ name }Hi.js`), helloHandler(name), { force: args.force });
 
-  // 4. Duplicate samples to their real, git-ignored names.
+  // 5. Duplicate samples to their real, git-ignored names.
   console.log('\nSamples -> real files:');
   for (const [from, to] of SAMPLE_DUPLICATES) {
     const fromPath = path.join(target, from);
