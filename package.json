@@ -14,6 +14,7 @@
     "hosting_preview": "node --watch --watch-path=./api --watch-path=./hosting/.hosting.yml --watch-path=./hosting/wrappers.js --watch-path=./.creds.yml hosting/hostingPreview.js",
     "tunnel": "ngrok http http://localhost:8000",
     "new": "node _build_scripts/createNewFunction.js",
+    "spin_off": "node _build_scripts/spinOff.js",
     "serve": "PORT=8100 node server.js",
     "start": "node server.js",
     "npm:publish": "node _build_scripts/publish.js"

@@ -17,6 +17,15 @@ if (command === 'hosting_preview') {
   return;
 }
 
+if (command === 'spin_off') {
+  const { spinOff } = require('../_build_scripts/spinOff');
+  spinOff().catch((error) => {
+    console.error(error.message || error);
+    process.exitCode = 1;
+  });
+  return;
+}
+
 const { startServer } = require('../server');
 
 startServer();
