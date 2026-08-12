@@ -1,5 +1,6 @@
 const csvtojson = require('csvtojson');
 const xml2js = require('xml2js');
+const { HOSTED } = require('../../constants');
 const { resolveCreds } = require('../pipelineSteps');
 const {
   FetchClient,
@@ -69,7 +70,7 @@ const useSoapEnvelope = async (state) => {
     sessionId,
   });
 
-  logDeep({ envelopeXml });
+  !HOSTED && logDeep({ envelopeXml });
 
   return {
     requestPayload: {

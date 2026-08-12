@@ -1,4 +1,4 @@
-const { logDeep, ArgsWarden } = require('../utils');
+const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 
@@ -68,7 +68,6 @@ const shopifyOrdersGet = async (
     return response;
   }
 
-  logDeep('response', response);
   return response;
 };
 
