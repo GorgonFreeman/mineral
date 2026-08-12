@@ -112,3 +112,10 @@ gorgias:
 google:
   SERVICE_ACCOUNT_JSON:
     ...
+
+tagalys:
+  store:
+    BASE_URL: ____________________________ # Server URL
+    CLIENT_CODE: _________________________
+    API_KEY: _____________________________
+    STORE_ID: ____________________________
