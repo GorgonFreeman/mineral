@@ -1,8 +1,7 @@
 # Tagalys
 
-- [Custom integration API (V1)](https://static.tagalys.com/docs/api/custom-integration/)
-- [Front-end API](https://www.tagalys.com/docs/api/front-end/#tagalys-front-end-api)
-- [Support: custom platform integration](https://support.tagalys.com/how-can-i-install-tagalys-to-my-custom-built-ecommerce-platform)
-- [Integration overview](https://support.tagalys.com/integration)
+- [Storefront API (v2)](https://tagalys.notion.site/Storefront-API-v2-20eacdd38c2080d58d3fd0cf6f24e435)
 
-Region-specific HTTPS origins (`https://api-r{n}.tagalys.com`) with versioned POST JSON under `/v1` (and FormData for product feeds). Every call includes an `identification` object (`client_code`, `api_key`, `store_id`; optional `currency` on front-end calls). Use the private key for configuration and product sync; use the public key for storefront search, merchandising pages, recommendations, and analytics.
+Region-specific HTTPS origins (`https://api-r{n}.tagalys.com`) with REST-style JSON under `/v2`. Storefront reads use GET; analytics ingest uses `POST /v2/analytics/events` with a JSON body. Browser requests authenticate with the `shop_id` query param (the shop’s `*.myshopify.com` domain). Server-side integrations should also pass `storefront_api_key`.
+
+Endpoints: `GET /v2/collections/:collection_id`, `GET /v2/search`, `GET /v2/search_suggestions`, `GET /v2/popular_searches`, `GET /v2/recommendations/:recommendation_id`, `POST /v2/analytics/events`. Collections and search support pagination (`page`, `per_page`, capped at 10,000 products), sorting (`sort`, `include[]=sort_options`), filtering (`filter[...]`, `include[]=filters`), and scope (`scope[...]`). Use `include[]=products` or `include[]=product_ids` to control product payloads. Optional request context on collections, search, and recommendations: `country`, `language`, `segment_tag`. Errors return JSON with `error.type`, `error.code`, and `error.message`.
