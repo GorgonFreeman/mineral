@@ -16,7 +16,7 @@ const metafieldDefinitionIdentifierValidator = (metafieldDefinitionIdentifier) =
 };
 
 const argsWarden = new ArgsWarden([
-  ['credsPayload', credsValidator],
+  ['credsPayload', (i) => everyIfArray(credsValidator, i)],
   ['metafieldDefinitionIdentifier', (i) => everyIfArray(metafieldDefinitionIdentifierValidator, i)],
 ]);
 
@@ -113,7 +113,15 @@ module.exports = {
 curl -X POST "http://localhost:8000/shopifyMetafieldDefinitionDelete" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "shopify.au" },
-    "thingId": "104188477512"
+    "credsPayload": [
+      { "credsPath": "shopify.au" },
+      { "credsPath": "shopify.us" },
+      { "credsPath": "shopify.uk" }
+    ],
+    "metafieldDefinitionIdentifier": {
+      "key": "associations",
+      "namespace": "merch",
+      "ownerType": "PRODUCT"
+    }
   }'
 */
