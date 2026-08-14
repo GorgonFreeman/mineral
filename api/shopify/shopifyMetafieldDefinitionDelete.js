@@ -1,7 +1,7 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/metafieldDefinitionDelete
 
 const { credsValidator } = require('../validators');
-const { ArgsWarden, valueProvided } = require('../utils');
+const { ArgsWarden, valueProvided, actionSingleOrMultiple, everyIfArray } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
 const metafieldDefinitionIdentifierValidator = (metafieldDefinitionIdentifier) => {
@@ -17,10 +17,10 @@ const metafieldDefinitionIdentifierValidator = (metafieldDefinitionIdentifier) =
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['metafieldDefinitionIdentifier', metafieldDefinitionIdentifierValidator],
+  ['metafieldDefinitionIdentifier', (i) => everyIfArray(metafieldDefinitionIdentifierValidator, i)],
 ]);
 
-const shopifyMetafieldDefinitionDelete = async (
+const shopifyMetafieldDefinitionDeleteSingle = async (
   credsPayload,
   metafieldDefinitionIdentifier,
   {
@@ -29,14 +29,6 @@ const shopifyMetafieldDefinitionDelete = async (
     deleteAllAssociatedMetafields = false,
   } = {},
 ) => {
-
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({
-    credsPayload,
-    metafieldDefinitionIdentifier,
-  });
-  if (rejectResponse) {
-    return rejectResponse;
-  }
 
   const {
     id,
@@ -71,6 +63,39 @@ const shopifyMetafieldDefinitionDelete = async (
       },
       returnSchema,
       apiVersion,
+    },
+  );
+};
+
+const shopifyMetafieldDefinitionDelete = async (
+  credsPayload,
+  metafieldDefinitionIdentifier,
+  {
+    queueRunOptions,
+    ...options
+  } = {},
+) => {
+
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    metafieldDefinitionIdentifier,
+  });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  return actionSingleOrMultiple(
+    [credsPayload, metafieldDefinitionIdentifier],
+    shopifyMetafieldDefinitionDeleteSingle,
+    (credsPayloadItem, metafieldDefinitionIdentifierItem) => ({
+      args: [
+        credsPayloadItem, 
+        metafieldDefinitionIdentifierItem, 
+        options,
+      ],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
     },
   );
 };
