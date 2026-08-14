@@ -280,6 +280,20 @@ const funcApi = (func, config = {}) => {
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const isWatchMode = () => process.execArgv.some((arg) => arg.startsWith('--watch'));
+
+const exitServer = (code = 0) => {
+  if (isWatchMode() && process.ppid && process.ppid !== 1) {
+    try {
+      process.kill(process.ppid, 'SIGTERM');
+    } catch (error) {
+      // Parent may already be gone.
+    }
+  }
+
+  process.exit(code);
+};
+
 const findPortListeners = (port) => {
   try {
     const stdout = execFileSync('lsof', [
@@ -362,7 +376,7 @@ const listenOrOfferKillPort = (server, port, onListening) => {
 
     if (shouldFind !== '') {
       console.error('not a valid input');
-      process.exit(1);
+      exitServer(1);
     }
 
     const listeners = findPortListeners(port);
@@ -382,7 +396,7 @@ const listenOrOfferKillPort = (server, port, onListening) => {
 
     if (shouldKill !== '') {
       console.error('not a valid input');
-      process.exit(1);
+      exitServer(1);
     }
 
     await killPortListeners(listeners);
@@ -394,18 +408,18 @@ const listenOrOfferKillPort = (server, port, onListening) => {
   server.on('error', async (error) => {
     if (error.code !== 'EADDRINUSE') {
       console.error(error);
-      process.exit(1);
+      exitServer(1);
     }
 
     if (recovering) {
-      console.error(`Port ${ port } is still in use after trying to free it.`);
-      process.exit(1);
+      console.error(error);
+      exitServer(1);
     }
 
-    console.error(`Port ${ port } is already in use.`);
+    console.error(error);
 
     if (HOSTED) {
-      process.exit(1);
+      exitServer(1);
     }
 
     recovering = true;
@@ -414,13 +428,13 @@ const listenOrOfferKillPort = (server, port, onListening) => {
       const shouldRetry = await askRecoveryQuestions();
 
       if (!shouldRetry) {
-        process.exit(1);
+        exitServer(0);
       }
 
       tryListen();
     } catch (recoveryError) {
       console.error(recoveryError);
-      process.exit(1);
+      exitServer(1);
     }
   });
 
