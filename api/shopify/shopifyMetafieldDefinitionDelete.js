@@ -38,14 +38,35 @@ const shopifyMetafieldDefinitionDelete = async (
     return rejectResponse;
   }
 
+  const {
+    id,
+    key,
+    namespace,
+    ownerType,
+  } = metafieldDefinitionIdentifier;
+
   return shopifyMutationDo(
     credsPayload,
-    'thingDelete',
+    'metafieldDefinitionDelete',
     {
       mutationVariables: {
-        id: {
+        ...(id && { id: {
           type: 'ID!',
-          value: `gid://shopify/Thing/${ thingId }`,
+          value: `gid://shopify/MetafieldDefinition/${ id }`,
+        } }),
+        ...((key && namespace && ownerType) && { 
+          identifier: {
+            type: 'MetafieldDefinitionIdentifierInput!',
+            value: {
+              key,
+              namespace,
+              ownerType,
+            },
+          },
+        }),
+        deleteAllAssociatedMetafields: {
+          type: 'Boolean!',
+          value: deleteAllAssociatedMetafields,
         },
       },
       returnSchema,
