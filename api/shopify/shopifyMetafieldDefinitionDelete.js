@@ -1,17 +1,28 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/metafieldDefinitionDelete
 
 const { credsValidator } = require('../validators');
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, valueProvided } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
+
+const metafieldDefinitionIdentifierValidator = (metafieldDefinitionIdentifier) => {
+  const { 
+    id,
+    key,
+    namespace,
+    ownerType,
+  } = metafieldDefinitionIdentifier;
+  return (key && namespace && ownerType)
+    || valueProvided(id);
+};
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['thingId'],
+  ['metafieldDefinitionIdentifier', metafieldDefinitionIdentifierValidator],
 ]);
 
 const shopifyMetafieldDefinitionDelete = async (
   credsPayload,
-  thingId,
+  metafieldDefinitionIdentifier,
   {
     apiVersion,
     returnSchema = 'deletedThingId',
@@ -20,7 +31,7 @@ const shopifyMetafieldDefinitionDelete = async (
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    thingId,
+    metafieldDefinitionIdentifier,
   });
   if (rejectResponse) {
     return rejectResponse;
