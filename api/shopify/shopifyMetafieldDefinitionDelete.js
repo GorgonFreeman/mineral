@@ -1,4 +1,4 @@
-// https://shopify.dev/docs/api/admin-graphql/latest/mutations/pageDelete
+// https://shopify.dev/docs/api/admin-graphql/latest/mutations/metafieldDefinitionDelete
 
 const { credsValidator } = require('../validators');
 const { ArgsWarden } = require('../utils');
