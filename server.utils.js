@@ -1,4 +1,5 @@
-const { logDeep } = require('./api/utils');
+const { execFileSync } = require('child_process');
+const { logDeep, askQuestion } = require('./api/utils');
 const { HOSTED } = require('./api/constants');
 const { StringDecoder } = require('string_decoder');
 
@@ -277,6 +278,157 @@ const funcApi = (func, config = {}) => {
   };
 };
 
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const findPortListeners = (port) => {
+  try {
+    const stdout = execFileSync('lsof', [
+      '-nP',
+      `-iTCP:${ port }`,
+      '-sTCP:LISTEN',
+      '-Fpc',
+    ], {
+      encoding: 'utf8',
+    });
+
+    const listeners = [];
+    let pid = null;
+
+    for (const line of stdout.split('\n')) {
+      if (line.startsWith('p')) {
+        pid = Number(line.slice(1));
+        continue;
+      }
+
+      if (line.startsWith('c') && pid) {
+        listeners.push({
+          pid,
+          command: line.slice(1),
+        });
+        pid = null;
+      }
+    }
+
+    return listeners.filter((listener) => listener.pid && listener.pid !== process.pid);
+  } catch (error) {
+    return [];
+  }
+};
+
+const formatPortListeners = (listeners) => listeners
+  .map(({ pid, command }) => `${ command } (PID ${ pid })`)
+  .join(', ');
+
+const killPortListeners = async (listeners) => {
+  for (const { pid } of listeners) {
+    try {
+      process.kill(pid, 'SIGTERM');
+    } catch (error) {
+      if (error.code !== 'ESRCH') {
+        throw error;
+      }
+    }
+  }
+
+  await wait(300);
+
+  for (const { pid } of listeners) {
+    try {
+      process.kill(pid, 0);
+      process.kill(pid, 'SIGKILL');
+    } catch (error) {
+      if (error.code !== 'ESRCH') {
+        throw error;
+      }
+    }
+  }
+
+  await wait(200);
+};
+
+const listenOrOfferKillPort = (server, port, onListening) => {
+  let recovering = false;
+
+  const tryListen = () => {
+    server.listen(port);
+  };
+
+  const askRecoveryQuestions = async () => {
+    const shouldFind = await askQuestion('Look up the process using it? ');
+
+    if (shouldFind === 'n') {
+      return false;
+    }
+
+    if (shouldFind !== '') {
+      console.error('not a valid input');
+      process.exit(1);
+    }
+
+    const listeners = findPortListeners(port);
+
+    if (!listeners.length) {
+      console.error(`Could not find a process listening on port ${ port }.`);
+      return false;
+    }
+
+    console.log('Port in use by:', formatPortListeners(listeners));
+
+    const shouldKill = await askQuestion('Kill it and retry? ');
+
+    if (shouldKill === 'n') {
+      return false;
+    }
+
+    if (shouldKill !== '') {
+      console.error('not a valid input');
+      process.exit(1);
+    }
+
+    await killPortListeners(listeners);
+    return true;
+  };
+
+  server.once('listening', onListening);
+
+  server.on('error', async (error) => {
+    if (error.code !== 'EADDRINUSE') {
+      console.error(error);
+      process.exit(1);
+    }
+
+    if (recovering) {
+      console.error(`Port ${ port } is still in use after trying to free it.`);
+      process.exit(1);
+    }
+
+    console.error(`Port ${ port } is already in use.`);
+
+    if (HOSTED) {
+      process.exit(1);
+    }
+
+    recovering = true;
+
+    try {
+      const shouldRetry = await askRecoveryQuestions();
+
+      if (!shouldRetry) {
+        process.exit(1);
+      }
+
+      tryListen();
+    } catch (recoveryError) {
+      console.error(recoveryError);
+      process.exit(1);
+    }
+  });
+
+  tryListen();
+
+  return server;
+};
+
 module.exports = {
   respondJson,
   errorToReadable,
@@ -285,4 +437,6 @@ module.exports = {
   wrapFunction,
   statusCodeFromResult,
   funcApi,
+  findPortListeners,
+  listenOrOfferKillPort,
 };

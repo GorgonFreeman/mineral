@@ -1,6 +1,14 @@
 const fs = require('fs');
 const http = require('http');
-const { respondJson, errorToReadable, getRequestBody, argsFromBody, funcApi, statusCodeFromResult } = require('./server.utils');
+const {
+  respondJson,
+  errorToReadable,
+  getRequestBody,
+  argsFromBody,
+  funcApi,
+  statusCodeFromResult,
+  listenOrOfferKillPort,
+} = require('./server.utils');
 const { getWorkspace, setWorkspace, loadWorkspaceEnv, toAbsolutePath } = require('./api/workspace');
 const { getApiDirs, readCliFlag } = require('./cli');
 const { getFuncApiConfig } = require('./hosting/hosting.utils');
@@ -208,7 +216,7 @@ const startServer = (options = {}) => {
   handlers = loadHandlers(config);
   server = createServer(handlers);
 
-  server.listen(config.port, () => logStartup({
+  listenOrOfferKillPort(server, config.port, () => logStartup({
     ...config,
     handlers,
   }));

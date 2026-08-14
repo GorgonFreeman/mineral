@@ -1,6 +1,6 @@
 const http = require('http');
 const { createRequire } = require('module');
-const { respondJson, errorToReadable } = require('../server.utils');
+const { respondJson, errorToReadable, listenOrOfferKillPort } = require('../server.utils');
 const { getWorkspace, setWorkspace, loadWorkspaceEnv, toAbsolutePath } = require('../api/workspace');
 const { getApiDirs, readCliFlag } = require('../cli');
 const { loadHandlers } = require('../server');
@@ -137,7 +137,7 @@ const startHostingPreview = (options = {}) => {
   const handlers = loadHostedRoutes(config);
   const server = createHostedPreviewServer(handlers);
 
-  server.listen(config.port, () => {
+  listenOrOfferKillPort(server, config.port, () => {
     console.log(`Hosting preview running on port ${ config.port }`);
     console.log(`Workspace: ${ config.workspace }`);
     console.log('Hosted routes:');
