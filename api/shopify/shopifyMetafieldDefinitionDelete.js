@@ -25,7 +25,8 @@ const shopifyMetafieldDefinitionDelete = async (
   metafieldDefinitionIdentifier,
   {
     apiVersion,
-    returnSchema = 'deletedThingId',
+    returnSchema = 'deletedDefinitionId',
+    deleteAllAssociatedMetafields = false,
   } = {},
 ) => {
 
