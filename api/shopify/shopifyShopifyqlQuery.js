@@ -92,18 +92,18 @@ module.exports = {
 };
 
 /*
-curl -X POST "http://localhost:8000/shopifyShopifyqlQuery" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credsPayload": { "credsPath": "shopify.au" },
-    "query": "FROM sales SHOW total_sales, orders TIMESERIES day SINCE -7d ORDER BY day ASC"
-  }'
+  curl -X POST "http://localhost:8000/shopifyShopifyqlQuery" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "credsPayload": { "credsPath": "shopify.au" },
+      "query": "FROM sales SHOW total_sales, orders TIMESERIES day SINCE -7d ORDER BY day ASC"
+    }'
 
-Example command to get at last restock date
-curl -X POST "http://localhost:8000/shopifyShopifyqlQuery" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credsPayload": { "credsPath": "shopify.au" },
-    "query": "FROM inventory_adjustment_history SHOW inventory_adjustment_change, product_variant_title, product_variant_sku, day GROUP BY product_variant_title, product_variant_sku, day HAVING inventory_adjustment_change > 10 ORDER BY day DESC LIMIT 10"
-  }'
+  Example command to get at last restock date
+  curl -X POST "http://localhost:8000/shopifyShopifyqlQuery" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "credsPayload": { "credsPath": "shopify.au" },
+      "query": "FROM inventory_adjustment_history SHOW inventory_adjustment_change, product_variant_title, product_variant_sku, day GROUP BY product_variant_title, product_variant_sku, day HAVING inventory_adjustment_change > 10 ORDER BY day DESC LIMIT 10"
+    }'
 */
