@@ -1180,6 +1180,10 @@ class Getter extends EventEmitter {
         items = ensureArray(response);
       }
 
+      if (!items) {
+        logDeep({ response });
+      }
+
       if (this.limit) {
         const itemsLeft = this.limit - resultsCount;
         items = items.slice(0, itemsLeft);
