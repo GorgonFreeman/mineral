@@ -1,18 +1,17 @@
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
-const { shopifyClient } = require('./shopify.utils');
+const { shopifyGet, shopifyGetter } = require('./shopifyGet');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
 ]);
 
 const shopifyOrdersGet = async (
+  returnGetter, // Always bound
+
   credsPayload,
   {
-    first = 50,
-    after,
-    query,
-    apiVersion,
+    ...getterOptions // e.g. limit
   } = {},
 ) => {
 
@@ -23,52 +22,17 @@ const shopifyOrdersGet = async (
     return rejectResponse;
   }
 
-  const response = await shopifyClient.fetch({
-    requestPayload: {
-      method: 'post',
-      body: {
-        query: `
-        query OrdersGet(
-          $first: Int!,
-          $after: String,
-          $query: String
-        ) {
-          orders(
-            first: $first,
-            after: $after,
-            query: $query
-          ) {
-            edges {
-              node {
-                id
-                name
-                createdAt
-                displayFinancialStatus
-                displayFulfillmentStatus
-              }
-            }
-          }
-        }
-      `,
-        variables: {
-          first,
-          after,
-          query,
-        },
-      },
+  const getterArgs = [
+    credsPayload, 
+    'order', 
+    {
+      ...getterOptions,
     },
-    context: {
-      credsPayload,
-      apiVersion,
-      resultPath: 'data.orders',
-    },
-  });
+  ];
 
-  if (!response.ok) {
-    return response;
-  }
-
-  return response;
+  return returnGetter
+    ? shopifyGetter(...getterArgs)
+    : shopifyGet(...getterArgs);
 };
 
 const funcApiConfig = {
@@ -76,6 +40,7 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  shopifyOrdersGet,
+  shopifyOrdersGet: (...args) => shopifyOrdersGet(false, ...args),
+  shopifyOrdersGetter: (...args) => shopifyOrdersGet(true, ...args),
   funcApiConfig,
 };
