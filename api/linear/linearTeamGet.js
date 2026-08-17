@@ -6,12 +6,12 @@ const { linearClient } = require('../linear/linear.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['id'],
+  ['teamId'],
 ]);
 
 const linearTeamGet = async (
   credsPayload,
-  id,
+  teamId,
   {
     inspect = false,
     fetchClient = linearClient,
@@ -20,7 +20,7 @@ const linearTeamGet = async (
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    id,
+    teamId,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -30,8 +30,8 @@ const linearTeamGet = async (
     requestPayload: {
       body: {
         query: `
-          query TeamGet($id: String!) {
-            team(id: $id) {
+          query TeamGet($teamId: String!) {
+            team(id: $teamId) {
               id
               name
               key
@@ -40,7 +40,7 @@ const linearTeamGet = async (
           }
         `,
         variables: {
-          id,
+          teamId,
         },
       },
     },
@@ -66,6 +66,6 @@ curl -X POST "http://localhost:8000/linearTeamGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
-    "id": "f2387dcd-61ac-49aa-8d7a-7f62a0b5cca0"
+    "teamId": "f2387dcd-61ac-49aa-8d7a-7f62a0b5cca0"
   }'
 */
