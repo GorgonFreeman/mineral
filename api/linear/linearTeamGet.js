@@ -1,17 +1,18 @@
 // https://linear.app/developers/graphql
 
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, oneFromManyInResponse } = require('../utils');
 const { credsValidator } = require('../validators');
 const { linearClient } = require('../linear/linear.utils');
+const { linearTeamsGet } = require('./linearTeamsGet');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['teamId'],
+  ['teamIdentifier'],
 ]);
 
 const linearTeamGet = async (
   credsPayload,
-  teamId,
+  teamIdentifier,
   {
     inspect = false,
     fetchClient = linearClient,
@@ -20,10 +21,45 @@ const linearTeamGet = async (
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    teamId,
+    teamIdentifier,
   });
   if (rejectResponse) {
     return rejectResponse;
+  }
+
+  let {
+    teamId,
+    teamName,
+    teamKey,
+  } = teamIdentifier;
+
+  if (!teamId) {
+    const teamsGetResponse = await linearTeamsGet(credsPayload);
+
+    if (teamName) {
+      const teamResponse = oneFromManyInResponse(teamsGetResponse, 'name', teamName);
+      if (teamResponse.ok && teamResponse.data) {
+        teamId = teamResponse.data.id;
+      }
+    }
+
+    if (teamKey) {
+      const teamResponse = oneFromManyInResponse(teamsGetResponse, 'key', teamKey);
+      if (teamResponse.ok && teamResponse.data) {
+        teamId = teamResponse.data.id;
+      }
+    }
+  }
+  
+  // TODO: This should be ok: true, probably
+  if (!teamId) {
+    return {
+      ok: false,
+      data: null,
+      meta: {
+        message: `No team found with identifier ${ JSON.stringify(teamIdentifier) }`,
+      },
+    };
   }
 
   return fetchClient.fetch({
@@ -66,6 +102,6 @@ curl -X POST "http://localhost:8000/linearTeamGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
-    "teamId": "f2387dcd-61ac-49aa-8d7a-7f62a0b5cca0"
+    "teamIdentifier": { "teamName": "Elite Four" }
   }'
 */
