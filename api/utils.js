@@ -1319,6 +1319,49 @@ const objectMatchesPartial = (object, partial) => {
   ));
 };
 
+const oneFromManyInResponse = (
+  response, 
+  idProp, 
+  idValue,
+) => {
+  const {
+    ok,
+    data,
+  } = response;
+
+  if (!ok || !data) {
+    return response;
+  }
+
+  const candidates = data.filter(item => item[idProp] === idValue);
+
+  if (candidates.length === 0) {
+    return {
+      ok: true,
+      data: null,
+      meta: {
+        message: `No item found with ${ idProp } ${ idValue }`,
+      },
+    };
+  }
+  
+  // TODO: Consider whether to return ok: false as the user's id is not sufficient
+  if (candidates.length > 1) {
+    return {
+      ok: true,
+      data: null,
+      meta: {
+        message: `Multiple items found with ${ idProp } ${ idValue }`,
+      },
+    };
+  }
+
+  return {
+    ok: true,
+    data: candidates[0],
+  };
+};
+
 module.exports = {
   wait,
   timeMs,
@@ -1358,4 +1401,5 @@ module.exports = {
   valueProvided,
   objectToArray,
   objectMatchesPartial,
+  oneFromManyInResponse,
 };
