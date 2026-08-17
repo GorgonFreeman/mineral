@@ -63,4 +63,17 @@ curl -X POST "http://localhost:8000/linearTeamsGet" \
       "limit": 10
     }
   }'
+
+curl -X POST "http://localhost:8000/linearTeamsGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "linear" },
+    "options": {
+      "filter": {
+        "name": {
+          "eq": "WF Engineering"
+        }
+      }
+    }
+  }'
 */
