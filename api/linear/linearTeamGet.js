@@ -1,13 +1,19 @@
 // https://linear.app/developers/graphql
 
-const { ArgsWarden, oneFromManyInResponse } = require('../utils');
+const { ArgsWarden, objHasAny, oneFromManyInResponse } = require('../utils');
 const { credsValidator } = require('../validators');
 const { linearClient } = require('../linear/linear.utils');
 const { linearTeamsGet } = require('./linearTeamsGet');
 
+const teamIdentifierValidator = (teamIdentifier) => objHasAny(teamIdentifier, [
+  'teamId', 
+  'teamName', 
+  'teamKey',
+]);
+
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['teamIdentifier'],
+  ['teamIdentifier', teamIdentifierValidator],
 ]);
 
 const linearTeamGet = async (
@@ -32,22 +38,23 @@ const linearTeamGet = async (
     teamName,
     teamKey,
   } = teamIdentifier;
-
+  
+  // TODO: Return straight from the multiple teams get, if using a non-id identifier
   if (!teamId) {
-    const teamsGetResponse = await linearTeamsGet(credsPayload);
 
-    if (teamName) {
-      const teamResponse = oneFromManyInResponse(teamsGetResponse, 'name', teamName);
-      if (teamResponse.ok && teamResponse.data) {
-        teamId = teamResponse.data.id;
-      }
-    }
+    let teamFilter =
+      teamName ? { name: { eq: teamName } } 
+      : teamKey ? { key: { eq: teamKey } } 
+      : null;
 
-    if (teamKey) {
-      const teamResponse = oneFromManyInResponse(teamsGetResponse, 'key', teamKey);
-      if (teamResponse.ok && teamResponse.data) {
-        teamId = teamResponse.data.id;
-      }
+    const teamsGetResponse = await linearTeamsGet(credsPayload, { filter: teamFilter });
+
+    const teamIdProp = teamName ? 'name' : 'key';
+    const teamIdValue = teamName ? teamName : teamKey;
+
+    const teamResponse = oneFromManyInResponse(teamsGetResponse, teamIdProp, teamIdValue);
+    if (teamResponse.ok && teamResponse.data) {
+      teamId = teamResponse.data.id;
     }
   }
   
