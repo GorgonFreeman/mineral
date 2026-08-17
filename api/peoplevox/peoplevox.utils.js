@@ -6,6 +6,7 @@ const {
   FetchClient,
   appendUrlToBase,
   logDeep,
+  objectToArray,
 } = require('../utils');
 const { withPeoplevoxSession } = require('../peoplevox/peoplevox.sessions');
 
@@ -214,6 +215,64 @@ const peoplevoxClient = new FetchClient({
   ],
 });
 
+const packageItemsToPackages = (packageItems) => {
+  const peoplevoxPackagesByKey = {};
+
+  for (const item of packageItems) {
+
+    // Do all destructuring here
+    const {
+      'Despatch number': despatchNumber,
+      'Package number': packageNumber,
+      'Package tracking number': trackingNumber,
+      'Package despatch timestamp': despatchTimestamp,
+      'Package carrier name': carrierName,
+      'Package service type code': serviceTypeCode,
+      'Sales order number': salesOrderNumber,
+      'Site reference': siteReference,
+      'Sales order item code': salesOrderItemCode,
+      'Sales order item line': salesOrderItemLine,
+      'Sales order item quantity ordered': salesOrderItemQuantityOrdered,
+      'Item code': itemCode,
+      'Item quantity': itemQuantity,
+    } = item;
+
+    /* 
+      Dedupe by tracking number, since peoplevox returns a row per item
+      (not per package). Fall back to despatchNumber:packageNumber for
+      packages without a tracking number, so they don't all collapse together.
+    */
+    const packageKey = trackingNumber || `${ despatchNumber }:${ packageNumber }`;
+
+    if (!peoplevoxPackagesByKey[packageKey]) {
+      peoplevoxPackagesByKey[packageKey] = {
+        despatchNumber,
+        packageNumber,
+        trackingNumber,
+        despatchTimestamp,
+        carrierName,
+        serviceTypeCode,
+        salesOrderNumber,
+        siteReference,
+        items: [],
+      };
+    }
+
+    peoplevoxPackagesByKey[packageKey].items.push({
+      salesOrderItemCode,
+      salesOrderItemLine,
+      salesOrderItemQuantityOrdered,
+      itemCode,
+      itemQuantity,
+    });
+  }
+
+  const packages = objectToArray(peoplevoxPackagesByKey, { keyProp: 'packageKey' });
+
+  return packages;
+};
+
 module.exports = {
   peoplevoxClient,
+  packageItemsToPackages,
 };
