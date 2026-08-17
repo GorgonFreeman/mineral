@@ -60,7 +60,7 @@ const shopifyMutationDo = async (
     ...clientOptions,
   });
 
-  logDeep(response);
+  // logDeep(response);
   return response;
 };
 
