@@ -154,5 +154,5 @@ module.exports = {
 
 /*
 curl -X POST "http://localhost:8000/tableauUserAdd" \
--d '{ "username": "jane.doe@example.com", "siteRole": "Explorer" }'
+-d '{ "username": "dora@example.com", "siteRole": "Explorer" }'
 */
