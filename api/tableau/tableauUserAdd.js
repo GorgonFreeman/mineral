@@ -1,10 +1,10 @@
-const { ArgsWarden, logDeep } = require('@foxtware/mineral/api/utils');
-const { resolveCreds } = require('@foxtware/mineral/api/pipelineSteps');
+const { ArgsWarden, logDeep } = require('../utils');
+const { resolveCreds } = require('../pipelineSteps');
 const {
   FetchClient,
   appendUrlToBase,
   fetchClientCommonSteps,
-} = require('@foxtware/mineral/api/utils');
+} = require('../utils');
 
 const DEFAULT_API_VERSION = '3.22';
 

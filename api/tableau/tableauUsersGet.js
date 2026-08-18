@@ -1,13 +1,13 @@
 // GET /api/{api-version}/sites/{site-id}/users is paginated (default pageSize
 // is 100, max 1000), so this walks all pages and returns the full list.
 
-const { ArgsWarden, logDeep } = require('@foxtware/mineral/api/utils');
-const { resolveCreds } = require('@foxtware/mineral/api/pipelineSteps');
+const { ArgsWarden, logDeep } = require('../utils');
+const { resolveCreds } = require('../pipelineSteps');
 const {
   FetchClient,
   appendUrlToBase,
   fetchClientCommonSteps,
-} = require('@foxtware/mineral/api/utils');
+} = require('../utils');
 
 const DEFAULT_API_VERSION = '3.22';
 const PAGE_SIZE = 1000; // Tableau's max page size
