@@ -109,13 +109,13 @@ const tableauUsersGet = async ({ filter } = {}) => {
       ...(filter ? { filter } : {}),
     });
 
-    const response = await tableauClient.run({
+    const response = await tableauClient.fetch({
       context: {
-        credsPath: ['tableau'],
+        credsPayload: { credsPath: ['tableau'] },
       },
       requestPayload: {
         url: `/sites/{siteId}/users?${ query.toString() }`,
-        method: 'GET',
+        method: 'get',
       },
     });
 

@@ -113,20 +113,20 @@ const tableauUserAdd = async (
     return rejectResponse;
   }
 
-  const response = await tableauClient.run({
+  const response = await tableauClient.fetch({
     context: {
-      credsPath: ['tableau'],
+      credsPayload: { credsPath: ['tableau'] },
     },
     requestPayload: {
       url: '/sites/{siteId}/users',
-      method: 'POST',
-      body: JSON.stringify({
+      method: 'post',
+      body: {
         user: {
           name: username,
           siteRole,
           ...(authSetting ? { authSetting } : {}),
         },
-      }),
+      },
     },
   });
 
