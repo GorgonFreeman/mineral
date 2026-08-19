@@ -1427,4 +1427,5 @@ module.exports = {
   objectToArray,
   objectMatchesPartial,
   oneFromManyInResponse,
+  surveyObject,
 };
