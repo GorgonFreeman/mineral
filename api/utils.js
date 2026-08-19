@@ -1362,23 +1362,47 @@ const oneFromManyInResponse = (
   };
 };
 
-const surveyObject = (object) => {
+const surveyObject = (
+  object,
+  options = {},
+) => {
+
+  const {
+    includeSamples,
+  } = options;
+  
   return Object.fromEntries(
     Object.entries(object).map(([key, value]) => {
 
       // Arrays
       if (Array.isArray(value)) {
+        
+        if (includeSamples) {
+          return [key, {
+            samples: value.slice(0, 5),
+            length: value.length,
+          }];
+        }
+
         return [key, value.length];
       }
       
       // Sets
       if (value instanceof Set) {
+
+        if (includeSamples) {
+          return [key, {
+            samples: new Set(Array.from(value).slice(0, 5)),
+            size: value.size,
+          }];
+        }
+
         return [key, value.size];
       }
       
       // Objects
       if (isObject(value)) {
-        return [key, surveyObject(value)];
+        return [key, surveyObject(value, options)];
       }
       
       // Anything else
