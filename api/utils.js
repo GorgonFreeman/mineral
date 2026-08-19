@@ -1362,6 +1362,31 @@ const oneFromManyInResponse = (
   };
 };
 
+const surveyObject = (object) => {
+  return Object.fromEntries(
+    Object.entries(object).map(([key, value]) => {
+
+      // Arrays
+      if (Array.isArray(value)) {
+        return [key, value.length];
+      }
+      
+      // Sets
+      if (value instanceof Set) {
+        return [key, value.size];
+      }
+      
+      // Objects
+      if (isObject(value)) {
+        return [key, surveyObject(value)];
+      }
+      
+      // Anything else
+      return [key, value];
+    })
+  );
+};
+
 module.exports = {
   wait,
   timeMs,
