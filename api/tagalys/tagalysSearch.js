@@ -15,7 +15,7 @@ const {
 //   BASE_URL   -> used directly (docs say it's region-specific,
 //                 e.g. https://api-r1.tagalys.com -- assumed already
 //                 resolved to the right region in the creds store)
-//   STORE_ID   -> sent as `shop_id`
+//   STORE_HANDLE -> expanded to the `shop_id` myshopify domain
 //   API_KEY    -> sent as `storefront_api_key`
 //   CLIENT_CODE -> not used by /v2/search per the docs; left unused below.
 //                  Flag if your account actually needs it sent somewhere.
@@ -45,12 +45,13 @@ const useUrlAndQuery = async (state) => {
 
   const {
     BASE_URL,
-    STORE_ID,
+    STORE_HANDLE,
     API_KEY,
   } = creds;
+  const shopId = `${ STORE_HANDLE }.myshopify.com`;
 
   const searchParams = new URLSearchParams();
-  searchParams.append('shop_id', STORE_ID);
+  searchParams.append('shop_id', shopId);
   if (API_KEY) {
     searchParams.append('storefront_api_key', API_KEY);
   }

@@ -119,6 +119,7 @@ tagalys:
     CLIENT_CODE: _________________________
     API_KEY: _____________________________
     STORE_ID: ____________________________
+    STORE_HANDLE: ________________________ # used to build shop_id as ${ STORE_HANDLE }.myshopify.com
 
 tableau:
   PAT_NAME: ______________________________
