@@ -115,11 +115,11 @@ google:
 
 tagalys:
   store:
-    BASE_URL: ____________________________ # Server URL
-    CLIENT_CODE: _________________________
-    API_KEY: _____________________________
-    STORE_ID: ____________________________
-    STORE_HANDLE: ________________________ # used to build shop_id as ${ STORE_HANDLE }.myshopify.com
+    BASE_URL: ____________________________ 
+    CLIENT_CODE: _________________________ # unused but surfaced in dashboard
+    API_KEY: _____________________________ # unused but surfaced in dashboard
+    STOREFRONT_API_KEY: __________________
+    STORE_HANDLE: ________________________
 
 tableau:
   PAT_NAME: ______________________________
