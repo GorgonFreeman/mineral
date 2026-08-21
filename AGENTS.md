@@ -25,3 +25,16 @@ Notes for AI assistants working in this directory. **Read this file at the start
 ## API clients
 - Base URLs for platform clients should live in `{platform}.constants.js`, not creds, if they are static for all users of the API.
 - Don't explicitly set `Content-Type: application/json` on the client — `customFetch` already adds it when there is a request body.
+
+## Usual structure of a platform API client
+This is the usual structure, but it can be altered per platform, if required. If there is no good reason to deviate, this is how a platform should look.
+- Functions live in `/api/[platform]`
+- Creds are supported by path from `.creds.yml`.
+- A customised FetchClient called `[platform]Client` exists in `[platform].utils.js`, which handles API requests. It implements a base URL, and resolves `credsPayload` into `context.creds` for future steps.
+- All functions require a `credsPayload` argument to tell them which credentials to use. They relate per instance.
+- `[platform].constants.js` contains any max pagination limits, default API version, base url (if not changing per instance).
+- `[platform]Get.js` is a generic function which gets resources in a paginated way. It implements Getter, and all `[platform]ResourceGet.js` functions export both `platformResourceGet` and `platformResourceGetter`, using the "bind" export style.
+- Each endpoint of the platform's API is supported as a separate function within the platform directory. Functions are named `[platform]NounVerb.js`, e.g. `shopifyPageDelete`.
+- Endpoints should return the unwrapped data inside the standard response format, e.g. `data: { ...resource }`. Not e.g. `data: { product/data/result: { ...resource } }`.
+
+
