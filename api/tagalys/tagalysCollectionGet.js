@@ -1,22 +1,21 @@
 // https://tagalys.notion.site/Storefront-API-v2-20eacdd38c2080d58d3fd0cf6f24e435
 
 const { credsValidator } = require('../validators');
-const { ArgsWarden, logDeep } = require('../utils');
+const { ArgsWarden, actionSingleOrMultiple, logDeep } = require('../utils');
 const { DEFAULT_INCLUDE } = require('../tagalys/tagalys.constants');
 const {
   tagalysClient,
   requestContextParams,
-  responseWithRedirect,
 } = require('../tagalys/tagalys.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['query'],
+  ['collectionId'],
 ]);
 
-const tagalysSearch = async (
+const tagalysCollectionGetSingle = async (
   credsPayload,
-  query,
+  collectionId,
   {
     include = DEFAULT_INCLUDE, // e.g. ['products', 'filters', 'sort_options', 'total_count']
     filter, // e.g. { color: ['red'], price: { selected_min: 100, selected_max: 200 } }
@@ -24,49 +23,67 @@ const tagalysSearch = async (
     sort, // e.g. 'price-asc'
     page,
     perPage,
+    bannerPositions, // { source: 'dashboard' | 'custom' | 'none', fixed: [4, 6], repeating: { every: 16, at: [5] } }
     country,
     language,
     segmentTag,
   } = {},
 ) => {
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({
-    credsPayload,
-    query,
-  });
-  if (rejectResponse) {
-    return rejectResponse;
-  }
-
   const response = await tagalysClient.fetch({
     context: {
       credsPayload,
     },
     requestPayload: {
-      url: '/v2/search',
+      url: `/v2/collections/${ collectionId }`,
       method: 'get',
       query: {
-        query,
         include,
         ...(filter ? { filter } : {}),
         ...(scope ? { scope } : {}),
         ...(sort ? { sort } : {}),
         ...(page ? { page } : {}),
         ...(perPage ? { per_page: perPage } : {}),
+        ...(bannerPositions ? { banner_positions: bannerPositions } : {}),
         ...requestContextParams({ country, language, segmentTag }),
       },
     },
   });
 
-  const { ok, data, error } = response;
+  const { ok, error } = response;
   if (!ok) {
     logDeep({ error });
-    return { ok: false, error };
   }
 
-  // A search can be both redirected and spelling-corrected in the same
-  // response -- data (query_handling, original_query, etc.) is preserved
-  // either way, see tagalys.utils.js#responseWithRedirect.
-  return responseWithRedirect(data);
+  return response;
+};
+
+const tagalysCollectionGet = async (
+  credsPayload,
+  collectionId,
+  {
+    queueRunOptions,
+    ...options
+  } = {},
+) => {
+
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    collectionId,
+  });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  return actionSingleOrMultiple(
+    collectionId,
+    tagalysCollectionGetSingle,
+    (collectionIdItem) => ({
+      args: [credsPayload, collectionIdItem, options],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
+    },
+  );
 };
 
 const funcApiConfig = {
@@ -74,11 +91,11 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  tagalysSearch,
+  tagalysCollectionGet,
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/tagalysSearch" \
--d '{ "credsPayload": { "credsPath": "tagalys.au" }, "query": "gold" }'
+curl -X POST "http://localhost:8000/tagalysCollectionGet" \
+-d '{ "credsPayload": { "credsPath": "tagalys.store" }, "collectionId": "123456789" }'
 */
