@@ -3,11 +3,7 @@
 const { credsValidator } = require('../validators');
 const { ArgsWarden, logDeep } = require('../utils');
 const { DEFAULT_INCLUDE } = require('../tagalys/tagalys.constants');
-const {
-  tagalysClient,
-  requestContextParams,
-  responseWithRedirect,
-} = require('../tagalys/tagalys.utils');
+const { tagalysClient } = require('../tagalys/tagalys.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
@@ -37,9 +33,16 @@ const tagalysSearch = async (
     return rejectResponse;
   }
 
+  // A search can be both redirected and spelling-corrected in the same
+  // response -- redirected/redirectUrl and data (query_handling,
+  // original_query, etc.) both land on the response, see
+  // tagalys.utils.js#useRedirectResponse.
   const response = await tagalysClient.fetch({
     context: {
       credsPayload,
+      country,
+      language,
+      segmentTag,
     },
     requestPayload: {
       url: '/v2/search',
@@ -52,21 +55,16 @@ const tagalysSearch = async (
         ...(sort ? { sort } : {}),
         ...(page ? { page } : {}),
         ...(perPage ? { per_page: perPage } : {}),
-        ...requestContextParams({ country, language, segmentTag }),
       },
     },
   });
 
-  const { ok, data, error } = response;
+  const { ok, error } = response;
   if (!ok) {
     logDeep({ error });
-    return { ok: false, error };
   }
 
-  // A search can be both redirected and spelling-corrected in the same
-  // response -- data (query_handling, original_query, etc.) is preserved
-  // either way, see tagalys.utils.js#responseWithRedirect.
-  return responseWithRedirect(data);
+  return response;
 };
 
 const funcApiConfig = {
@@ -80,5 +78,5 @@ module.exports = {
 
 /*
 curl -X POST "http://localhost:8000/tagalysSearch" \
--d '{ "credsPayload": { "credsPath": "tagalys.au" }, "query": "gold" }'
+-d '{ "credsPayload": { "credsPath": "tagalys.store" }, "query": "gold" }'
 */

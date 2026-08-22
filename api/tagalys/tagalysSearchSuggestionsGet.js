@@ -2,10 +2,7 @@
 
 const { credsValidator } = require('../validators');
 const { ArgsWarden, logDeep, valueProvided } = require('../utils');
-const {
-  tagalysClient,
-  responseWithRedirect,
-} = require('../tagalys/tagalys.utils');
+const { tagalysClient } = require('../tagalys/tagalys.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
@@ -34,6 +31,7 @@ const tagalysSearchSuggestionsGet = async (
     return rejectResponse;
   }
 
+  // redirected/redirectUrl land on the response via tagalys.utils.js#useRedirectResponse
   const response = await tagalysClient.fetch({
     context: {
       credsPayload,
@@ -48,13 +46,12 @@ const tagalysSearchSuggestionsGet = async (
     },
   });
 
-  const { ok, data, error } = response;
+  const { ok, error } = response;
   if (!ok) {
     logDeep({ error });
-    return { ok: false, error };
   }
 
-  return responseWithRedirect(data);
+  return response;
 };
 
 const funcApiConfig = {

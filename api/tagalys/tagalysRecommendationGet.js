@@ -3,10 +3,7 @@
 const { credsValidator } = require('../validators');
 const { ArgsWarden, actionSingleOrMultiple, ensureArray, logDeep } = require('../utils');
 const { MAX_RECOMMENDATION_PRODUCT_IDS } = require('../tagalys/tagalys.constants');
-const {
-  tagalysClient,
-  requestContextParams,
-} = require('../tagalys/tagalys.utils');
+const { tagalysClient } = require('../tagalys/tagalys.utils');
 
 // System-defined ids: bought_also_bought, viewed_also_viewed, atc_also_atc,
 // recently_viewed, personalized. Custom recommendations use a dashboard slug
@@ -38,6 +35,9 @@ const tagalysRecommendationGetSingle = async (
   const response = await tagalysClient.fetch({
     context: {
       credsPayload,
+      country,
+      language,
+      segmentTag,
     },
     requestPayload: {
       url: `/v2/recommendations/${ recommendationId }`,
@@ -49,7 +49,6 @@ const tagalysRecommendationGetSingle = async (
         ...(userId ? { user_id: userId } : {}),
         ...(fallbackRecommendationId ? { fallback_recommendation_id: fallbackRecommendationId } : {}),
         ...(visitId ? { visit_id: visitId } : {}),
-        ...requestContextParams({ country, language, segmentTag }),
       },
     },
   });

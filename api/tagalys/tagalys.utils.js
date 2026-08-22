@@ -26,6 +26,32 @@ const appendParams = (searchParams, key, value) => {
   }
 };
 
+// Request context (country, language, segmentTag) is supported by the
+// collections, search and recommendations endpoints per the docs. Callers
+// pass these via `context` (like `apiVersion` in the shopify client),
+// rather than merging them into `query` themselves, so the shared client
+// applies them consistently across every endpoint that uses it.
+const useRequestContextParams = async (state) => {
+  const { requestPayload, context } = state;
+  const { country, language, segmentTag } = context;
+
+  if (!country && !language && !segmentTag) {
+    return {};
+  }
+
+  return {
+    requestPayload: {
+      ...requestPayload,
+      query: {
+        ...requestPayload.query,
+        ...(country ? { country } : {}),
+        ...(language ? { language } : {}),
+        ...(segmentTag ? { segment_tag: segmentTag } : {}),
+      },
+    },
+  };
+};
+
 // Base URL is region-specific per account (e.g. https://api-r1.tagalys.com),
 // so per AGENTS.md it's resolved from creds rather than tagalys.constants.js.
 const useUrlAndQuery = async (state) => {
@@ -63,41 +89,37 @@ const useUrlAndQuery = async (state) => {
   };
 };
 
+// A configured redirect takes precedence over the rest of the response --
+// surface it plainly rather than making callers dig for it. Only /v2/search
+// and /v2/search_suggestions ever populate `redirect_url`, so this is a
+// no-op for every other endpoint on the shared client.
+const useRedirectResponse = async (state) => {
+  const { response } = state;
+
+  if (!response?.ok || !response?.data?.redirect_url) {
+    return {};
+  }
+
+  return {
+    response: {
+      redirected: true,
+      redirectUrl: response.data.redirect_url,
+    },
+  };
+};
+
 const tagalysClient = new FetchClient({
   pipeline: [
     resolveCreds,
+    useRequestContextParams,
     useUrlAndQuery,
     'fetch',
     fetchClientCommonSteps.exitEarlyOnNotOk,
+    useRedirectResponse,
   ],
 });
-
-// Shared request-context params (country, language, segment_tag), supported
-// by the collections, search and recommendations endpoints per the docs.
-const requestContextParams = ({
-  country,
-  language,
-  segmentTag,
-} = {}) => ({
-  ...(country ? { country } : {}),
-  ...(language ? { language } : {}),
-  ...(segmentTag ? { segment_tag: segmentTag } : {}),
-});
-
-// A configured redirect takes precedence over the rest of the response --
-// surface it plainly rather than making callers dig for it. Shared by
-// /v2/search and /v2/search_suggestions, the two endpoints that support it.
-const responseWithRedirect = (data) => {
-  if (data?.redirect_url) {
-    return { ok: true, redirected: true, redirectUrl: data.redirect_url, data };
-  }
-
-  return { ok: true, data };
-};
 
 module.exports = {
   tagalysClient,
   appendParams,
-  requestContextParams,
-  responseWithRedirect,
 };

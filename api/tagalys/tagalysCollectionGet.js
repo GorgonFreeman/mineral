@@ -3,10 +3,7 @@
 const { credsValidator } = require('../validators');
 const { ArgsWarden, actionSingleOrMultiple, logDeep } = require('../utils');
 const { DEFAULT_INCLUDE } = require('../tagalys/tagalys.constants');
-const {
-  tagalysClient,
-  requestContextParams,
-} = require('../tagalys/tagalys.utils');
+const { tagalysClient } = require('../tagalys/tagalys.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
@@ -32,6 +29,9 @@ const tagalysCollectionGetSingle = async (
   const response = await tagalysClient.fetch({
     context: {
       credsPayload,
+      country,
+      language,
+      segmentTag,
     },
     requestPayload: {
       url: `/v2/collections/${ collectionId }`,
@@ -44,7 +44,6 @@ const tagalysCollectionGetSingle = async (
         ...(page ? { page } : {}),
         ...(perPage ? { per_page: perPage } : {}),
         ...(bannerPositions ? { banner_positions: bannerPositions } : {}),
-        ...requestContextParams({ country, language, segmentTag }),
       },
     },
   });
