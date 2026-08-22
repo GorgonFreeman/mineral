@@ -102,7 +102,7 @@ module.exports = {
 /*
 curl -X POST "http://localhost:8000/tagalysRecommendationGet" \
 -d '{
-  "credsPayload": { "credsPath": "tagalys.store" },
+  "credsPayload": { "credsPath": "tagalys.au" },
   "recommendationId": "bought_also_bought",
   "options": { "productIds": ["1234567890"], "count": 10 }
 }'

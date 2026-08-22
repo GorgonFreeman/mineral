@@ -56,5 +56,5 @@ module.exports = {
 
 /*
 curl -X POST "http://localhost:8000/tagalysPopularSearchesGet" \
--d '{ "credsPayload": { "credsPath": "tagalys.store" } }'
+-d '{ "credsPayload": { "credsPath": "tagalys.au" } }'
 */
