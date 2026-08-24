@@ -17,6 +17,7 @@
     "spin_off": "node _build_scripts/spinOff.js",
     "serve": "PORT=8100 node server.js",
     "start": "node server.js",
+    "zip": "sh ../shell_scripts/zip.sh",
     "npm:publish": "node _build_scripts/publish.js"
   },
   "dependencies": {
