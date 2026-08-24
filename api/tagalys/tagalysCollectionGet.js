@@ -96,5 +96,5 @@ module.exports = {
 
 /*
 curl -X POST "http://localhost:8000/tagalysCollectionGet" \
--d '{ "credsPayload": { "credsPath": "tagalys.store" }, "collectionId": "123456789" }'
+-d '{ "credsPayload": { "credsPath": "tagalys.au" }, "collectionId": "123456789" }'
 */

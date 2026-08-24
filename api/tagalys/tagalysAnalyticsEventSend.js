@@ -115,7 +115,7 @@ module.exports = {
 /*
 curl -X POST "http://localhost:8000/tagalysAnalyticsEventSend" \
 -d '{
-  "credsPayload": { "credsPath": "tagalys.store" },
+  "credsPayload": { "credsPath": "tagalys.au" },
   "eventPayload": {
     "type": "product_viewed",
     "payload": { "productId": "7286848028804" },
