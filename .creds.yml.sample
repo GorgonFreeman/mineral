@@ -138,3 +138,8 @@ salesforce:
   CLIENT_ID: _____________________________
   CLIENT_SECRET: _________________________
   LOGIN_URL: https://login.salesforce.com  # or My Domain / test.salesforce.com
+
+fastsimon:
+  store:                                   # instance name of your choice
+    UUID: _______________________________  # Dashboard → Settings
+    STORE_ID: ___________________________  # Dashboard → Settings
