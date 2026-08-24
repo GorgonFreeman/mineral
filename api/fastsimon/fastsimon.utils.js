@@ -124,6 +124,55 @@ const rememberCdnCacheKey = async (state) => {
   return {};
 };
 
+/**
+ * Fast Simon often returns the body as a JSON string. Parse it, then for
+ * product payloads dig `items` into `data` and move everything else to `meta`
+ * (total_results, term, facets, page info, uuid, etc.).
+ */
+const normaliseSearchResponse = async (state) => {
+  const { response } = state;
+  if (!response?.ok || response.data == null) {
+    return {};
+  }
+
+  let body = response.data;
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body);
+    } catch {
+      return {};
+    }
+  }
+
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return {
+      response: {
+        data: body,
+      },
+    };
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(body, 'items')) {
+    return {
+      response: {
+        data: body,
+      },
+    };
+  }
+
+  const { items, ...rest } = body;
+
+  return {
+    response: {
+      data: items,
+      meta: {
+        ...(response.meta || {}),
+        ...rest,
+      },
+    },
+  };
+};
+
 const fastsimonClient = new FetchClient({
   pipeline: [
     resolveCreds,
@@ -131,6 +180,7 @@ const fastsimonClient = new FetchClient({
     'fetch',
     fetchClientCommonSteps.exitEarlyOnNotOk,
     rememberCdnCacheKey,
+    normaliseSearchResponse,
   ],
 });
 
