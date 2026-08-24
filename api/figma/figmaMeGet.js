@@ -28,8 +28,6 @@ const figmaMeGet = async (
     requestPayload: {
       method: 'get',
       url: `/v1/me`,
-      
-      
     },
     context: {
       credsPayload,
@@ -45,3 +43,11 @@ module.exports = {
   figmaMeGet,
   funcApiConfig,
 };
+
+/*
+  curl -X GET "http://localhost:8000/figmaMeGet" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "credsPayload": { "credsPath": "figma" }
+    }'
+*/
