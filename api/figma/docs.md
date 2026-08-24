@@ -1,6 +1,6 @@
 # Figma
 
-- [Developer documentation](https://www.figma.com/developers/api)
-- [Authentication](https://www.figma.com/developers/api#authentication)
+- [Developer documentation](https://developers.figma.com/docs/rest-api/)
+- [Authentication](https://developers.figma.com/docs/rest-api/authentication/)
 
-REST JSON at `https://api.figma.com/v1` for files, comments, and variables, authenticated with a personal access token in the `X-Figma-Token` header.
+REST JSON at `https://api.figma.com` for files, comments, variables, components, styles, folders, dev resources, webhooks, and organization APIs. Personal and plan access tokens use the `X-Figma-Token` header; OAuth 2 access tokens use `Authorization: Bearer`.

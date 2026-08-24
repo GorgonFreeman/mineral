@@ -1,4 +1,4 @@
-// https://developers.figma.com/docs/rest-api/
+// https://developers.figma.com/docs/rest-api/comments-endpoints/
 
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
@@ -6,12 +6,14 @@ const { figmaClient } = require('../figma/figma.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['url'],
+  ['fileKey'],
+  ['commentId'],
 ]);
 
-const figmaGet = async (
+const figmaFileCommentReactionDelete = async (
   credsPayload,
-  url,
+  fileKey,
+  commentId,
   {
     params,
     fetchClient = figmaClient,
@@ -19,20 +21,19 @@ const figmaGet = async (
 ) => {
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    url,
+    fileKey,
+    commentId,
   });
   if (rejectResponse) {
     return rejectResponse;
   }
 
-  const resolvedUrl = url.startsWith('/v1/') || url.startsWith('/v2/') || url.startsWith('http')
-    ? url
-    : `/v1${ url.startsWith('/') ? url : `/${ url }` }`;
-
   return fetchClient.fetch({
     requestPayload: {
-      url: resolvedUrl,
+      method: 'delete',
+      url: `/v1/files/${ fileKey }/comments/${ commentId }/reactions`,
       params,
+      
     },
     context: {
       credsPayload,
@@ -45,15 +46,6 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  figmaGet,
+  figmaFileCommentReactionDelete,
   funcApiConfig,
 };
-
-/*
-curl -X POST "http://localhost:8000/figmaGet" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credsPayload": { "credsPath": "figma" },
-    "url": "/me"
-  }'
-*/

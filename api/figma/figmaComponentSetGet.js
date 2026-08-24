@@ -1,4 +1,4 @@
-// https://developers.figma.com/docs/rest-api/
+// https://developers.figma.com/docs/rest-api/component-endpoints/
 
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
@@ -6,12 +6,12 @@ const { figmaClient } = require('../figma/figma.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['url'],
+  ['key'],
 ]);
 
-const figmaGet = async (
+const figmaComponentSetGet = async (
   credsPayload,
-  url,
+  key,
   {
     params,
     fetchClient = figmaClient,
@@ -19,20 +19,18 @@ const figmaGet = async (
 ) => {
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    url,
+    key,
   });
   if (rejectResponse) {
     return rejectResponse;
   }
 
-  const resolvedUrl = url.startsWith('/v1/') || url.startsWith('/v2/') || url.startsWith('http')
-    ? url
-    : `/v1${ url.startsWith('/') ? url : `/${ url }` }`;
-
   return fetchClient.fetch({
     requestPayload: {
-      url: resolvedUrl,
-      params,
+      method: 'get',
+      url: `/v1/component_sets/${ key }`,
+      
+      
     },
     context: {
       credsPayload,
@@ -45,15 +43,6 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  figmaGet,
+  figmaComponentSetGet,
   funcApiConfig,
 };
-
-/*
-curl -X POST "http://localhost:8000/figmaGet" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credsPayload": { "credsPath": "figma" },
-    "url": "/me"
-  }'
-*/

@@ -1,4 +1,4 @@
-// https://developers.figma.com/docs/rest-api/
+// https://developers.figma.com/docs/rest-api/webhooks-endpoints/
 
 const { ArgsWarden } = require('../utils');
 const { credsValidator } = require('../validators');
@@ -6,12 +6,11 @@ const { figmaClient } = require('../figma/figma.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['url'],
 ]);
 
-const figmaGet = async (
+const figmaWebhooksGet = async (
   credsPayload,
-  url,
+  
   {
     params,
     fetchClient = figmaClient,
@@ -19,20 +18,18 @@ const figmaGet = async (
 ) => {
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    url,
+    
   });
   if (rejectResponse) {
     return rejectResponse;
   }
 
-  const resolvedUrl = url.startsWith('/v1/') || url.startsWith('/v2/') || url.startsWith('http')
-    ? url
-    : `/v1${ url.startsWith('/') ? url : `/${ url }` }`;
-
   return fetchClient.fetch({
     requestPayload: {
-      url: resolvedUrl,
+      method: 'get',
+      url: `/v2/webhooks`,
       params,
+      
     },
     context: {
       credsPayload,
@@ -45,15 +42,6 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  figmaGet,
+  figmaWebhooksGet,
   funcApiConfig,
 };
-
-/*
-curl -X POST "http://localhost:8000/figmaGet" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credsPayload": { "credsPath": "figma" },
-    "url": "/me"
-  }'
-*/

@@ -8,13 +8,24 @@ const {
 const useAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
   const { creds } = context;
-  const { API_KEY } = creds;
+  const {
+    API_KEY,
+    ACCESS_TOKEN,
+  } = creds ?? {};
+
+  const authHeaders = ACCESS_TOKEN
+    ? {
+      Authorization: `Bearer ${ ACCESS_TOKEN }`,
+    }
+    : {
+      'X-Figma-Token': API_KEY,
+    };
 
   return {
     requestPayload: {
       ...requestPayload,
       headers: {
-        'X-Figma-Token': API_KEY,
+        ...authHeaders,
         ...requestPayload.headers,
       },
     },

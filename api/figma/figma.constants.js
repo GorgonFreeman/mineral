@@ -1,4 +1,4 @@
-const FIGMA_API_BASE_URL = 'https://api.figma.com/v1';
+const FIGMA_API_BASE_URL = 'https://api.figma.com';
 const MAX_PER_PAGE = 100;
 
 module.exports = {
