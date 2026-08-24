@@ -59,4 +59,11 @@ curl -X POST "http://localhost:8000/salesforceQuery" \
     "credsPayload": { "credsPath": "salesforce" },
     "soql": "SELECT Id, Name FROM Account LIMIT 5"
   }'
+
+  curl -X POST "http://localhost:8000/salesforceQuery" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "credsPayload": {"credsPath": "salesforce"},
+      "soql": "SELECT Id, Name, Email, Phone, Account.Name FROM Contact ORDER BY LastModifiedDate DESC LIMIT 10"
+    }'
 */
