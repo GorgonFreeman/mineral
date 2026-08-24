@@ -6,8 +6,8 @@ const { salesforceClient } = require('../salesforce/salesforce.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['sobjectType', valueProvided],
-  ['records', valueProvided],
+  ['sobjectType'],
+  ['records'],
 ]);
 
 const salesforceSobjectTreeCreate = async (

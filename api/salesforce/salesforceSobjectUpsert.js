@@ -6,10 +6,10 @@ const { salesforceClient } = require('../salesforce/salesforce.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['sobjectType', valueProvided],
-  ['externalIdField', valueProvided],
-  ['externalId', valueProvided],
-  ['record', valueProvided],
+  ['sobjectType'],
+  ['externalIdField'],
+  ['externalId'],
+  ['record'],
 ]);
 
 const salesforceSobjectUpsert = async (

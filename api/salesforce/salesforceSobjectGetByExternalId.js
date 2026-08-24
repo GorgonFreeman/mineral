@@ -6,9 +6,9 @@ const { salesforceClient } = require('../salesforce/salesforce.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['sobjectType', valueProvided],
-  ['externalIdField', valueProvided],
-  ['externalId', valueProvided],
+  ['sobjectType'],
+  ['externalIdField'],
+  ['externalId'],
 ]);
 
 const salesforceSobjectGetByExternalIdSingle = async (

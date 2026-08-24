@@ -6,9 +6,9 @@ const { salesforceClient } = require('../salesforce/salesforce.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['sobjectType', valueProvided],
+  ['sobjectType'],
   ['id'],
-  ['blobField', valueProvided],
+  ['blobField'],
 ]);
 
 const salesforceSobjectBlobGet = async (

@@ -6,7 +6,7 @@ const { linearClient } = require('../linear/linear.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['input', valueProvided],
+  ['input'],
 ]);
 
 const linearProjectCreate = async (

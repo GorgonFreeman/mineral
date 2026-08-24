@@ -7,7 +7,7 @@ const { gorgiasClient } = require('../gorgias/gorgias.utils');
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
   ['ticketId'],
-  ['ticketBody', valueProvided],
+  ['ticketBody'],
 ]);
 
 const gorgiasTicketUpdate = async (

@@ -6,7 +6,7 @@ const { salesforceClient } = require('../salesforce/salesforce.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['soql', valueProvided],
+  ['soql'],
 ]);
 
 const salesforceQuery = async (

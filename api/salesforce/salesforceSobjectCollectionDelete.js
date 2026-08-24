@@ -6,7 +6,7 @@ const { salesforceClient } = require('../salesforce/salesforce.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['ids', valueProvided],
+  ['ids'],
 ]);
 
 const salesforceSobjectCollectionDelete = async (

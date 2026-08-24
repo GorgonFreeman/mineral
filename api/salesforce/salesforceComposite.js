@@ -6,7 +6,7 @@ const { salesforceClient } = require('../salesforce/salesforce.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['compositeRequest', valueProvided],
+  ['compositeRequest'],
 ]);
 
 const salesforceComposite = async (
