@@ -126,3 +126,15 @@ tableau:
   PAT_SECRET: ____________________________
   SERVER_URL: ____________________________
   SITE_CONTENT_URL: ______________________
+
+salesforce:
+  # Option A — pre-issued token
+  ACCESS_TOKEN: __________________________
+  INSTANCE_URL: https://________.my.salesforce.com
+  # Optional
+  API_VERSION: '62.0'
+
+  # Option B — client credentials (if ACCESS_TOKEN missing)
+  CLIENT_ID: _____________________________
+  CLIENT_SECRET: _________________________
+  LOGIN_URL: https://login.salesforce.com  # or My Domain / test.salesforce.com
