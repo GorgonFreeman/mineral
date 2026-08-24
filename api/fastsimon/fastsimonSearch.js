@@ -70,15 +70,15 @@ module.exports = {
 };
 
 /*
-curl -X POST "http://localhost:8000/fastsimonSearch" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credsPayload": { "credsPath": "fastsimon.store" },
-    "query": "dress",
-    "options": {
-      "facetsRequired": 1,
-      "pageNum": 1,
-      "sortBy": "relevency"
-    }
-  }'
+  curl -X POST "http://localhost:8000/fastsimonSearch" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "credsPayload": { "credsPath": "fastsimon.au" },
+      "query": "dress",
+      "options": {
+        "facetsRequired": 1,
+        "pageNum": 1,
+        "sortBy": "relevency"
+      }
+    }'
 */
