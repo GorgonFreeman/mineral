@@ -1,26 +1,30 @@
-// https://shopify.dev/docs/api/admin-graphql/latest/mutations/pageDelete
+// https://shopify.dev/docs/api/admin-graphql/latest/mutations/metaobjectCreate
 
 const { credsValidator } = require('../validators');
 const { ArgsWarden } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
+const metaobjectInputValidator = (metaobjectInput) => Boolean(metaobjectInput?.type);
+
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['thingId'],
+  ['metaobjectInput', metaobjectInputValidator],
 ]);
+
+const defaultReturnMetaobjectAttrs = 'id handle type updatedAt';
 
 const shopifyMetaobjectCreate = async (
   credsPayload,
-  thingId,
+  metaobjectInput,
   {
     apiVersion,
-    returnSchema = 'deletedThingId',
+    returnMetaobjectAttrs = defaultReturnMetaobjectAttrs,
   } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    thingId,
+    metaobjectInput,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -28,15 +32,15 @@ const shopifyMetaobjectCreate = async (
 
   return shopifyMutationDo(
     credsPayload,
-    'thingDelete',
+    'metaobjectCreate',
     {
       mutationVariables: {
-        id: {
-          type: 'ID!',
-          value: `gid://shopify/Thing/${ thingId }`,
+        metaobject: {
+          type: 'MetaobjectCreateInput!',
+          value: metaobjectInput,
         },
       },
-      returnSchema,
+      returnSchema: `metaobject { ${ returnMetaobjectAttrs } }`,
       apiVersion,
     },
   );
@@ -55,7 +59,14 @@ module.exports = {
 curl -X POST "http://localhost:8000/shopifyMetaobjectCreate" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "shopify.au" },
-    "thingId": "104188477512"
+    "credsPayload": { "credsPath": "shopify.white-fox-us-dev-radial" },
+    "metaobjectInput": {
+      "type": "your_metaobject_type",
+      "handle": "optional-unique-handle",
+      "fields": [
+        { "key": "title", "value": "Example" },
+        { "key": "body", "value": "Some content" }
+      ]
+    }
   }'
 */
