@@ -41,4 +41,8 @@ This is the usual structure, but it can be altered per platform, if required. If
 - For functions which act on a single resource, e.g. `shopifyPageGet`, `actionSingleOrMultiple` is implemented as an enhancement to allow acting on multiple items in a one-by-one fashion.
 - `fetchClient` is implemented as an option, allowing implementations outside mineral core to use their own pipeline in making requests. This may include caching auth or utilising other platforms in the pipeline.
 
-
+## Doing things
+- If you are being asked to do something that involves using a platform, use this repo's functionality as your first option.
+  - Try using curl commands based on the example curl commands documented in comments on the function files.
+  - If the server is not running, start one with `npm run dev` or `npm run serve`.
+- Where an API functionality is not currently implemented, but fits this repo's mission, create functions for yourself to use, then use those.
