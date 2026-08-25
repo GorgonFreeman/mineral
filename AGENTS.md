@@ -46,3 +46,6 @@ This is the usual structure, but it can be altered per platform, if required. If
   - Try using curl commands based on the example curl commands documented in comments on the function files.
   - If the server is not running, start one with `npm run dev` or `npm run serve`.
 - Where an API functionality is not currently implemented, but fits this repo's mission, create functions for yourself to use, then use those.
+
+## .yml formatting
+When you edit a YAML file, restore whitespaces afterwards.
