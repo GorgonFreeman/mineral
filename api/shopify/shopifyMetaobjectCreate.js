@@ -11,7 +11,7 @@ const argsWarden = new ArgsWarden([
   ['metaobjectInput', metaobjectInputValidator],
 ]);
 
-const defaultReturnMetaobjectAttrs = 'id handle type updatedAt';
+const defaultReturnMetaobjectAttrs = 'id handle type updatedAt capabilities { publishable { status } }';
 
 const shopifyMetaobjectCreate = async (
   credsPayload,
@@ -59,13 +59,20 @@ module.exports = {
 curl -X POST "http://localhost:8000/shopifyMetaobjectCreate" \
   -H "Content-Type: application/json" \
   -d '{
-    "credsPayload": { "credsPath": "shopify.white-fox-us-dev-radial" },
+    "credsPayload": { "credsPath": "shopify.au" },
     "metaobjectInput": {
-      "type": "your_metaobject_type",
-      "handle": "optional-unique-handle",
+      "type": "catalog_filter_blacklist",
+      "handle": "collection-blacklist-example",
+      "capabilities": {
+        "publishable": {
+          "status": "ACTIVE"
+        }
+      },
       "fields": [
-        { "key": "title", "value": "Example" },
-        { "key": "body", "value": "Some content" }
+        { "key": "internal_name", "value": "Blacklist Category > \"Example\"" },
+        { "key": "source_filter", "value": "Category" },
+        { "key": "values", "value": "[\"Example\"]" },
+        { "key": "enabled", "value": "true" }
       ]
     }
   }'
