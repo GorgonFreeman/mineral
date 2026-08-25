@@ -2,6 +2,7 @@ shopify:
   au:
     STORE_HANDLE: ________________________
     API_KEY: shpat________________________
+    STOREFRONT_API_KEY: __________________
 
 peoplevox:
   CLIENT_ID: _____________________________

@@ -76,6 +76,31 @@ const useUrlAndAuthHeaders = async (state) => {
   };
 };
 
+const useStorefrontUrlAndAuthHeaders = async (state) => {
+  const { requestPayload, context } = state;
+  const {
+    apiVersion = DEFAULT_API_VERSION,
+    creds,
+  } = context;
+  const {
+    STORE_HANDLE,
+    STOREFRONT_API_KEY,
+  } = creds;
+
+  const baseUrl = `https://${ STORE_HANDLE }.myshopify.com/api/${ apiVersion }/graphql.json`;
+
+  return {
+    requestPayload: {
+      ...requestPayload,
+      url: appendUrlToBase(baseUrl, requestPayload.url),
+      headers: {
+        'X-Shopify-Storefront-Access-Token': STOREFRONT_API_KEY,
+        ...requestPayload.headers,
+      },
+    },
+  };
+};
+
 const movePageInfoToMeta = async (state) => {
   const { response, context } = state;
   const { resultPath } = context ?? {};
@@ -86,15 +111,23 @@ const movePageInfoToMeta = async (state) => {
 
   const connection = objectDigNodeAtPath(response.data, pathAsArray(resultPath));
 
-  if (!connection?.pageInfo) {
+  if (!connection || typeof connection !== 'object') {
+    return {};
+  }
+
+  const meta = {
+    ...connection.pageInfo ? { pageInfo: connection.pageInfo } : {},
+    ...connection.totalCount !== undefined ? { totalCount: connection.totalCount } : {},
+    ...connection.productFilters !== undefined ? { productFilters: connection.productFilters } : {},
+  };
+
+  if (!Object.keys(meta).length) {
     return {};
   }
 
   return {
     response: {
-      meta: {
-        pageInfo: connection.pageInfo,
-      },
+      meta,
     },
   };
 };
@@ -188,7 +221,23 @@ const shopifyClient = new FetchClient({
   ],
 });
 
+const shopifyStorefrontClient = new FetchClient({
+  pipeline: [
+    resolveCreds,
+    useStorefrontUrlAndAuthHeaders,
+    'fetch',
+    movePageInfoToMeta,
+    fetchClientCommonSteps.stripEdgesAndNodes,
+    fetchClientCommonSteps.collapseDataWithOneValue,
+    fetchClientCommonSteps.exitEarlyOnNotOk,
+    fetchClientCommonSteps.exitEarlyOnGraphqlErrors,
+    fetchClientCommonSteps.digToPath,
+    handleMutationUserErrors,
+  ],
+});
+
 module.exports = {
   parseShopifyJsonl,
   shopifyClient,
+  shopifyStorefrontClient,
 };
