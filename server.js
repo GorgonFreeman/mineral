@@ -200,11 +200,13 @@ const logStartup = ({
   if (api_dirs.length) {
     console.log('Extra API dirs:', api_dirs.join(', '));
   }
-
+  
+  /*
   console.log('Registered routes:');
   for (const route of [...routeHandlers.keys()].sort()) {
     console.log(route);
   }
+  */
 };
 
 const startServer = (options = {}) => {
