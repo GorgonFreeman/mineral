@@ -108,6 +108,26 @@ const getGoogleCalendar = async (
   };
 };
 
+const getGoogleAnalyticsData = async (
+  credsPayload,
+  {
+    subject,
+  } = {},
+) => {
+  const { auth, error } = await getGoogleAuth(credsPayload, {
+    scopes: GOOGLE_SCOPES.analytics,
+    subject,
+  });
+
+  if (error) {
+    return { error };
+  }
+
+  return {
+    client: google.analyticsdata({ version: 'v1beta', auth }),
+  };
+};
+
 const googleApiCall = async (promiseFn) => {
   try {
     const response = await promiseFn();
@@ -132,6 +152,7 @@ module.exports = {
   getGoogleSheets,
   getGoogleDrive,
   getGoogleCalendar,
+  getGoogleAnalyticsData,
   googleApiCall,
   invalidCredsResponse,
 };
