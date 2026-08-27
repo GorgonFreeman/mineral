@@ -142,11 +142,11 @@ salesforce:
 
 fastsimon:
   store:                                   # instance name of your choice
-    UUID: _______________________________  # Dashboard → Settings
-    STORE_ID: ___________________________  # Dashboard → Settings
+    UUID: ________________________________ # Dashboard → Settings
+    STORE_ID: ____________________________ # Dashboard → Settings
 
 dropbox:
-  ACCESS_TOKEN: _________________________
+  ACCESS_TOKEN: __________________________
 
 spotify:
   # Option A — pre-issued user or client-credentials access token
