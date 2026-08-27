@@ -147,3 +147,11 @@ fastsimon:
 
 dropbox:
   ACCESS_TOKEN: _________________________
+
+spotify:
+  # Option A — pre-issued user or client-credentials access token
+  ACCESS_TOKEN: __________________________
+
+  # Option B — app client credentials (catalog-only; auto-minted token)
+  CLIENT_ID: _____________________________
+  CLIENT_SECRET: _________________________
