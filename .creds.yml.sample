@@ -144,3 +144,6 @@ fastsimon:
   store:                                   # instance name of your choice
     UUID: _______________________________  # Dashboard → Settings
     STORE_ID: ___________________________  # Dashboard → Settings
+
+dropbox:
+  ACCESS_TOKEN: _________________________
