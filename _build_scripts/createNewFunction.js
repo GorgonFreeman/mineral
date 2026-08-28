@@ -22,6 +22,7 @@ const getContext = () => {
     inMineral,
     apiDirectory: inMineral ? mineralApiDirectory : path.join(process.cwd(), 'api'),
     mineralApiDirectory,
+    workspaceName: path.basename(process.cwd()),
   };
 };
 
@@ -390,7 +391,24 @@ const getExampleFilesForContext = async ({ context, dir }) => {
     return sortExampleFiles(await findExampleFiles(path.join(context.apiDirectory, dir)));
   }
 
-  return sortExampleFiles(await collectMineralExampleFiles(context.mineralApiDirectory));
+  const localExampleFiles = (await findExampleFiles(path.join(context.apiDirectory, dir))).map(file => ({
+    ...file,
+    relativePath: file.filename,
+    displayName: file.filename,
+    sourceName: context.workspaceName,
+  }));
+  const mineralExampleFiles = (await collectMineralExampleFiles(context.mineralApiDirectory))
+    .map(file => ({
+      ...file,
+      sourceName: path.basename(mineralRoot),
+    }));
+  const exampleFilesByPath = new Map();
+
+  for (const file of [ ...mineralExampleFiles, ...localExampleFiles ]) {
+    exampleFilesByPath.set(file.relativePath, file);
+  }
+
+  return sortExampleFiles([ ...exampleFilesByPath.values() ]);
 };
 
 const formatTemplateLabel = (file, { inMineral }) => {
@@ -398,7 +416,7 @@ const formatTemplateLabel = (file, { inMineral }) => {
     return file.displayName;
   }
 
-  return file.relativePath;
+  return `${ file.sourceName } > ${ file.relativePath }`;
 };
 
 const selectTemplateInteractive = async ({ exampleFiles, dir, inMineral }) => {
@@ -532,7 +550,12 @@ const createNewFunction = async () => {
         inMineral: context.inMineral,
       });
 
-      const templateLabel = path.relative(mineralRoot, selectedTemplate);
+      const selectedTemplateFile = exampleFiles.find(file => file.fullPath === selectedTemplate);
+      const templateLabel = context.inMineral
+        ? path.relative(mineralRoot, selectedTemplate)
+        : selectedTemplateFile
+          ? formatTemplateLabel(selectedTemplateFile, { inMineral: false })
+          : path.relative(mineralRoot, selectedTemplate);
       console.log(`Using template: ${ templateLabel }`);
 
       await writeNewFunction({
