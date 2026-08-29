@@ -155,3 +155,9 @@ spotify:
   # Option B — app client credentials (catalog-only; auto-minted token)
   CLIENT_ID: _____________________________
   CLIENT_SECRET: _________________________
+
+paypal:
+  CLIENT_ID: _____________________________
+  CLIENT_SECRET: _________________________
+  # SANDBOX: true   # only if using sandbox credentials
+  
