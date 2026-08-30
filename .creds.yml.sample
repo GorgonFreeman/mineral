@@ -161,6 +161,10 @@ paypal:
   CLIENT_SECRET: _________________________
   # SANDBOX: true   # only if using sandbox credentials
 
+royalmail:
+  CLIENT_ID: _____________________________
+  CLIENT_SECRET: _________________________
+
 dpd:
   ACCOUNT_NUMBER: _________________________
   USERNAME: ______________________________
