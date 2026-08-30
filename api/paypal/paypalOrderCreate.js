@@ -70,7 +70,7 @@ module.exports = {
   curl -X POST "http://localhost:8000/paypalOrderCreate" \
     -H "Content-Type: application/json" \
     -d '{
-      "credsPayload": { "credsPath": "paypal.personal" },
+      "credsPayload": { "credsPath": "paypal" },
       "order": {
         "intent": "CAPTURE",
         "purchase_units": [{

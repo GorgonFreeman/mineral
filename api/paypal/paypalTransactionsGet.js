@@ -90,7 +90,7 @@ module.exports = {
   curl -X POST "http://localhost:8000/paypalTransactionsGet" \
     -H "Content-Type: application/json" \
     -d '{
-      "credsPayload": { "credsPath": "paypal.personal" },
+      "credsPayload": { "credsPath": "paypal" },
       "startDate": "2026-01-01T00:00:00Z",
       "endDate": "2026-01-31T23:59:59Z",
       "options": {

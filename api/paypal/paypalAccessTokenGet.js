@@ -76,6 +76,6 @@ module.exports = {
   curl -X POST "http://localhost:8000/paypalAccessTokenGet" \
     -H "Content-Type: application/json" \
     -d '{
-      "credsPayload": { "credsPath": "paypal.personal" }
+      "credsPayload": { "credsPath": "paypal" }
     }'
 */

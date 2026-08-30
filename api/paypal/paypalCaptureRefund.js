@@ -67,7 +67,7 @@ module.exports = {
   curl -X POST "http://localhost:8000/paypalCaptureRefund" \
     -H "Content-Type: application/json" \
     -d '{
-      "credsPayload": { "credsPath": "paypal.personal" },
+      "credsPayload": { "credsPath": "paypal" },
       "captureId": "2GG279541U471931P",
       "options": {
         "refund": {

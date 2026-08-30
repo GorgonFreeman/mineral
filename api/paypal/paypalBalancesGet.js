@@ -57,7 +57,7 @@ module.exports = {
   curl -X POST "http://localhost:8000/paypalBalancesGet" \
     -H "Content-Type: application/json" \
     -d '{
-      "credsPayload": { "credsPath": "paypal.personal" },
+      "credsPayload": { "credsPath": "paypal" },
       "options": {
         "currencyCode": "USD"
       }
