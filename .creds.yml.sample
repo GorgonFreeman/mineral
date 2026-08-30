@@ -160,4 +160,10 @@ paypal:
   CLIENT_ID: _____________________________
   CLIENT_SECRET: _________________________
   # SANDBOX: true   # only if using sandbox credentials
+
+dpd:
+  ACCOUNT_NUMBER: _________________________
+  USERNAME: ______________________________
+  PASSWORD: ______________________________
+  # BASE_URL: https://api.dpdlocal.co.uk  # only for DPD Local accounts
   
