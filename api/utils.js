@@ -1494,6 +1494,26 @@ const randomArrayItem = (array) => {
   return array[Math.floor(Math.random() * array.length)];
 };
 
+const oneTrickProcessor = (
+  func, 
+  pile, 
+  {
+    responseHandler,
+    ...processorOptions
+  } = {},
+) => {
+  // Runs a single function, going through a pile that is args as an array
+  const processor = new Processor(
+    pile,
+    async (pile) => {
+      const args = pile.shift();
+      const response = await func(...args);
+      return responseHandler ? await responseHandler(response) : response;
+    },
+    processorOptions,
+  );
+};
+
 module.exports = {
   wait,
   timeMs,
@@ -1539,4 +1559,5 @@ module.exports = {
   diffObjects,
   objectPropsTranslate,
   randomArrayItem,
+  oneTrickProcessor,
 };
