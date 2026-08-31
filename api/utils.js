@@ -43,18 +43,33 @@ const getWithLocalCachedFile = async (
   const directory = `${ getWorkspace() }/api/_temp`;
   const filepath = `${ directory }/${ filename }`;
 
+  let cachedFile;
   try {
-    const cachedFile = await fs.readFile(filepath, 'utf8');
-    return JSON.parse(cachedFile);
+    cachedFile = await fs.readFile(filepath, 'utf8');
   } catch (error) {
-    if (error.code !== 'ENOENT') {
+    if (error.code === 'ENOENT') {
+      cachedFile = null;
+    } else {
       throw error;
+    }
+  }
+
+  if (cachedFile) {
+    try {
+      return JSON.parse(cachedFile);
+    } catch (error) {
+      console.warn('Invalid local cache, refetching', {
+        filename,
+        error: error.message,
+      });
     }
   }
 
   const response = await getFunction();
   await fs.mkdir(directory, { recursive: true });
-  await fs.writeFile(filepath, JSON.stringify(response, null, 2), 'utf8');
+  const temporaryFilepath = `${ filepath }.tmp-${ process.pid }-${ Date.now() }`;
+  await fs.writeFile(temporaryFilepath, JSON.stringify(response, null, 2), 'utf8');
+  await fs.rename(temporaryFilepath, filepath);
 
   return response;
 };
