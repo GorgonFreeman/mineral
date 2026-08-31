@@ -1448,6 +1448,10 @@ const objectPropsTranslate = (
   return translatedObj;
 };
 
+const randomArrayItem = (array) => {
+  return array[Math.floor(Math.random() * array.length)];
+};
+
 module.exports = {
   wait,
   timeMs,
@@ -1491,4 +1495,5 @@ module.exports = {
   surveyObject,
   diffObjects,
   objectPropsTranslate,
+  randomArrayItem,
 };
