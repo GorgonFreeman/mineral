@@ -1,4 +1,4 @@
-const { Getter, capitaliseString, ArgsWarden } = require('../utils');
+const { Getter, capitaliseString, ArgsWarden, getWithLocalCachedFile } = require('../utils');
 const { credsValidator } = require('../validators');
 const { shopifyClient } = require('./shopify.utils');
 const { MAX_PER_PAGE } = require('./shopify.constants');
@@ -221,6 +221,7 @@ const shopifyGet = async (
     resources = `${ resource }s`, // for when plural of the resource isn't `${ resource }s`
     argumentTypeOverrides = {}, // for when a commonly-named API option is not just a single type, e.g. type being String vs CatalogType
 
+    useLocalCachedFile,
     ...getterOptions // e.g. limit
   } = {},
 ) => {
@@ -276,12 +277,17 @@ const shopifyGet = async (
     return getter;
   }
 
-  const data = await getter.run({ returnAll: true });
+  return getWithLocalCachedFile(
+    useLocalCachedFile,
+    async () => {
+      const data = await getter.run({ returnAll: true });
 
-  return {
-    ok: true,
-    data,
-  };
+      return {
+        ok: true,
+        data,
+      };
+    },
+  );
 };
 
 const funcApiConfig = {

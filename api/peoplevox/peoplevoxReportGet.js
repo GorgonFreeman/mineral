@@ -1,5 +1,5 @@
 const { credsValidator } = require('../validators');
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, getWithLocalCachedFile } = require('../utils');
 const { peoplevoxClient } = require('../peoplevox/peoplevox.utils');
 
 const argsWarden = new ArgsWarden([
@@ -17,6 +17,7 @@ const peoplevoxReportGet = async (
     orderBy,
     columns,
     fetchClient = peoplevoxClient,
+    useLocalCachedFile,
   } = {},
 ) => {
 
@@ -28,27 +29,28 @@ const peoplevoxReportGet = async (
     return rejectResponse;
   }
 
-  const reportGetResponse = await fetchClient.fetch({
-    requestPayload: {
-      method: 'post',
-      body: {
-        getReportRequest: {
-          TemplateName: reportName,
-          ...(searchClause ? { SearchClause: searchClause } : {}),
-          ...(perPage ? { ItemsPerPage: perPage } : {}),
-          ...(filter ? { FilterClause: filter } : {}),
-          ...(orderBy ? { OrderBy: orderBy } : {}),
-          ...(columns ? { Columns: columns.join(',') } : {}),
+  return getWithLocalCachedFile(
+    useLocalCachedFile,
+    () => fetchClient.fetch({
+      requestPayload: {
+        method: 'post',
+        body: {
+          getReportRequest: {
+            TemplateName: reportName,
+            ...(searchClause ? { SearchClause: searchClause } : {}),
+            ...(perPage ? { ItemsPerPage: perPage } : {}),
+            ...(filter ? { FilterClause: filter } : {}),
+            ...(orderBy ? { OrderBy: orderBy } : {}),
+            ...(columns ? { Columns: columns.join(',') } : {}),
+          },
         },
       },
-    },
-    context: {
-      credsPayload,
-      action: 'GetReportData',
-    },
-  });
-
-  return reportGetResponse;
+      context: {
+        credsPayload,
+        action: 'GetReportData',
+      },
+    }),
+  );
 };
 
 const funcApiConfig = {

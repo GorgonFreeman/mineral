@@ -1,4 +1,4 @@
-const { ArgsWarden, Getter, valueProvided } = require('../utils');
+const { ArgsWarden, Getter, getWithLocalCachedFile, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
 const { stylearcadeClient } = require('../stylearcade/stylearcade.utils');
 const { MAX_PER_PAGE } = require('../stylearcade/stylearcade.constants');
@@ -74,6 +74,7 @@ const stylearcadeGet = async (
     perPage = MAX_PER_PAGE,
     nodeName = 'records',
     url = '/export',
+    useLocalCachedFile,
     ...getterOptions
   } = {},
 ) => {
@@ -106,12 +107,17 @@ const stylearcadeGet = async (
     return getter;
   }
 
-  const data = await getter.run({ returnAll: true });
+  return getWithLocalCachedFile(
+    useLocalCachedFile,
+    async () => {
+      const data = await getter.run({ returnAll: true });
 
-  return {
-    ok: true,
-    data,
-  };
+      return {
+        ok: true,
+        data,
+      };
+    },
+  );
 };
 
 const funcApiConfig = {

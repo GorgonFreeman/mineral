@@ -32,6 +32,33 @@ const normalise = (value) => (value || '').toString().trim().toLowerCase();
 
 const valueProvided = (value) => value !== undefined && value !== null;
 
+const getWithLocalCachedFile = async (
+  filename,
+  getFunction,
+) => {
+  if (!filename || HOSTED) {
+    return getFunction();
+  }
+
+  const directory = `${ getWorkspace() }/api/_temp`;
+  const filepath = `${ directory }/${ filename }`;
+
+  try {
+    const cachedFile = await fs.readFile(filepath, 'utf8');
+    return JSON.parse(cachedFile);
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+
+  const response = await getFunction();
+  await fs.mkdir(directory, { recursive: true });
+  await fs.writeFile(filepath, JSON.stringify(response, null, 2), 'utf8');
+
+  return response;
+};
+
 const credsByPath = (credsPath, credsObject) => {
   const pathNodes = pathAsArray(credsPath);
 
@@ -1460,6 +1487,7 @@ module.exports = {
   capitaliseString,
   normalise,
   credsFromPayload,
+  getWithLocalCachedFile,
   resolveFromCreds,
   customFetch,
   logDeep,

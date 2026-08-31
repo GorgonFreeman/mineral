@@ -1,4 +1,4 @@
-const { credsFromPayload, ArgsWarden, Getter } = require('../utils');
+const { credsFromPayload, ArgsWarden, Getter, getWithLocalCachedFile } = require('../utils');
 const { credsValidator } = require('../validators');
 const { starshipitClient } = require('../starshipit/starshipit.utils');
 const { MAX_PER_PAGE } = require('../starshipit/starshipit.constants');
@@ -74,6 +74,7 @@ const starshipitGet = async (
     params,
     perPage = MAX_PER_PAGE,
     nodeName = 'results',
+    useLocalCachedFile,
     ...getterOptions
   } = {},
 ) => {
@@ -114,12 +115,17 @@ const starshipitGet = async (
     return getter;
   }
 
-  const data = await getter.run({ returnAll: true });
+  return getWithLocalCachedFile(
+    useLocalCachedFile,
+    async () => {
+      const data = await getter.run({ returnAll: true });
 
-  return {
-    ok: true,
-    data,
-  };
+      return {
+        ok: true,
+        data,
+      };
+    },
+  );
 };
 
 const funcApiConfig = {
