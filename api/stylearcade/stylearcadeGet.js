@@ -1,4 +1,4 @@
-const { ArgsWarden, Getter } = require('../utils');
+const { ArgsWarden, Getter, valueProvided } = require('../utils');
 const { credsValidator } = require('../validators');
 const { stylearcadeClient } = require('../stylearcade/stylearcade.utils');
 const { MAX_PER_PAGE } = require('../stylearcade/stylearcade.constants');
@@ -59,7 +59,10 @@ const stylearcadeGetDigester = (response, nodeName) => {
     return [];
   }
 
-  return response?.data?.[nodeName] ?? [];
+  const items = response?.data?.[nodeName] ?? [];
+  // Filter out items that have data property, but it's null
+  const meaningfulItems = items.filter(item => Object.hasOwn(item, 'data') && valueProvided(item.data));
+  return meaningfulItems;
 };
 
 const stylearcadeGet = async (
