@@ -40,7 +40,7 @@ const getWithLocalCachedFile = async (
     return getFunction();
   }
 
-  const directory = `${ getWorkspace() }/api/_temp`;
+  const directory = `${ getWorkspace() }/_temp`;
   const filepath = `${ directory }/${ filename }`;
 
   let cachedFile;
