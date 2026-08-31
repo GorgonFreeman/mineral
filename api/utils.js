@@ -1429,6 +1429,25 @@ const diffObjects = (
   return diff;
 };
 
+const objectPropsTranslate = (
+  obj, 
+  propMap,
+  {
+    omitUnmappedProps = false,
+  } = {},
+) => {
+  const translatedObj = {};
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (omitUnmappedProps && !propMap[key]) {
+      continue;
+    }
+    const translatedKey = propMap[key] || key;
+    translatedObj[translatedKey] = value;
+  }
+  return translatedObj;
+};
+
 module.exports = {
   wait,
   timeMs,
@@ -1471,4 +1490,5 @@ module.exports = {
   oneFromManyInResponse,
   surveyObject,
   diffObjects,
+  objectPropsTranslate,
 };
