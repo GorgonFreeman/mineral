@@ -1512,6 +1512,7 @@ const oneTrickProcessor = (
     },
     processorOptions,
   );
+  return processor;
 };
 
 module.exports = {
