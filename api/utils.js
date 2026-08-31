@@ -1165,6 +1165,7 @@ class Getter extends EventEmitter {
       limit,
       // TODO: returnAllItems option or runAsFunction option
 
+      logFlavourText,
       onItems,
       onDone,
     } = {},
@@ -1182,6 +1183,7 @@ class Getter extends EventEmitter {
     this.func = func;
 
     this.limit = limit;
+    this.logFlavourText = logFlavourText;
 
     if (onItems) {
       this.on('items', onItems);
@@ -1246,7 +1248,7 @@ class Getter extends EventEmitter {
       [done, paginatedParams] = await paginator(paginatedParams, response);
     }
 
-    console.log('resultsCount', resultsCount);
+    console.log(`${ ifTextThenSpace(this.logFlavourText) }resultsCount`, resultsCount);
     this.emit('done');
     
     if (returnAll) {
