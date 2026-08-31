@@ -1412,17 +1412,17 @@ const surveyObject = (
 };
 
 const diffObjects = (
-  object1, 
-  object2,
+  sourceOfTruthObject, 
+  comparisonObject,
   {
     propMap = {},
   } = {},
 ) => {
   const diff = {};
-  for (const [key, value] of Object.entries(object1)) {
-    const key2 = propMap[key] || key;
+  for (const [key, value] of Object.entries(sourceOfTruthObject)) {
+    const comparisonKey = propMap[key] || key;
     // TODO: Consider deep equality
-    if (object2[key2] !== value) {
+    if (comparisonObject[comparisonKey] !== value) {
       diff[key] = value;
     }
   }
