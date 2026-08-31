@@ -236,8 +236,20 @@ const shopifyStorefrontClient = new FetchClient({
   ],
 });
 
+const shopifyProductFlattenMetafields = (product) => {
+  // If property begins with mf, try to flatten to property.value
+  const flattenedProduct = { ...product };
+  for (const [key, value] of Object.entries(product)) {
+    if (key.startsWith('mf')) {
+      flattenedProduct[key] = value?.value ?? value;
+    }
+  }
+  return flattenedProduct;
+};
+
 module.exports = {
   parseShopifyJsonl,
   shopifyClient,
   shopifyStorefrontClient,
+  shopifyProductFlattenMetafields,
 };
