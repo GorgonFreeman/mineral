@@ -1092,7 +1092,10 @@ class Processor extends EventEmitter {
     const initialSize = this.getPileSize();
 
     const executeAction = async () => {
-      const actionResult = await this.action(this.pile);
+      const [, actionResult] = await Promise.all([
+        this.action(this.pile),
+        wait(1), // TODO: consider making this optional. Forces a yield so that async processors can run in parallel.
+      ]);
       results.push(actionResult);
       completedCount++;
       
