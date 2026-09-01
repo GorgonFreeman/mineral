@@ -28,11 +28,11 @@ const peoplevoxOrderEdit = async (
   }
 
   // TODO: Consider making CSV transformation a request preparer step
-  const csvData = await json2csv(ensureArray(orderPayload));
-  
+  const orderPayloads = ensureArray(orderPayload);
+
   // TODO: Handle by chunking
   // TODO: Chunk objects by common fields so that each call has a consistent schema - bedrock groupObjectsByFields
-  if (csvData.length > MAX_REQUEST_ITEMS) {
+  if (orderPayloads.length > MAX_REQUEST_ITEMS) {
     return {
       ok: false,
       error: {
@@ -41,6 +41,8 @@ const peoplevoxOrderEdit = async (
       },
     };
   }
+
+  const csvData = await json2csv(orderPayloads);
 
   return fetchClient.fetch({
     requestPayload: {

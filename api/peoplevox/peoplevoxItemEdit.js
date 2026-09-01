@@ -27,9 +27,9 @@ const peoplevoxItemEdit = async (
     return rejectResponse;
   }
 
-  const csvData = await json2csv(ensureArray(itemPayload));
+  const itemPayloads = ensureArray(itemPayload);
 
-  if (csvData.length > MAX_REQUEST_ITEMS) {
+  if (itemPayloads.length > MAX_REQUEST_ITEMS) {
     return {
       ok: false,
       error: {
@@ -38,6 +38,8 @@ const peoplevoxItemEdit = async (
       },
     };
   }
+
+  const csvData = await json2csv(itemPayloads);
 
   return fetchClient.fetch({
     requestPayload: {
