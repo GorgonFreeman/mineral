@@ -48,4 +48,11 @@ curl -X POST "http://localhost:8000/starshipitProductsGet" \
     "credsPayload": { "credsPath": "starshipit.acc" },
     "options": { "searchTerm": "WFAL48-1-S" }
   }'
+
+  curl -X POST "http://localhost:8000/starshipitProductsGet" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "credsPayload": { "credsPath": "starshipit.wf" },
+      "options": { "limit": 20 }
+    }'
 */
