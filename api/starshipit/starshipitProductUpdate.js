@@ -76,7 +76,7 @@ const starshipitProductUpdate = async (
     },
     context: {
       credsPayload,
-      resultPath: 'result.product',
+      resultPath: 'product',
     },
   });
 };
