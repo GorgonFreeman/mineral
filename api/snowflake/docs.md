@@ -3,6 +3,12 @@
 - [Developer documentation](https://docs.snowflake.com/en/developer-guide)
 - [SQL API](https://docs.snowflake.com/en/developer-guide/sql-api/index)
 - [SQL API reference](https://docs.snowflake.com/en/developer-guide/sql-api/reference)
-- [Authenticating to the SQL API](https://docs.snowflake.com/en/developer-guide/sql-api/authenticating)
+- [Snowflake REST APIs](https://docs.snowflake.com/en/developer-guide/snowflake-rest-api)
+- [Authenticating](https://docs.snowflake.com/en/developer-guide/sql-api/authenticating)
 
-Account-scoped HTTPS JSON API at `https://{account_identifier}.snowflakecomputing.com/api/v2/statements` for submitting SQL, polling handles, and canceling runs, authenticated with OAuth or key-pair JWT rather than a single static API key.
+Account-scoped HTTPS JSON APIs at `https://{account_identifier}.snowflakecomputing.com`:
+
+- **SQL API** (`/api/v2/statements`) — submit SQL, poll handles, cancel runs, partitioned result sets
+- **REST APIs** (`/api/v2/databases`, schemas, tables, users, …) — manage and list account objects with `showLimit` / `fromName` pagination
+
+Auth: OAuth access token, programmatic access token, or key-pair JWT. Optional OAuth client + refresh token can mint access tokens without Upstash.
