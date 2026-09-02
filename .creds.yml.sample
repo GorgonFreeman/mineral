@@ -140,6 +140,15 @@ salesforce:
   CLIENT_SECRET: _________________________
   LOGIN_URL: https://login.salesforce.com  # or My Domain / test.salesforce.com
 
+marketingcloud:
+  # Salesforce Marketing Cloud > Setup > Installed Packages > API Integration (server-to-server)
+  CLIENT_ID: _____________________________
+  CLIENT_SECRET: _________________________
+  AUTH_URL: https://________.auth.marketingcloudapis.com/
+  REST_URL: https://________.rest.marketingcloudapis.com/
+  SOAP_URL: https://________.soap.marketingcloudapis.com/  # optional
+  ACCOUNT_ID: ____________________________  # optional business unit MID
+
 fastsimon:
   store:                                   # instance name of your choice
     UUID: ________________________________ # Dashboard → Settings
