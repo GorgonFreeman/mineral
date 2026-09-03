@@ -20,7 +20,7 @@ const inventoryItemsUpdateBulkMutation = `
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['inventoryItemUpdates', Array.isArray],
+  ['inventoryItemUpdates', Array.isArray], // TODO: Real validator mandating inventoryItemId
 ]);
 
 const shopifyInventoryItemsUpdateBulk = async (
