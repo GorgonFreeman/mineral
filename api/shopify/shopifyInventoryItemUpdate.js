@@ -9,29 +9,38 @@ const {
 } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
-const inventoryItemUpdatePayloadValidator = (updatePayload) => {
-  return valueProvided(updatePayload)
+const inventoryItemUpdateValidator = (updatePayload) => {
+  const {
+    inventoryItemId,
+    ...updatePayload
+  } = updatePayload;
+
+  return valueProvided(inventoryItemId)
+    && valueProvided(updatePayload)
     && typeof updatePayload === 'object'
     && !Array.isArray(updatePayload);
 };
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['inventoryItemId', (id) => everyIfArray(valueProvided, id)],
-  ['updatePayload', (payload) => everyIfArray(inventoryItemUpdatePayloadValidator, payload)],
+  ['inventoryItemUpdate', (p) => everyIfArray(inventoryItemUpdateValidator, p)],
 ]);
 
 const defaultReturnInventoryItemAttrs = 'id countryCodeOfOrigin harmonizedSystemCode';
 
 const shopifyInventoryItemUpdateSingle = async (
   credsPayload,
-  inventoryItemId,
-  updatePayload,
+  inventoryItemUpdate,
   {
     apiVersion,
     returnInventoryItemAttrs = defaultReturnInventoryItemAttrs,
   } = {},
 ) => {
+
+  const {
+    inventoryItemId,
+    ...updatePayload
+  } = inventoryItemUpdate;
 
   return shopifyMutationDo(
     credsPayload,
@@ -55,8 +64,7 @@ const shopifyInventoryItemUpdateSingle = async (
 
 const shopifyInventoryItemUpdate = async (
   credsPayload,
-  inventoryItemId,
-  updatePayload,
+  inventoryItemUpdate, // update payload with inventoryItemId included
   {
     queueRunOptions,
     apiVersion,
@@ -66,21 +74,19 @@ const shopifyInventoryItemUpdate = async (
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    inventoryItemId,
-    updatePayload,
+    inventoryItemUpdate,
   });
   if (rejectResponse) {
     return rejectResponse;
   }
 
   return actionSingleOrMultiple(
-    [inventoryItemId, updatePayload],
+    [inventoryItemUpdate],
     shopifyInventoryItemUpdateSingle,
-    (inventoryItemIdItem, updatePayloadItem) => ({
+    (inventoryItemUpdateItem) => ({
       args: [
         credsPayload,
-        inventoryItemIdItem,
-        updatePayloadItem,
+        inventoryItemUpdateItem,
         {
           apiVersion,
           returnInventoryItemAttrs,
@@ -107,8 +113,8 @@ curl -X POST "http://localhost:8000/shopifyInventoryItemUpdate" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
-    "inventoryItemId": "43729076",
-    "updatePayload": {
+    "inventoryItemUpdate": {
+      "inventoryItemId": "43729076",
       "countryCodeOfOrigin": "US",
       "harmonizedSystemCode": "621710"
     }
