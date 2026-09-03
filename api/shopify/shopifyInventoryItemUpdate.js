@@ -9,11 +9,11 @@ const {
 } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
-const inventoryItemUpdateValidator = (updatePayload) => {
+const inventoryItemUpdateValidator = (inventoryItemUpdate) => {
   const {
     inventoryItemId,
     ...updatePayload
-  } = updatePayload;
+  } = inventoryItemUpdate;
 
   return valueProvided(inventoryItemId)
     && valueProvided(updatePayload)
