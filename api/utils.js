@@ -1520,6 +1520,20 @@ const oneTrickProcessor = (
   return processor;
 };
 
+const simpleHash = (str) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0; // convert to 32-bit integer
+  }
+  return Math.abs(hash);
+};
+
+const deterministicArrayItem = (array, input) => {
+  const index = simpleHash(String(input)) % array.length;
+  return array[index];
+};
+
 module.exports = {
   wait,
   timeMs,
@@ -1565,5 +1579,6 @@ module.exports = {
   diffObjects,
   objectPropsTranslate,
   randomArrayItem,
+  deterministicArrayItem,
   oneTrickProcessor,
 };
