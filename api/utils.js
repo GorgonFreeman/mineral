@@ -1534,6 +1534,17 @@ const deterministicArrayItem = (array, input) => {
   return array[index];
 };
 
+const arrayPartition = (array, partitioner) => {
+  const { passed, rejected } = array.reduce(
+    (acc, item) => {
+      (partitioner(item) ? acc.passed : acc.rejected).push(item);
+      return acc;
+    },
+    { passed: [], rejected: [] },
+  );
+  return { passed, rejected };
+};
+
 module.exports = {
   wait,
   timeMs,
@@ -1581,4 +1592,5 @@ module.exports = {
   randomArrayItem,
   deterministicArrayItem,
   oneTrickProcessor,
+  arrayPartition,
 };
