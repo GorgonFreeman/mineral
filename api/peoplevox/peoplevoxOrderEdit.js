@@ -1,6 +1,13 @@
 const { json2csv } = require('json-2-csv');
 const { credsValidator } = require('../validators');
-const { ensureArray, everyIfArray, ArgsWarden } = require('../utils');
+const {
+  ensureArray,
+  everyIfArray,
+  ArgsWarden,
+  arrayToChunks,
+  groupObjectsByFields,
+  actionSingleOrMultiple,
+} = require('../utils');
 const { peoplevoxClient } = require('../peoplevox/peoplevox.utils');
 const { MAX_REQUEST_ITEMS } = require('../peoplevox/peoplevox.constants');
 
@@ -11,36 +18,13 @@ const argsWarden = new ArgsWarden([
   ['orderPayload', (i) => everyIfArray(orderPayloadValidator, i)],
 ]);
 
-const peoplevoxOrderEdit = async (
+const peoplevoxOrderEditChunk = async (
   credsPayload,
-  orderPayload,
+  orderPayloads,
   {
     fetchClient = peoplevoxClient,
   } = {},
 ) => {
-
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({
-    credsPayload,
-    orderPayload,
-  });
-  if (rejectResponse) {
-    return rejectResponse;
-  }
-
-  // TODO: Consider making CSV transformation a request preparer step
-  const orderPayloads = ensureArray(orderPayload);
-
-  // TODO: Handle by chunking
-  // TODO: Chunk objects by common fields so that each call has a consistent schema - bedrock groupObjectsByFields
-  if (orderPayloads.length > MAX_REQUEST_ITEMS) {
-    return {
-      ok: false,
-      error: {
-        code: 'MAX_REQUEST_ITEMS_EXCEEDED',
-        message: `Max request items exceeded. Max is ${ MAX_REQUEST_ITEMS }.`,
-      },
-    };
-  }
 
   const csvData = await json2csv(orderPayloads);
 
@@ -59,6 +43,44 @@ const peoplevoxOrderEdit = async (
       action: 'SaveData',
     },
   });
+};
+
+const peoplevoxOrderEdit = async (
+  credsPayload,
+  orderPayload,
+  {
+    fetchClient = peoplevoxClient,
+    queueRunOptions,
+  } = {},
+) => {
+
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    orderPayload,
+  });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  // TODO: Consider making CSV transformation a request preparer step
+  const orderPayloads = ensureArray(orderPayload);
+
+  // Sort into buckets of matching field sets so json2csv does not pad missing keys,
+  // then chunk each bucket by max size
+  const buckets = groupObjectsByFields(orderPayloads);
+  const chunksByBucket = buckets.map((bucket) => arrayToChunks(bucket, MAX_REQUEST_ITEMS));
+  const chunks = chunksByBucket.flat();
+
+  return actionSingleOrMultiple(
+    chunks,
+    peoplevoxOrderEditChunk,
+    (chunk) => ({
+      args: [credsPayload, chunk, { fetchClient }],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
+    },
+  );
 };
 
 const funcApiConfig = {
