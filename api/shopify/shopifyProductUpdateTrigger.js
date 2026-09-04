@@ -55,11 +55,18 @@ const shopifyProductUpdateTrigger = async (
     };
   }
 
-  // return shopifyProductUpdate(
-  //   credsPayload,
-  //   productIdentifier,
-  //   apiVersion,
-  // );
+  return shopifyProductUpdate(
+    credsPayload,
+    {
+      productIdentifier,
+      product: {
+        title: `${ productTitle } `,
+      },
+    },
+    {
+      apiVersion,
+    },
+  );
 };
 
 const funcApiConfig = {
@@ -72,10 +79,18 @@ module.exports = {
 };
 
 /*
-curl -X POST "http://localhost:8000/shopifyProductUpdateTrigger" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "credsPayload": { "credsPath": "shopify.au" },
-    "thingId": "104188477512"
-  }'
+  curl -X POST "http://localhost:8000/shopifyProductUpdateTrigger" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "credsPayload": { "credsPath": "shopify.au" },
+      "productIdentifier": { "productId": "1234567890" }
+    }'
+
+  curl -X POST "http://localhost:8000/shopifyProductUpdateTrigger" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "credsPayload": { "credsPath": "shopify.au" },
+      "productIdentifier": { "productId": "1234567890" },
+      "options": { "productTitle": "Ultra Strength Freeze Ray" }
+    }'
 */
