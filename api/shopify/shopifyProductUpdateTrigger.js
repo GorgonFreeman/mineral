@@ -1,45 +1,65 @@
-// https://shopify.dev/docs/api/admin-graphql/latest/mutations/pageDelete
+// "Artificially" fires a product update webhook by appending a space to the product title, which Shopify strips.
 
 const { credsValidator } = require('../validators');
 const { ArgsWarden } = require('../utils');
-const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
+
+const { shopifyProductGet, productIdentifierValidator } = require('../shopify/shopifyProductGet');
+const { shopifyProductUpdate } = require('../shopify/shopifyProductUpdate');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['thingId'],
+  ['productIdentifier', productIdentifierValidator],
 ]);
 
 const shopifyProductUpdateTrigger = async (
   credsPayload,
-  thingId,
+  productIdentifier,
   {
     apiVersion,
-    returnSchema = 'deletedThingId',
+    productTitle,
   } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    thingId,
+    productIdentifier,
   });
   if (rejectResponse) {
     return rejectResponse;
   }
 
-  return shopifyMutationDo(
-    credsPayload,
-    'thingDelete',
-    {
-      mutationVariables: {
-        id: {
-          type: 'ID!',
-          value: `gid://shopify/Thing/${ thingId }`,
-        },
+  if (!productTitle) {
+    const productResponse = await shopifyProductGet(
+      credsPayload,
+      productIdentifier,
+      {
+        attrs: 'title',
       },
-      returnSchema,
-      apiVersion,
-    },
-  );
+    );
+    
+    const {
+      ok: productOk,
+      data: productData,
+    } = productResponse;
+    if (!productOk) {
+      return productResponse;
+    }
+
+    ({ title: productTitle } = productData);
+  }
+
+  if (!productTitle) {
+    return {
+      ok: false,
+      error: 'Product title not found',
+    };
+  }
+
+  // return shopifyProductUpdate(
+  //   credsPayload,
+  //   productIdentifier,
+  //   apiVersion,
+  // );
 };
 
 const funcApiConfig = {

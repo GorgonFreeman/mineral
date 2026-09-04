@@ -91,6 +91,7 @@ const funcApiConfig = {
 module.exports = {
   shopifyProductGet,
   funcApiConfig,
+  productIdentifierValidator, // TODO: Consider moving to validators
 };
 
 /*
