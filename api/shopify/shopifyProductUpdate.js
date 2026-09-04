@@ -9,29 +9,37 @@ const {
 } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
-const updatePayloadValidator = (updatePayload) => {
-  return updatePayload?.media || updatePayload?.product;
+const productUpdateValidator = (productUpdate) => {
+  const {
+    productIdentifier,
+    media,
+    product,
+  } = productUpdate || {};
+
+  return valueProvided(productIdentifier) && (media || product);
 };
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['productIdentifier', (i) => everyIfArray(valueProvided, i)],
-  ['updatePayload', (i) => everyIfArray(updatePayloadValidator, i)],
+  ['productUpdate', (p) => everyIfArray(productUpdateValidator, p)],
 ]);
 
 const defaultReturnProductAttrs = 'id handle';
 
 const shopifyProductUpdateSingle = async (
   credsPayload,
-  productIdentifier,
-  updatePayload,
+  productUpdate,
   {
     apiVersion,
     returnProductAttrs = defaultReturnProductAttrs,
   } = {},
 ) => {
 
-  const { media, product } = updatePayload;
+  const {
+    productIdentifier,
+    media,
+    product,
+  } = productUpdate;
 
   return shopifyMutationDo(
     credsPayload,
@@ -59,8 +67,7 @@ const shopifyProductUpdateSingle = async (
 
 const shopifyProductUpdate = async (
   credsPayload,
-  productIdentifier,
-  updatePayload,
+  productUpdate,
   {
     queueRunOptions,
     apiVersion,
@@ -70,21 +77,19 @@ const shopifyProductUpdate = async (
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    productIdentifier,
-    updatePayload,
+    productUpdate,
   });
   if (rejectResponse) {
     return rejectResponse;
   }
 
   return actionSingleOrMultiple(
-    [productIdentifier, updatePayload],
+    [productUpdate],
     shopifyProductUpdateSingle,
-    (productIdentifierItem, updatePayloadItem) => ({
+    (productUpdateItem) => ({
       args: [
         credsPayload,
-        productIdentifierItem,
-        updatePayloadItem,
+        productUpdateItem,
         {
           apiVersion,
           returnProductAttrs,
@@ -111,8 +116,8 @@ curl -X POST "http://localhost:8000/shopifyProductUpdate" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
-    "productIdentifier": "104188477512",
-    "updatePayload": {
+    "productUpdate": {
+      "productIdentifier": "104188477512",
       "product": {
         "title": "Example"
       }
