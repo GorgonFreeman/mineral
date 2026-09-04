@@ -41,14 +41,24 @@ const shopifyProductUpdateSingle = async (
     product,
   } = productUpdate;
 
+  const {
+    id,
+    handle,
+    customId,
+  } = productIdentifier;
+
   return shopifyMutationDo(
     credsPayload,
     'productUpdate',
     {
       mutationVariables: {
-        id: {
-          type: 'ID!',
-          value: `gid://shopify/Product/${ productIdentifier }`,
+        identifier: {
+          type: 'ProductUpdateIdentifiers',
+          value: {
+            ...(id && { id }),
+            ...(handle && { handle }),
+            ...(customId && { customId }),
+          },
         },
         ...(product && { product: {
           type: 'ProductUpdateInput!',
