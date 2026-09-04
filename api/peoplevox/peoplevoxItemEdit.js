@@ -1,6 +1,13 @@
 const { json2csv } = require('json-2-csv');
 const { credsValidator } = require('../validators');
-const { ensureArray, everyIfArray, ArgsWarden } = require('../utils');
+const {
+  ensureArray,
+  everyIfArray,
+  ArgsWarden,
+  arrayToChunks,
+  groupObjectsByFields,
+  actionSingleOrMultiple,
+} = require('../utils');
 const { peoplevoxClient } = require('../peoplevox/peoplevox.utils');
 const { MAX_REQUEST_ITEMS } = require('../peoplevox/peoplevox.constants');
 
@@ -11,33 +18,13 @@ const argsWarden = new ArgsWarden([
   ['itemPayload', (item) => everyIfArray(itemPayloadValidator, item)],
 ]);
 
-const peoplevoxItemEdit = async (
+const peoplevoxItemEditChunk = async (
   credsPayload,
-  itemPayload,
+  itemPayloads,
   {
     fetchClient = peoplevoxClient,
   } = {},
 ) => {
-
-  const rejectResponse = await argsWarden.responseIfRejectingArgs({
-    credsPayload,
-    itemPayload,
-  });
-  if (rejectResponse) {
-    return rejectResponse;
-  }
-
-  const itemPayloads = ensureArray(itemPayload);
-
-  if (itemPayloads.length > MAX_REQUEST_ITEMS) {
-    return {
-      ok: false,
-      error: {
-        code: 'MAX_REQUEST_ITEMS_EXCEEDED',
-        message: `Max request items exceeded. Max is ${ MAX_REQUEST_ITEMS }.`,
-      },
-    };
-  }
 
   const csvData = await json2csv(itemPayloads);
 
@@ -58,6 +45,43 @@ const peoplevoxItemEdit = async (
   });
 };
 
+const peoplevoxItemEdit = async (
+  credsPayload,
+  itemPayload,
+  {
+    fetchClient = peoplevoxClient,
+    queueRunOptions,
+  } = {},
+) => {
+
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    credsPayload,
+    itemPayload,
+  });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
+  const itemPayloads = ensureArray(itemPayload);
+
+  // Sort into buckets of matching field sets so json2csv does not pad missing keys,
+  // then chunk each bucket by max size
+  const buckets = groupObjectsByFields(itemPayloads);
+  const chunksByBucket = buckets.map((bucket) => arrayToChunks(bucket, MAX_REQUEST_ITEMS));
+  const chunks = chunksByBucket.flat();
+
+  return actionSingleOrMultiple(
+    chunks,
+    peoplevoxItemEditChunk,
+    (chunk) => ({
+      args: [credsPayload, chunk, { fetchClient }],
+    }),
+    {
+      ...(queueRunOptions ? { queueRunOptions } : {}),
+    },
+  );
+};
+
 const funcApiConfig = {
   argsWarden,
 };
@@ -76,5 +100,16 @@ curl -X POST "http://localhost:8000/peoplevoxItemEdit" \
       "ItemCode": "100335-CHC-L",
       "Attribute7": "ATTR7"
     }
+  }'
+
+Mixed field sets (grouped into separate SaveData calls):
+curl -X POST "http://localhost:8000/peoplevoxItemEdit" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "peoplevox" },
+    "itemPayload": [
+      { "ItemCode": "100335-CHC-L", "Attribute9": "Whatever" },
+      { "ItemCode": "100335-CHC-M", "Attribute9": "Watermelon", "Attribute10": "Werewolf" }
+    ]
   }'
 */
