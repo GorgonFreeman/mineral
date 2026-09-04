@@ -42,7 +42,7 @@ const shopifyProductUpdateSingle = async (
   } = productUpdate;
 
   const {
-    id,
+    productId,
     handle,
     customId,
   } = productIdentifier;
@@ -55,7 +55,7 @@ const shopifyProductUpdateSingle = async (
         identifier: {
           type: 'ProductUpdateIdentifiers',
           value: {
-            ...(id && { id }),
+            ...((productId) && { id: `gid://shopify/Product/${ productId }` }),
             ...(handle && { handle }),
             ...(customId && { customId }),
           },
