@@ -76,3 +76,17 @@ The decoupled nature of these desires to what the function actually does and the
 ### AI use
 
 Not gonna lie, I have absolutely composed some of these platforms with AI. Some of them may not work, some may not stick closely to the core principles, some may use awkward auth methods - some error payloads are definitely not optimised. However, know that I have hand-coded precursors to this repo, that do largely the same thing, and that any additions benefit (or suffer) from the structure that is laid out in the earlier platforms.
+
+### Function arguments shape
+
+- Bound arguments, if they exist, are first
+- Mandatory inputs are passed as separate arguments
+- Optional inputs are passed in one 'options' object on the end, which falls back to `{}` if not supplied
+
+This looks like:
+```
+const attack = (name, damage, accuracy, pp, type, { effects } = {}) => {
+```
+where 'effects' is optional and the others are mandatory.
+
+This documents what options are available, and allows invocations to only supply meaningful inputs.
