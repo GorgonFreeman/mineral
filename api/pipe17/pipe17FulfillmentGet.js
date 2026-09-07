@@ -18,7 +18,7 @@ const resolveFulfillmentId = ({
   extFulfillmentId,
 }) => {
   return fulfillmentId
-    || (extFulfillmentId ? `ext:${ extFulfillmentId }` : null);
+    || (extFulfillmentId ? `ext:${ encodeURIComponent(extFulfillmentId) }` : null);
 };
 
 const pipe17FulfillmentGet = async (
@@ -43,7 +43,7 @@ const pipe17FulfillmentGet = async (
     '/fulfillments',
     resolveFulfillmentId(fulfillmentIdentifier),
     {
-      resultPath: 'result.fulfillment',
+      resultPath: 'fulfillment',
       inspect,
       fetchClient,
     },
@@ -64,6 +64,13 @@ curl -X POST "http://localhost:8000/pipe17FulfillmentGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "pipe17" },
-    "fulfillmentIdentifier": { "fulfillmentId": "4ce308990d48d54f" }
+    "fulfillmentIdentifier": { "fulfillmentId": "171889ac4c86b805" }
+  }'
+
+curl -X POST "http://localhost:8000/pipe17FulfillmentGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "pipe17" },
+    "fulfillmentIdentifier": { "extFulfillmentId": "bb558b1527b95c99:1Z179A841391432104" }
   }'
 */

@@ -19,8 +19,8 @@ const resolveOrderId = ({
   extOrderApiId,
 }) => {
   return orderId
-    || (extOrderId ? `ext:${ extOrderId }` : null)
-    || (extOrderApiId ? `api:${ extOrderApiId }` : null);
+    || (extOrderId ? `ext:${ encodeURIComponent(extOrderId) }` : null)
+    || (extOrderApiId ? `api:${ encodeURIComponent(extOrderApiId) }` : null);
 };
 
 const pipe17OrderGet = async (
@@ -45,7 +45,7 @@ const pipe17OrderGet = async (
     '/orders',
     resolveOrderId(orderIdentifier),
     {
-      resultPath: 'result.order',
+      resultPath: 'order',
       inspect,
       fetchClient,
     },
@@ -66,6 +66,20 @@ curl -X POST "http://localhost:8000/pipe17OrderGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "pipe17" },
-    "orderIdentifier": { "orderId": "dc120f1015760357" }
+    "orderIdentifier": { "orderId": "243acd2642101951" }
+  }'
+
+curl -X POST "http://localhost:8000/pipe17OrderGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "pipe17" },
+    "orderIdentifier": { "extOrderId": "#USA4162713" }
+  }'
+
+curl -X POST "http://localhost:8000/pipe17OrderGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "pipe17" },
+    "orderIdentifier": { "extOrderApiId": "5820180987964" }
   }'
 */

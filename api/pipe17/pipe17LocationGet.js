@@ -31,7 +31,7 @@ const pipe17LocationGet = async (
     '/locations',
     locationId,
     {
-      resultPath: 'result.location',
+      resultPath: 'location',
       inspect,
       fetchClient,
     },
@@ -52,6 +52,6 @@ curl -X POST "http://localhost:8000/pipe17LocationGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "pipe17" },
-    "locationId": "6d9c18617ea2d279"
+    "locationId": "727db407e94815a6"
   }'
 */

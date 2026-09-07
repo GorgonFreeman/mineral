@@ -31,7 +31,7 @@ const pipe17ProductGet = async (
     '/products',
     productId,
     {
-      resultPath: 'result.product',
+      resultPath: 'product',
       inspect,
       fetchClient,
     },
@@ -52,6 +52,6 @@ curl -X POST "http://localhost:8000/pipe17ProductGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "pipe17" },
-    "productId": "149a8a65ad5bca52"
+    "productId": "3f91e016e3d433e8"
   }'
 */

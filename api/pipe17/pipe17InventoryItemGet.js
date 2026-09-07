@@ -31,7 +31,7 @@ const pipe17InventoryItemGet = async (
     '/inventory',
     inventoryItemId,
     {
-      resultPath: 'result.inventory',
+      resultPath: 'inventory',
       inspect,
       fetchClient,
     },
@@ -48,10 +48,14 @@ module.exports = {
 };
 
 /*
-curl -X POST "http://localhost:8000/pipe17InventoryItemGet" \
+NOTE: no working call found. Pipe17 inventory records carry no id of their own — they are
+keyed by sku + locationId — and GET /inventory/{id} returns 404 "No results" for a sku or a
+locationId. Fetch by sku through pipe17InventoryItemsGet instead (one row per location):
+
+curl -X POST "http://localhost:8000/pipe17InventoryItemsGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "pipe17" },
-    "inventoryItemId": "904e7f5e7a03df4f"
+    "options": { "params": { "sku": "EXDAL2449-5-XS" } }
   }'
 */

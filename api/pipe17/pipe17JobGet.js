@@ -31,7 +31,7 @@ const pipe17JobGet = async (
     '/jobs',
     jobId,
     {
-      resultPath: 'result.job',
+      resultPath: 'job',
       inspect,
       fetchClient,
     },
@@ -52,6 +52,6 @@ curl -X POST "http://localhost:8000/pipe17JobGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "pipe17" },
-    "jobId": "eb7586ac111d3afb"
+    "jobId": "94fc44fdbe6ad3ae"
   }'
 */

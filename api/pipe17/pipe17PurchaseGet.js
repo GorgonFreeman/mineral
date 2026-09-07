@@ -31,7 +31,7 @@ const pipe17PurchaseGet = async (
     '/purchases',
     purchaseId,
     {
-      resultPath: 'result.purchase',
+      resultPath: 'purchase',
       inspect,
       fetchClient,
     },
@@ -52,6 +52,6 @@ curl -X POST "http://localhost:8000/pipe17PurchaseGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "pipe17" },
-    "purchaseId": "REPLACE_WITH_PURCHASE_ID"
+    "purchaseId": "075e2df5318aa93e"
   }'
 */

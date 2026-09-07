@@ -31,7 +31,7 @@ const pipe17ReceiptGet = async (
     '/receipts',
     receiptId,
     {
-      resultPath: 'result.receipt',
+      resultPath: 'receipt',
       inspect,
       fetchClient,
     },

@@ -50,6 +50,6 @@ curl -X POST "http://localhost:8000/pipe17JobResultsGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "pipe17" },
-    "jobId": "eb7586ac111d3afb"
+    "jobId": "a25261fefd836d00"
   }'
 */

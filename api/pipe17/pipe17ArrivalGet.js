@@ -25,9 +25,9 @@ const resolveArrivalId = ({
   extReferenceId,
 }) => {
   return arrivalId
-    || (extArrivalId ? `ext:${ extArrivalId }` : null)
-    || (extArrivalApiId ? `api:${ extArrivalApiId }` : null)
-    || (extReferenceId ? `ref:${ extReferenceId }` : null);
+    || (extArrivalId ? `ext:${ encodeURIComponent(extArrivalId) }` : null)
+    || (extArrivalApiId ? `api:${ encodeURIComponent(extArrivalApiId) }` : null)
+    || (extReferenceId ? `ref:${ encodeURIComponent(extReferenceId) }` : null);
 };
 
 const pipe17ArrivalGet = async (
@@ -52,7 +52,7 @@ const pipe17ArrivalGet = async (
     '/arrivals',
     resolveArrivalId(arrivalIdentifier),
     {
-      resultPath: 'result.arrival',
+      resultPath: 'arrival',
       inspect,
       fetchClient,
     },
@@ -73,6 +73,13 @@ curl -X POST "http://localhost:8000/pipe17ArrivalGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "pipe17" },
-    "arrivalIdentifier": { "arrivalId": "d22afa93793be1f1" }
+    "arrivalIdentifier": { "arrivalId": "8f146f632e55fd21" }
+  }'
+
+curl -X POST "http://localhost:8000/pipe17ArrivalGet" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credsPayload": { "credsPath": "pipe17" },
+    "arrivalIdentifier": { "extArrivalId": "US-WF-021" }
   }'
 */

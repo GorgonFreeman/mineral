@@ -31,7 +31,7 @@ const pipe17ReturnGet = async (
     '/returns',
     returnId,
     {
-      resultPath: 'result.return',
+      resultPath: 'return',
       inspect,
       fetchClient,
     },
@@ -52,6 +52,6 @@ curl -X POST "http://localhost:8000/pipe17ReturnGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "pipe17" },
-    "returnId": "969504fc181f7182"
+    "returnId": "b66396c696171143"
   }'
 */
