@@ -6,32 +6,41 @@ const { ArgsWarden } = require('../utils');
 const { shopifyProductGet, productIdentifierValidator } = require('../shopify/shopifyProductGet');
 const { shopifyProductUpdate } = require('../shopify/shopifyProductUpdate');
 
+const productPayloadValidator = (productPayload) => {
+  const { productIdentifier, productTitle } = productPayload;
+  return productIdentifierValidator(productIdentifier);
+};
+
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['productIdentifier', productIdentifierValidator],
+  ['productPayload', productPayloadValidator],
 ]);
 
 const shopifyProductUpdateTrigger = async (
   credsPayload,
-  productIdentifier,
+  productPayload,
   {
     apiVersion,
-    productTitle,
   } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    productIdentifier,
+    productPayload,
   });
   if (rejectResponse) {
     return rejectResponse;
   }
 
+  const { 
+    productIdentifier,
+    productTitle,
+  } = productPayload;
+
   if (!productTitle) {
     const productResponse = await shopifyProductGet(
       credsPayload,
-      productIdentifier,
+      productPayload,
       {
         attrs: 'title',
       },
@@ -83,14 +92,13 @@ module.exports = {
     -H "Content-Type: application/json" \
     -d '{
       "credsPayload": { "credsPath": "shopify.au" },
-      "productIdentifier": { "productId": "1234567890" }
+      "productPayload": { "productIdentifier": { "productId": "1234567890" } }
     }'
 
   curl -X POST "http://localhost:8000/shopifyProductUpdateTrigger" \
     -H "Content-Type: application/json" \
     -d '{
       "credsPayload": { "credsPath": "shopify.au" },
-      "productIdentifier": { "productId": "1234567890" },
-      "options": { "productTitle": "Ultra Strength Freeze Ray" }
+      "productPayload": { "productIdentifier": { "productId": "1234567890" }, "productTitle": "Ultra Strength Freeze Ray" },
     }'
 */
