@@ -1,21 +1,24 @@
 # mineral
 
-The [bedrock](https://github.com/GorgonFreeman/bedrock) middleware, refactored for compatibility with other projects and more consistent standards.
+An everything middleware, centred around easy-to-bring credentials and instantly useful curl commands. Now importable into your project.
 
-## Problems with bedrock
+## How to get mineralling
 
-- **Inconsistent response format**
-  - `success: true` vs `success: false` for calls that succeed but return no data
-  - No distinction between technical failures and valid business errors
-  - Mixed use of `error` vs `errors` in responses
-- **Portability** — `.creds.yml` and related structures resist reuse outside the repo
-- **Auth** — helpers can fail without retrying, especially when using creds from Upstash
-- **Architecture** — boundaries between core and private functions could be firmer
+1. From your project, install mineral: `npm i @foxtware/mineral`.
+2. Set up a `.creds.yml` in your project directory, based on mineral's `.creds.yml.sample`. Add the credentials for the platform you want to use.
+3. Add the `dev` command to your project's `package.json`:
+```
+"dev": "node --watch --watch-path=./api --watch-path=./.creds.yml --watch-path=./.env --watch-path=./hosting node_modules/@foxtware/mineral/server.js --workspace . --api_dirs api"
+```
+4. Run `npm run dev` to start a server.
+5. Use an example curl command from the file whose function you want to use, with the creds path you set up.
 
-## The plan
+## Key ideas
+### The response format to rule them all
 
-- **The response format to rule them all**
-  ```typescript
+All functions should return data in this format.
+
+```typescript
   interface Response {
     ok: boolean
     data?: unknown
@@ -32,28 +35,44 @@ The [bedrock](https://github.com/GorgonFreeman/bedrock) middleware, refactored f
     }
     results?: Response[]
   }
-  ```
-  - `ok` — `true` if the intent executed; `false` otherwise
-  - `data` — any info returned
-  - `error` — when present, multiple errors go in `error.details`
-  - `meta` — pagination, total items, etc.
-  - `results` — array of responses from a queue or batch of calls
-  - [Examples](_docs/standard_response_examples.md)
-- **BYO Creds**
-  ```
-  {
-    credsPath,
-    shopifyCredsPath,
-    credsObject,
-    credsProvider, // function that returns a credsObject
-  }
-  ```
-- **Monorepo structure**
-Mineral gets pushed to from a larger repo that can also contain private functions. Mineral should be strictly useful stuff for the public, and can be used standalone, but needs to be instantiated for serving, setting stuff like which creds file to use. This allows it to be used as part of another repo in the same HTTP/curl way as by itself. Pass `--workspace` to locate `.creds.yml` and `--api_dirs` to serve additional function directories.
+```
+- `ok` — `true` if the intent executed; `false` otherwise
+- `data` — any info returned
+- `error` — when present, multiple errors go in `error.details`
+- `meta` — pagination, total items, etc.
+- `results` — array of responses from a queue or batch of calls
+- [Examples](_docs/standard_response_examples.md)
 
-For cloud deploy, workspaces use `hosting/.hosting.yml` and `npm run host` (same `--workspace` / `--api_dirs` flags as dev/serve). See `hosting/.hosting.yml.sample`.
+### BYO creds
 
-## What the thang do
-- Server makes functions available from the api/ route, where an export matches the filename. Run `npm run serve`, and they're all curlable.
-- .creds.yml is copied into .env when deploying, so creds can be accessed while hosted. Locally, it reads from the file directly.
-- Cloud deploy reads `hosting/.hosting.yml` for per-function config — `before_wrappers` / `after_wrappers` like `requireHostedApiKey`, `max_instances`, schedules — and deploys each function to Google Cloud.
+Each function accepts an object like this, supplying auth info for each platform it contacts:
+
+```
+{
+  credsPath,
+  credsObject,
+  credsProvider, // function that returns a credsObject
+}
+```
+
+You can set up a `.creds.yml` in your workspace directory and refer to it using `credsPath` > `platform.account`, or supply credentials inline using `credsObject`.
+
+### Monorepo context
+
+Mineral gets pushed to from a larger repo. Private functions are contained in a sibling project, which imports mineral to power all of the core functionalities, and layers certain business logic on top - e.g. known creds paths. 
+
+Mineral is strictly core functionalities, useful for anyone.
+
+Pass `--workspace` to locate `.creds.yml` and `--api_dirs` to serve additional function directories.
+
+### Hosting
+
+For cloud deploy, workspaces use `hosting/.hosting.yml` and `npm run host` (same `--workspace` / `--api_dirs` flags as dev/serve). See `hosting/.hosting.yml.sample`. 
+
+In the hosting YML, you can use wrappers which are additional layers to your hosted function. For instance, you may want to require an API key in requests to your middleware while it's live, or, require a hash in the headers that matches a hash of the body. 
+
+The decoupled nature of these desires to what the function actually does and their broad application is why they're implemented in the hosting config itself, rather than in a custom instance of the function.
+
+### AI use
+
+Not gonna lie, I have absolutely composed some of these platforms with AI. Some of them may not work, some may not stick closely to the core principles, some may use awkward auth methods - some error payloads are definitely not optimised. However, know that I have hand-coded precursors to this repo, that do largely the same thing, and that any additions benefit (or suffer) from the structure that is laid out in the earlier platforms.
