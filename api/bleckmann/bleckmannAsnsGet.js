@@ -42,6 +42,7 @@ const bleckmannAsnsGet = async (
     },
     context: {
       credsPayload,
+      resultPath: 'data',
     },
   });
 

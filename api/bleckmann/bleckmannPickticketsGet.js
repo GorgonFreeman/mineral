@@ -48,6 +48,7 @@ const bleckmannPickticketsGet = async (
     },
     context: {
       credsPayload,
+      resultPath: 'data',
     },
   });
 };

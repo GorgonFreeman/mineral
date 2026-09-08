@@ -1,6 +1,6 @@
 const { BASE_URL } = require('../bleckmann/bleckmann.constants');
 const { resolveCreds, useBaseUrl } = require('../pipelineSteps');
-const { FetchClient } = require('../utils');
+const { FetchClient, fetchClientCommonSteps } = require('../utils');
 
 const useAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
@@ -24,6 +24,9 @@ const bleckmannClient = new FetchClient({
     useAuthHeaders,
     useBaseUrl(BASE_URL),
     'fetch',
+    fetchClientCommonSteps.exitEarlyOnNotOk,
+    // Bleckmann wraps payloads in `data` — handlers opt in with context.resultPath
+    fetchClientCommonSteps.digToPath,
   ],
 });
 
