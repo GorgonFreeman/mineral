@@ -297,6 +297,8 @@ const funcApiConfig = {
 module.exports = {
   shopifyGet: (...args) => shopifyGet(false, ...args),
   shopifyGetter: (...args) => shopifyGet(true, ...args),
+  shopifyGetPaginator,
+  shopifyGetDigester,
   funcApiConfig,
 };
 
