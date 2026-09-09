@@ -1106,7 +1106,7 @@ class Processor extends EventEmitter {
 
     const {
       interval = false,
-      verbose = true,
+      verbose = !HOSTED,
     } = { ...this.runOptions, ...options };
     
     let finished = false;
