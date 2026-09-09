@@ -32,6 +32,7 @@ const loadWorkspaceEnv = () => {
   dotenv.config({
     path: envFile,
     override: true,
+    quiet: true,
   });
 };
 

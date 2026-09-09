@@ -16,6 +16,7 @@ const {
 
 dotenv.config({
   path: path.join(process.cwd(), '.env'),
+  quiet: true,
 });
 
 const MINERAL_WRAPPERS_MODULE = '@foxtware/mineral/hosting/wrappers.js';
