@@ -17,6 +17,8 @@ const googlesheetsSpreadsheetTrim = async (
   {
   } = {},
 ) => {
+  const { spreadsheetId } = spreadsheetIdentifier;
+
   const { client, error } = await getGoogleSheets(credsPayload);
 
   if (error) {

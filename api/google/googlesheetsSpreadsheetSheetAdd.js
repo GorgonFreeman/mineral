@@ -1,7 +1,10 @@
-const { ArgsWarden, objHasAny } = require('../utils');
+const { ArgsWarden, arrayToChunks, objHasAny } = require('../utils');
 const { credsValidator } = require('../validators');
 const { getGoogleSheets, googleApiCall } = require('../google/google.utils');
 const { googlesheetsSpreadsheetTrim } = require('../google/googlesheetsSpreadsheetTrim');
+
+// Sheets rejects oversized request bodies, so big exports go up in slices.
+const MAX_ROWS_PER_UPDATE = 5000;
 
 const spreadsheetIdentifierValidator = (spreadsheetIdentifier) => {
   return objHasAny(spreadsheetIdentifier, ['spreadsheetId']);
@@ -81,6 +84,10 @@ const googlesheetsSpreadsheetSheetAdd = async (
           addSheet: {
             properties: {
               title: String(sheetName),
+              gridProperties: {
+                rowCount: values.length,
+                columnCount: headers.length,
+              },
             },
           },
         },
@@ -94,17 +101,23 @@ const googlesheetsSpreadsheetSheetAdd = async (
 
   const newSheetId = batchUpdateResponse.data.replies[0].addSheet.properties.sheetId;
 
-  const updateResponse = await googleApiCall(() => client.spreadsheets.values.update({
-    spreadsheetId,
-    range: `${ sheetName }!A1`,
-    valueInputOption: 'RAW',
-    requestBody: {
-      values,
-    },
-  }));
+  const chunks = arrayToChunks(values, MAX_ROWS_PER_UPDATE);
 
-  if (!updateResponse.ok) {
-    return updateResponse;
+  let updateResponse;
+
+  for (const [chunkIndex, chunk] of chunks.entries()) {
+    updateResponse = await googleApiCall(() => client.spreadsheets.values.update({
+      spreadsheetId,
+      range: `${ sheetName }!A${ (chunkIndex * MAX_ROWS_PER_UPDATE) + 1 }`,
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: chunk,
+      },
+    }));
+
+    if (!updateResponse.ok) {
+      return updateResponse;
+    }
   }
 
   if (trim) {
