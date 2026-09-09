@@ -851,7 +851,7 @@ class OperationQueue {
 
   async run({
     interval = false,
-    verbose = true,
+    verbose = !HOSTED,
     inspect = false,
   } = {}) {
 
@@ -1182,6 +1182,7 @@ class Processor extends EventEmitter {
   }
 }
 
+// TODO: verbose as option
 class Getter extends EventEmitter {
   constructor(
     startingParams,
@@ -1277,7 +1278,7 @@ class Getter extends EventEmitter {
       [done, paginatedParams] = await paginator(paginatedParams, response);
     }
 
-    console.log(`${ ifTextThenSpace(this.logFlavourText) }resultsCount`, resultsCount);
+    !HOSTED && console.log(`${ ifTextThenSpace(this.logFlavourText) }resultsCount`, resultsCount);
     this.emit('done');
     
     if (returnAll) {
