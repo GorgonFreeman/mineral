@@ -1,19 +1,25 @@
 // https://shopify.dev/docs/api/admin-graphql/latest/mutations/pageDelete
 
 const { credsValidator } = require('../validators');
-const { ArgsWarden } = require('../utils');
+const { ArgsWarden, objHasAll } = require('../utils');
 const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
+
+const inventoryQuantityInputValidator = (p) => {
+  return objHasAll(p, ['inventoryItemId', 'locationId', 'quantity']);
+};
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
   ['inventoryType', p => ['available', 'on_hand'].includes(p)],
-  ['quantities'], // TODO: Validate each as a InventoryQuantityInput
+  ['quantities', p => p.every(inventoryQuantityInputValidator)],
   ['reason'], // TODO: Validate against list of possible reasons
 ]);
 
 const shopifyInventoryQuantitiesSet = async (
   credsPayload,
-  thingId,
+  inventoryType,
+  quantities,
+  reason,
   {
     apiVersion,
     inventoryAdjustmentGroupReturnAttrs = 'createdAt reason changes { name delta }',
