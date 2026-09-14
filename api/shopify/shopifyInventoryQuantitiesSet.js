@@ -15,6 +15,19 @@ const {
   INVENTORY_REASONS,
 } = require('../shopify/shopify.constants');
 
+const defaultInventoryAdjustmentGroupReturnAttrs = `
+  createdAt
+  reason
+  changes {
+    name
+    delta
+    quantityAfterChange
+    item {
+      sku
+    }
+  }
+`;
+
 const inventoryQuantityInputValidator = (p) => {
   return objHasAll(p, ['inventoryItemId', 'locationId', 'quantity']);
 };
@@ -83,7 +96,7 @@ const shopifyInventoryQuantitiesSet = async (
   {
     queueRunOptions,
     apiVersion,
-    inventoryAdjustmentGroupReturnAttrs = 'createdAt reason changes { name delta }',
+    inventoryAdjustmentGroupReturnAttrs = defaultInventoryAdjustmentGroupReturnAttrs,
     referenceDocumentUri,
   } = {},
 ) => {
