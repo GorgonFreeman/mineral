@@ -14,6 +14,7 @@ const shopifyMutationDo = async (
     mutationVariables = {},
     returnSchema = '',
     apiVersion,
+    idempotencyKey,
     ...clientOptions
   } = {},
 ) => {
@@ -30,9 +31,15 @@ const shopifyMutationDo = async (
     returnSchema += ' userErrors { field message }';
   }
 
+  const argumentEntries = Object.entries(mutationVariables);
+  const variableEntries = [
+    ...argumentEntries,
+    ...idempotencyKey ? [['idempotencyKey', { type: 'String!', value: idempotencyKey }]] : [],
+  ];
+
   const mutation = `
-    mutation ${ mutationName }(${ Object.entries(mutationVariables).map(([name, { type }]) => `$${ name }: ${ type }`).join(', ') }) {
-      ${ mutationName }(${ Object.keys(mutationVariables).map(name => `${ name }: $${ name }`).join(', ') }) {
+    mutation ${ mutationName }(${ variableEntries.map(([name, { type }]) => `$${ name }: ${ type }`).join(', ') }) {
+      ${ mutationName }(${ argumentEntries.map(([name]) => `${ name }: $${ name }`).join(', ') })${ idempotencyKey ? ' @idempotent(key: $idempotencyKey)' : '' } {
         ${ returnSchema }
         userErrors {
           field
@@ -42,10 +49,9 @@ const shopifyMutationDo = async (
     }
   `;
 
-  const variables = {};
-  for (const [name, { value }] of Object.entries(mutationVariables)) {
-    variables[name] = value;
-  }
+  const variables = Object.fromEntries(
+    variableEntries.map(([name, { value }]) => [name, value]),
+  );
 
   const response = await shopifyClient.fetch({
     requestPayload: {

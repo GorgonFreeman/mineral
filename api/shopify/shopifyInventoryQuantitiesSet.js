@@ -13,6 +13,7 @@ const argsWarden = new ArgsWarden([
   ['inventoryType', p => ['available', 'on_hand'].includes(p)],
   ['quantities', p => p.every(inventoryQuantityInputValidator)],
   ['reason'], // TODO: Validate against list of possible reasons
+  ['idempotencyKey'],
 ]);
 
 const shopifyInventoryQuantitiesSet = async (
@@ -20,6 +21,7 @@ const shopifyInventoryQuantitiesSet = async (
   inventoryType,
   quantities,
   reason,
+  idempotencyKey,
   {
     apiVersion,
     inventoryAdjustmentGroupReturnAttrs = 'createdAt reason changes { name delta }',
@@ -32,6 +34,7 @@ const shopifyInventoryQuantitiesSet = async (
     inventoryType,
     quantities,
     reason,
+    idempotencyKey,
   });
   if (rejectResponse) {
     return rejectResponse;
