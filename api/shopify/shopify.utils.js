@@ -187,7 +187,11 @@ const parseShopifyJsonl = (jsonl) => {
         .map((word) => word[0].toUpperCase() + word.slice(1))
         .join('');
       nestedParentType = sentenceCaseString(nestedParentType);
-      parentObject = parentObject[nestedParentType];
+      // Only dig into a nested field when it exists on the parent. InventoryLevel
+      // GIDs use ?inventory_item_id= for uniqueness; __parentId is already the item.
+      if (parentObject[nestedParentType]) {
+        parentObject = parentObject[nestedParentType];
+      }
     }
 
     if (!parentObject) {
