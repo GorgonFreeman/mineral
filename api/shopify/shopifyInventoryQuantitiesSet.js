@@ -6,7 +6,9 @@ const { shopifyMutationDo } = require('../shopify/shopifyMutationDo');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
-  ['thingId'],
+  ['inventoryType', p => ['available', 'on_hand'].includes(p)],
+  ['quantities'], // TODO: Validate each as a InventoryQuantityInput
+  ['reason'], // TODO: Validate against list of possible reasons
 ]);
 
 const shopifyInventoryQuantitiesSet = async (
@@ -14,13 +16,16 @@ const shopifyInventoryQuantitiesSet = async (
   thingId,
   {
     apiVersion,
-    returnSchema = 'deletedThingId',
+    inventoryAdjustmentGroupReturnAttrs = 'createdAt reason changes { name delta }',
+    referenceDocumentUri,
   } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     credsPayload,
-    thingId,
+    inventoryType,
+    quantities,
+    reason,
   });
   if (rejectResponse) {
     return rejectResponse;
@@ -56,6 +61,6 @@ curl -X POST "http://localhost:8000/shopifyInventoryQuantitiesSet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
-    "thingId": "104188477512"
+    ...
   }'
 */
