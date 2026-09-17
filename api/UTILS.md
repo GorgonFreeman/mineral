@@ -45,7 +45,7 @@ Cheat sheet for [`utils.js`](utils.js). Prefer this over cold-grepping the file.
 | `surveyObject` | Summarise / compare object fields for assess steps. |
 | `diffObjects` | Field-level diffs between source and target. |
 | `logDeep` | Deep console dump (local inspect). |
-| `askQuestion` | Interactive confirm when `!HOSTED`. |
+| `askQuestion` | Free-text prompt / inspect pause when `!HOSTED`. For discrete options, use npm `choicy` directly. |
 
 ## Small helpers often needed
 

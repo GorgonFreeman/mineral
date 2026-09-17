@@ -2,6 +2,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const { spawn } = require('child_process');
 const { askQuestion, capitaliseString } = require('../api/utils');
+const choicy = require('choicy');
 
 const mineralRoot = path.join(__dirname, '..');
 const mineralApiDirectory = path.join(mineralRoot, 'api');
@@ -366,22 +367,17 @@ const selectDirInteractive = async (dirs) => {
     return '';
   }
 
-  const dirIndex = await askQuestion(`Where does your new function live? \n${
+  const dir = await choicy(
     [
-      '[0] api/ (root)',
-      ...dirs.map((dir, index) => `[${ index + 1 }] ${ dir }`),
-    ].join('\n')
-  }\n`);
-
-  if (String(dirIndex) === '0') {
-    return '';
-  }
-
-  const dir = dirs[dirIndex - 1];
-
-  if (!dir) {
-    throw new Error(`${ dirIndex } not a valid option.`);
-  }
+      { title: 'api/ (root)', value: '' },
+      ...dirs.map((dirName) => ({ title: dirName, value: dirName })),
+    ],
+    {
+      question: 'Where does your new function live?',
+      oneChoice: true,
+      index0: true,
+    },
+  );
 
   return dir;
 };
@@ -434,32 +430,18 @@ const selectTemplateInteractive = async ({ exampleFiles, dir, inMineral }) => {
   const templateScope = inMineral ? `in api/${ dir }` : 'from mineral';
   console.log(`\nFound ${ exampleFiles.length } template(s) ${ templateScope }:`);
 
-  const templateIndex = await askQuestion(`Which template would you like to use? (press enter for _example.js) \n${
-    exampleFiles.map((file, index) => {
-      return `[${ index + 1 }] ${ formatTemplateLabel(file, { inMineral }) }`;
-    }).join('\n')
-  }\n`);
+  const selectedPath = await choicy(
+    exampleFiles.map((file) => ({
+      title: formatTemplateLabel(file, { inMineral }),
+      value: file.fullPath,
+    })),
+    {
+      question: 'Which template would you like to use?',
+      oneChoice: true,
+    },
+  );
 
-  if (!templateIndex || templateIndex.trim() === '') {
-    const defaultFile = exampleFiles.find(file => (
-      file.relativePath === '_example.js' || file.displayName === '_example.js'
-    ));
-
-    if (defaultFile) {
-      return defaultFile.fullPath;
-    }
-
-    await fs.access(rootExampleJsPath);
-    console.log('\nUsing template: _example.js');
-    return rootExampleJsPath;
-  }
-
-  const selectedFile = exampleFiles[templateIndex - 1];
-  if (!selectedFile) {
-    throw new Error(`${ templateIndex } not a valid option.`);
-  }
-
-  return selectedFile.fullPath;
+  return selectedPath;
 };
 
 const selectNameInteractive = async (dir) => {

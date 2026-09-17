@@ -1,5 +1,5 @@
-const readline = require('readline');
 const { toAbsolutePath, setWorkspace, loadWorkspaceEnv } = require('../api/workspace');
+const choicy = require('choicy');
 const { getApiDirs, readCliFlag } = require('../cli');
 const { loadHandlers } = require('../server');
 const {
@@ -29,24 +29,6 @@ const getHostConfig = (options = {}) => ({
       ?? process.cwd(),
   ),
   api_dirs: getApiDirs(options),
-});
-
-const chooseOption = async (prompt, options) => new Promise((resolve) => {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  console.log(prompt);
-  options.forEach((option, index) => {
-    console.log(`  ${ index + 1 }. ${ option }`);
-  });
-
-  rl.question('> ', (answer) => {
-    rl.close();
-    const choice = Number(answer) - 1;
-    resolve(options[choice] ?? options[0]);
-  });
 });
 
 const getDeployArgs = () => {
@@ -257,7 +239,10 @@ const deployFromHostingYml = async (options = {}) => {
       return;
     }
 
-    const selectedGroup = await chooseOption('Which group would you like to deploy?', groupNames);
+    const selectedGroup = await choicy(groupNames, {
+      question: 'Which group would you like to deploy?',
+      oneChoice: true,
+    });
     for (const functionName of groups[selectedGroup] || []) {
       await deployOne(functionName);
     }
@@ -271,7 +256,10 @@ const deployFromHostingYml = async (options = {}) => {
       return;
     }
 
-    const selectedFunction = await chooseOption('Which function would you like to deploy?', functionNames);
+    const selectedFunction = await choicy(functionNames, {
+      question: 'Which function would you like to deploy?',
+      oneChoice: true,
+    });
     await deployOne(selectedFunction);
     return;
   }

@@ -1,5 +1,6 @@
 const { execFileSync } = require('child_process');
-const { logDeep, askQuestion } = require('./api/utils');
+const { logDeep } = require('./api/utils');
+const choicy = require('choicy');
 const { HOSTED } = require('./api/constants');
 const { StringDecoder } = require('string_decoder');
 
@@ -368,15 +369,19 @@ const listenOrOfferKillPort = (server, port, onListening) => {
   };
 
   const askRecoveryQuestions = async () => {
-    const shouldFind = await askQuestion('Look up the process using it? ');
+    const shouldFind = await choicy(
+      [
+        { title: 'Yes', value: true },
+        { title: 'No', value: false },
+      ],
+      {
+        question: 'Look up the process using it?',
+        oneChoice: true,
+      },
+    );
 
-    if (shouldFind === 'n') {
+    if (!shouldFind) {
       return false;
-    }
-
-    if (shouldFind !== '') {
-      console.error('not a valid input');
-      exitServer(1);
     }
 
     const listeners = findPortListeners(port);
@@ -388,15 +393,19 @@ const listenOrOfferKillPort = (server, port, onListening) => {
 
     console.log('Port in use by:', formatPortListeners(listeners));
 
-    const shouldKill = await askQuestion('Kill it and retry? ');
+    const shouldKill = await choicy(
+      [
+        { title: 'Yes', value: true },
+        { title: 'No', value: false },
+      ],
+      {
+        question: 'Kill it and retry?',
+        oneChoice: true,
+      },
+    );
 
-    if (shouldKill === 'n') {
+    if (!shouldKill) {
       return false;
-    }
-
-    if (shouldKill !== '') {
-      console.error('not a valid input');
-      exitServer(1);
     }
 
     await killPortListeners(listeners);
