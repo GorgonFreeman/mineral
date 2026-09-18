@@ -1,7 +1,7 @@
 // https://app.swaggerhub.com/apis-docs/Bleckmann/warehousing/1.5.2#/PICKTICKET/getPickticketForId
 
 const { credsValidator } = require('../validators');
-const { ArgsWarden, objHasAny, oneFromManyInResponse } = require('../utils');
+const { ArgsWarden, objHasAny, oneFromManyResponse } = require('../utils');
 const { bleckmannClient } = require('../bleckmann/bleckmann.utils');
 const { bleckmannPickticketsGet } = require('../bleckmann/bleckmannPickticketsGet');
 
@@ -54,7 +54,9 @@ const bleckmannPickticketGet = async (
     },
   );
 
-  return oneFromManyInResponse(response, 'reference', pickticketReference);
+  return oneFromManyResponse(response, { 
+    validator: i => i?.reference === pickticketReference,
+  });
 };
 
 const funcApiConfig = {

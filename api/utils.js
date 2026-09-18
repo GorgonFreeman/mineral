@@ -1399,10 +1399,11 @@ const objectMatchesPartial = (object, partial) => {
   ));
 };
 
-const oneFromManyInResponse = (
+const oneFromManyResponse = (
   response, 
-  idProp, 
-  idValue,
+  {
+    validator,
+  } = {},
 ) => {
   const {
     ok,
@@ -1412,15 +1413,19 @@ const oneFromManyInResponse = (
   if (!ok || !data) {
     return response;
   }
+  
+  let candidates = data;
 
-  const candidates = data.filter(item => item[idProp] === idValue);
+  if (validator) {
+    candidates = candidates.filter(validator);
+  }
 
   if (candidates.length === 0) {
     return {
       ok: true,
       data: null,
       meta: {
-        message: `No item found with ${ idProp } ${ idValue }`,
+        message: `No ${ validator ? 'matching ' : '' }item found`,
       },
     };
   }
@@ -1431,7 +1436,7 @@ const oneFromManyInResponse = (
       ok: true,
       data: null,
       meta: {
-        message: `Multiple items found with ${ idProp } ${ idValue }`,
+        message: `Multiple ${ validator ? 'matching ' : '' }items found`,
       },
     };
   }
@@ -1619,7 +1624,7 @@ module.exports = {
   valueProvided,
   objectToArray,
   objectMatchesPartial,
-  oneFromManyInResponse,
+  oneFromManyResponse,
   surveyObject,
   diffObjects,
   objectPropsTranslate,

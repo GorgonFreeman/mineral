@@ -1,6 +1,6 @@
 // https://linear.app/developers/graphql
 
-const { ArgsWarden, objHasAny, oneFromManyInResponse } = require('../utils');
+const { ArgsWarden, objHasAny, oneFromManyResponse } = require('../utils');
 const { credsValidator } = require('../validators');
 const { linearClient } = require('../linear/linear.utils');
 const { linearTeamsGet } = require('./linearTeamsGet');
@@ -52,7 +52,10 @@ const linearTeamGet = async (
     const teamIdProp = teamName ? 'name' : 'key';
     const teamIdValue = teamName ? teamName : teamKey;
 
-    const teamResponse = oneFromManyInResponse(teamsGetResponse, teamIdProp, teamIdValue);
+    const teamResponse = oneFromManyResponse(teamsGetResponse, {
+      validator: i => i[teamIdProp] === teamIdValue,
+    });
+    
     if (teamResponse.ok && teamResponse.data) {
       teamId = teamResponse.data.id;
     }
@@ -109,6 +112,6 @@ curl -X POST "http://localhost:8000/linearTeamGet" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "linear" },
-    "teamIdentifier": { "teamName": "Elite Four" }
+    "teamIdentifier": { "teamName": "WF Engineering" }
   }'
 */
