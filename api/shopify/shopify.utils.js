@@ -18,14 +18,24 @@ const handleMutationUserErrors = async (state) => {
     return {};
   }
 
-  const { userErrors, ...mutationResult } = mutationPayload;
+  const {
+    userErrors,
+    customerUserErrors,
+    ...mutationResult
+  } = mutationPayload;
 
-  if (!Array.isArray(userErrors)) {
+  // Storefront customer mutations use customerUserErrors; cart/admin use userErrors
+  const errors = [
+    ...Array.isArray(userErrors) ? userErrors : [],
+    ...Array.isArray(customerUserErrors) ? customerUserErrors : [],
+  ];
+
+  if (!Array.isArray(userErrors) && !Array.isArray(customerUserErrors)) {
     return {};
   }
 
-  if (userErrors.length) {
-    const message = userErrors
+  if (errors.length) {
+    const message = errors
       .map((userError) => userError?.message)
       .filter(Boolean)
       .join('; ');
@@ -36,7 +46,7 @@ const handleMutationUserErrors = async (state) => {
         error: {
           code: 'USER_ERROR',
           message: message || 'Mutation failed',
-          details: userErrors,
+          details: errors,
         },
         ...(Object.keys(mutationResult).length ? { data: mutationResult } : {}),
       },
@@ -49,6 +59,26 @@ const handleMutationUserErrors = async (state) => {
       data: mutationResult,
     },
   };
+};
+
+const buildInContextDirective = (inContext) => {
+  if (!inContext || typeof inContext !== 'object') {
+    return '';
+  }
+
+  const parts = [];
+  if (inContext.country) {
+    parts.push(`country: ${ inContext.country }`);
+  }
+  if (inContext.language) {
+    parts.push(`language: ${ inContext.language }`);
+  }
+
+  if (!parts.length) {
+    return '';
+  }
+
+  return ` @inContext(${ parts.join(', ') })`;
 };
 
 const useUrlAndAuthHeaders = async (state) => {
@@ -256,4 +286,5 @@ module.exports = {
   shopifyClient,
   shopifyStorefrontClient,
   shopifyProductFlattenMetafields,
+  buildInContextDirective,
 };

@@ -1,4 +1,4 @@
-// https://shopify.dev/docs/api/storefront/latest/queries/search
+// https://shopify.dev/docs/api/storefront/latest/queries/predictiveSearch
 
 const { credsValidator } = require('../validators');
 const { ArgsWarden } = require('../utils');
@@ -6,23 +6,31 @@ const {
   shopifyStorefrontClient,
   buildInContextDirective,
 } = require('./shopify.utils');
-const { MAX_PER_PAGE } = require('./shopify.constants');
 
 const defaultAttrs = `
-  ... on Product {
+  products {
     id
     handle
     title
   }
-  ... on Page {
+  collections {
     id
     handle
     title
   }
-  ... on Article {
+  pages {
     id
     handle
     title
+  }
+  articles {
+    id
+    handle
+    title
+  }
+  queries {
+    text
+    styledText
   }
 `.trim();
 
@@ -31,19 +39,16 @@ const argsWarden = new ArgsWarden([
   ['query'],
 ]);
 
-const shopifyStorefrontSearch = async (
+const shopifyStorefrontPredictiveSearch = async (
   credsPayload,
   query,
   {
     apiVersion,
     attrs = defaultAttrs,
-    first = MAX_PER_PAGE,
-    cursor,
-    reverse,
-    sortKey,
+    limit,
+    limitScope,
     types,
-    prefix,
-    productFilters,
+    searchableFields,
     unavailableProducts,
     inContext,
     fetchClient = shopifyStorefrontClient,
@@ -62,37 +67,28 @@ const shopifyStorefrontSearch = async (
 
   const queryTypeDeclaration = [
     '$query: String!',
-    '$first: Int!',
-    '$cursor: String',
-    ...reverse !== undefined ? ['$reverse: Boolean'] : [],
-    ...sortKey ? ['$sortKey: SearchSortKeys'] : [],
-    ...types ? ['$types: [SearchType!]'] : [],
-    ...prefix ? ['$prefix: SearchPrefixQueryType'] : [],
-    ...productFilters ? ['$productFilters: [ProductFilter!]'] : [],
+    ...limit !== undefined ? ['$limit: Int'] : [],
+    ...limitScope ? ['$limitScope: PredictiveSearchLimitScope'] : [],
+    ...types ? ['$types: [PredictiveSearchType!]'] : [],
+    ...searchableFields ? ['$searchableFields: [SearchableField!]'] : [],
     ...unavailableProducts ? ['$unavailableProducts: SearchUnavailableProductsType'] : [],
   ].join('\n');
 
   const queryVariableDeclaration = [
     'query: $query',
-    'first: $first',
-    'after: $cursor',
-    ...reverse !== undefined ? ['reverse: $reverse'] : [],
-    ...sortKey ? ['sortKey: $sortKey'] : [],
+    ...limit !== undefined ? ['limit: $limit'] : [],
+    ...limitScope ? ['limitScope: $limitScope'] : [],
     ...types ? ['types: $types'] : [],
-    ...prefix ? ['prefix: $prefix'] : [],
-    ...productFilters ? ['productFilters: $productFilters'] : [],
+    ...searchableFields ? ['searchableFields: $searchableFields'] : [],
     ...unavailableProducts ? ['unavailableProducts: $unavailableProducts'] : [],
   ].join('\n');
 
   const variables = {
     query,
-    first,
-    cursor,
-    ...reverse !== undefined && { reverse },
-    ...sortKey && { sortKey },
+    ...limit !== undefined && { limit },
+    ...limitScope && { limitScope },
     ...types && { types },
-    ...prefix && { prefix },
-    ...productFilters && { productFilters },
+    ...searchableFields && { searchableFields },
     ...unavailableProducts && { unavailableProducts },
   };
 
@@ -101,32 +97,13 @@ const shopifyStorefrontSearch = async (
       method: 'post',
       body: {
         query: `
-          query StorefrontSearch (
+          query StorefrontPredictiveSearch (
             ${ queryTypeDeclaration }
           )${ inContextDirective } {
-            search(
+            predictiveSearch(
               ${ queryVariableDeclaration }
             ) {
-              totalCount
-              productFilters {
-                id
-                label
-                type
-                values {
-                  id
-                  label
-                  count
-                }
-              }
-              edges {
-                node {
-                  ${ attrs }
-                }
-              }
-              pageInfo {
-                hasNextPage
-                endCursor
-              }
+              ${ attrs }
             }
           }
         `,
@@ -136,7 +113,7 @@ const shopifyStorefrontSearch = async (
     context: {
       credsPayload,
       apiVersion,
-      resultPath: 'data.search',
+      resultPath: 'data.predictiveSearch',
     },
   });
 };
@@ -146,19 +123,16 @@ const funcApiConfig = {
 };
 
 module.exports = {
-  shopifyStorefrontSearch,
+  shopifyStorefrontPredictiveSearch,
   funcApiConfig,
 };
 
 /*
-curl -X POST "http://localhost:8000/shopifyStorefrontSearch" \
+curl -X POST "http://localhost:8000/shopifyStorefrontPredictiveSearch" \
   -H "Content-Type: application/json" \
   -d '{
     "credsPayload": { "credsPath": "shopify.au" },
     "query": "dress",
-    "options": {
-      "first": 5,
-      "types": ["PRODUCT"]
-    }
+    "options": { "limit": 5, "types": ["PRODUCT"] }
   }'
 */
