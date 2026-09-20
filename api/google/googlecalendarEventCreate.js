@@ -17,6 +17,7 @@ const googlecalendarEventCreate = async (
   {
     subject,
     calendarId = 'primary',
+    sendUpdates = 'all',
   } = {},
 ) => {
 
@@ -36,6 +37,7 @@ const googlecalendarEventCreate = async (
 
   return googleApiCall(() => client.events.insert({
     calendarId,
+    sendUpdates,
     requestBody: eventData,
   }));
 };
