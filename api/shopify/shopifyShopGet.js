@@ -2,7 +2,7 @@
 
 const { credsValidator } = require('../validators');
 const { ArgsWarden } = require('../utils');
-const { shopifyClient } = require('./shopify.utils');
+const { shopifyGetSingle } = require('../shopify/shopifyGetSingle');
 
 const defaultAttrs = `
 id
@@ -20,7 +20,6 @@ const shopifyShopGet = async (
   {
     apiVersion,
     attrs = defaultAttrs,
-    fetchClient = shopifyClient,
   } = {},
 ) => {
 
@@ -31,25 +30,15 @@ const shopifyShopGet = async (
     return rejectResponse;
   }
 
-  return fetchClient.fetch({
-    requestPayload: {
-      method: 'post',
-      body: {
-        query: `
-          query Shop {
-            shop {
-              ${ attrs }
-            }
-          }
-        `,
-      },
-    },
-    context: {
-      credsPayload,
+  return shopifyGetSingle(
+    credsPayload,
+    'shop',
+    null,
+    {
       apiVersion,
-      resultPath: 'data.shop',
+      attrs,
     },
-  });
+  );
 };
 
 const funcApiConfig = {
