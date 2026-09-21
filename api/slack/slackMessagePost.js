@@ -25,6 +25,7 @@ const slackMessagePost = async (
   {
     useTokenType = 'bot',
     inspect = false,
+    fetchClient = slackClient,
   } = {},
 ) => {
 
@@ -48,7 +49,7 @@ const slackMessagePost = async (
     markdownText,
   } = messagePayload;
 
-  const response = await slackClient.fetch({
+  const response = await fetchClient.fetch({
     requestPayload: {
       url: '/chat.postMessage',
       method: 'post',
