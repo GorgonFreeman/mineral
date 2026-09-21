@@ -23,6 +23,7 @@ const slackMessagePost = async (
   channelIdentifier,
   messagePayload,
   {
+    useTokenType = 'bot',
     inspect = false,
   } = {},
 ) => {
@@ -58,7 +59,10 @@ const slackMessagePost = async (
         ...markdownText && { markdown_text: markdownText },
       },
     },
-    context: { credsPayload },
+    context: {
+      credsPayload,
+      useTokenType,
+    },
     inspect,
   });
 
@@ -80,6 +84,9 @@ curl -X POST "http://localhost:8000/slackMessagePost" \
   -d '{
     "credsPayload": { "credsPath": "slack" },
     "channelIdentifier": { "channelName": "#hidden_testing" },
-    "messagePayload": { "text": "new number, who dis?" }
+    "messagePayload": { "text": "new number, who dis?" },
+    "options": {
+      "useTokenType": "bot"
+    }
   }'
 */

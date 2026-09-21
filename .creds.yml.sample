@@ -31,6 +31,7 @@ github:
 
 slack:
   BOT_TOKEN: xoxb_________________________
+  USER_TOKEN: xoxp_________________________
 
 workable:
   BASE_URL: https://__.workable.com/spi/v3
