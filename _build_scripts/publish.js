@@ -85,6 +85,43 @@ const askWithDefault = async (question, defaultAnswer) => {
   return answer.trim() || defaultAnswer;
 };
 
+const tryPublish = () => {
+  try {
+    const output = execSync('npm publish', {
+      cwd: mineralRoot,
+      encoding: 'utf8',
+      stdio: ['inherit', 'pipe', 'pipe'],
+    });
+
+    if (output) {
+      process.stdout.write(output);
+    }
+
+    return { ok: true, };
+  } catch (error) {
+    const stderr = error?.stderr?.toString?.() || '';
+    const stdout = error?.stdout?.toString?.() || '';
+
+    if (stdout) {
+      process.stdout.write(stdout);
+    }
+    if (stderr) {
+      process.stderr.write(stderr);
+    }
+
+    const message = `${ stderr }\n${ stdout }\n${ error?.message || '' }`;
+    const isStagedConflict = message.includes('E409')
+      || message.includes('previously staged version')
+      || message.includes('Cannot publish over previously staged');
+
+    if (isStagedConflict) {
+      return { ok: false, stagedConflict: true, };
+    }
+
+    throw error;
+  }
+};
+
 const publish = async () => {
   ensureLoggedIn();
 
@@ -102,15 +139,27 @@ const publish = async () => {
     version = await askWithDefault('What version should we use?', suggestedVersion);
   }
 
-  packageJson.version = version;
-  writePackageJson(packageJson);
+  const maxAttempts = 5;
 
-  execSync('npm publish', {
-    cwd: mineralRoot,
-    stdio: 'inherit',
-  });
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    packageJson.version = version;
+    writePackageJson(packageJson);
 
-  console.log(`Published @foxtware/mineral@${ version }`);
+    const result = tryPublish();
+
+    if (result.ok) {
+      console.log(`Published @foxtware/mineral@${ version }`);
+      return;
+    }
+
+    const nextVersion = bumpPatch(version);
+    console.log(
+      `Version ${ version } was previously staged on npm. Bumping to ${ nextVersion } and retrying…`,
+    );
+    version = nextVersion;
+  }
+
+  throw new Error(`Failed to publish after ${ maxAttempts } version attempts.`);
 };
 
 publish().catch((error) => {
