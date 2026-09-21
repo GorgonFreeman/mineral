@@ -1583,6 +1583,30 @@ const arrayPartition = (array, partitioner) => {
   return { passed, rejected };
 };
 
+const truncateMiddle = (
+  value,
+  maxLength,
+  {
+    marker = '...',
+    includeMarkerInLength = false,
+  } = {},
+) => {
+  const string = String(value ?? '');
+  if (string.length <= maxLength) {
+    return string;
+  }
+
+  if (includeMarkerInLength && maxLength <= marker.length) {
+    return marker.slice(0, maxLength);
+  }
+
+  const available = includeMarkerInLength ? maxLength - marker.length : maxLength;
+  const frontLength = Math.ceil(available / 2);
+  const backLength = Math.floor(available / 2);
+
+  return `${ string.slice(0, frontLength) }${ marker }${ string.slice(string.length - backLength) }`;
+};
+
 module.exports = {
   wait,
   timeMs,
@@ -1632,4 +1656,5 @@ module.exports = {
   deterministicArrayItem,
   oneTrickProcessor,
   arrayPartition,
+  truncateMiddle,
 };
