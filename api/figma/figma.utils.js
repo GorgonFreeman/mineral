@@ -8,22 +8,11 @@ const {
 const useAuthHeaders = async (state) => {
   const { requestPayload, context } = state;
   const { creds } = context;
-  const {
-    API_KEY,
-    ACCESS_TOKEN,
-  } = creds ?? {};
+  const { ACCESS_TOKEN } = creds ?? {};
 
-  // Personal / plan tokens (figd_...) must use X-Figma-Token.
-  // Only non-figd ACCESS_TOKEN values are OAuth bearer tokens.
-  const isFigdToken = (token) => typeof token === 'string'
-    && token.startsWith('figd_');
-  const authHeaders = ACCESS_TOKEN && !isFigdToken(ACCESS_TOKEN)
-    ? {
-      Authorization: `Bearer ${ ACCESS_TOKEN }`,
-    }
-    : {
-      'X-Figma-Token': isFigdToken(ACCESS_TOKEN) ? ACCESS_TOKEN : API_KEY,
-    };
+  const authHeaders = {
+    'X-Figma-Token': ACCESS_TOKEN,
+  };
 
   return {
     requestPayload: {

@@ -95,9 +95,7 @@ telnyx:
   API_KEY: KEY____________________________
 
 figma:
-  API_KEY: figd___________________________
-  # Or use ACCESS_TOKEN for an OAuth 2 bearer token
-  ACCESS_TOKEN: __________________________
+  ACCESS_TOKEN: figd___________________________
 
 pipe17:
   API_KEY: _______________________________
