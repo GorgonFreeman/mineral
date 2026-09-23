@@ -90,7 +90,104 @@ const cloudflareClient = new FetchClient({
   ],
 });
 
+const cloudflareErrorsFromResponse = (response) => {
+  const details = response?.error?.details;
+  if (Array.isArray(details)) {
+    return details;
+  }
+  if (Array.isArray(details?.errors)) {
+    return details.errors;
+  }
+  return [];
+};
+
+const isMissingRulesetPhaseEntrypoint = (response) => (
+  cloudflareErrorsFromResponse(response).some((error) => error?.code === 10003)
+);
+
+const normaliseRedirectDomain = (fromDomain) => (
+  String(fromDomain)
+    .trim()
+    .replace(/^https?:\/\//i, '')
+    .replace(/\/.*$/, '')
+    .toLowerCase()
+);
+
+const normaliseRedirectPath = (fromPath) => {
+  if (fromPath === undefined || fromPath === null || fromPath === '') {
+    return undefined;
+  }
+
+  const trimmed = String(fromPath).trim();
+  if (!trimmed || trimmed === '/') {
+    return '/';
+  }
+
+  return trimmed.startsWith('/') ? trimmed : `/${ trimmed }`;
+};
+
+const buildRedirectRuleRef = (fromDomain, fromPath) => {
+  const domainPart = normaliseRedirectDomain(fromDomain).replace(/[^a-z0-9]+/g, '_');
+  const pathPart = fromPath === undefined
+    ? 'all'
+    : fromPath === '/'
+      ? 'root'
+      : fromPath.replace(/^\//, '').replace(/[^a-zA-Z0-9]+/g, '_') || 'root';
+
+  return `mineral_${ domainPart }_${ pathPart }`;
+};
+
+const buildRedirectRuleExpression = (fromDomain, fromPath) => {
+  const host = normaliseRedirectDomain(fromDomain);
+  const hostExpression = `http.host eq "${ host }"`;
+
+  if (fromPath === undefined) {
+    return hostExpression;
+  }
+
+  return `${ hostExpression } and http.request.uri.path eq "${ fromPath }"`;
+};
+
+const buildRedirectRulePayload = ({
+  fromDomain,
+  fromPath,
+  toUrl,
+  statusCode = 302,
+  preserveQueryString = true,
+  description,
+  enabled = true,
+}) => {
+  const normalisedDomain = normaliseRedirectDomain(fromDomain);
+  const normalisedPath = normaliseRedirectPath(fromPath);
+  const ref = buildRedirectRuleRef(normalisedDomain, normalisedPath);
+  const pathLabel = normalisedPath === undefined ? '' : normalisedPath;
+
+  return {
+    ref,
+    expression: buildRedirectRuleExpression(normalisedDomain, normalisedPath),
+    description: description ?? `Mineral redirect ${ normalisedDomain }${ pathLabel } → ${ toUrl }`,
+    action: 'redirect',
+    enabled,
+    action_parameters: {
+      from_value: {
+        target_url: {
+          value: toUrl,
+        },
+        status_code: statusCode,
+        preserve_query_string: preserveQueryString,
+      },
+    },
+  };
+};
+
 module.exports = {
   cloudflareClient,
   interpretCloudflareResponse,
+  cloudflareErrorsFromResponse,
+  isMissingRulesetPhaseEntrypoint,
+  normaliseRedirectDomain,
+  normaliseRedirectPath,
+  buildRedirectRuleRef,
+  buildRedirectRuleExpression,
+  buildRedirectRulePayload,
 };
