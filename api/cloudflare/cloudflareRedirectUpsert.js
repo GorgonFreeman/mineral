@@ -239,7 +239,7 @@ curl -X POST "http://localhost:8000/cloudflareRedirectUpsert" \
     "fromDomain": "80788078.xyz",
     "toUrl": "https://whitefoxboutique.com.au/pages/bestie-bonus",
     "options": {
-      "statusCode": 302
+      "fromPath": "/bb"
     }
   }'
 */
