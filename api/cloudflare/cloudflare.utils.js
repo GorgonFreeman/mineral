@@ -45,6 +45,7 @@ const interpretCloudflareResponse = async (state) => {
     success,
     errors,
     messages,
+    result_info: resultInfo,
   } = response.data || {};
 
   if (success === false) {
@@ -61,17 +62,20 @@ const interpretCloudflareResponse = async (state) => {
     };
   }
 
-  if (messages?.length) {
-    return {
-      response: {
-        meta: {
-          messages,
-        },
-      },
-    };
+  const meta = {
+    ...messages?.length && { messages },
+    ...resultInfo && { resultInfo },
+  };
+
+  if (!Object.keys(meta).length) {
+    return {};
   }
 
-  return {};
+  return {
+    response: {
+      meta,
+    },
+  };
 };
 
 const cloudflareClient = new FetchClient({
