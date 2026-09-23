@@ -174,7 +174,7 @@ royalmail:
   CLIENT_SECRET: _________________________
 
 dpd:
-  ACCOUNT_NUMBER: _________________________
+  ACCOUNT_NUMBER: ________________________
   USERNAME: ______________________________
   PASSWORD: ______________________________
   # BASE_URL: https://api.dpdlocal.co.uk  # only for DPD Local accounts
