@@ -15,9 +15,6 @@ const argsWarden = new ArgsWarden([
 
 const cloudflareAccountGet = async (
   credsPayload,
-  {
-    accountId,
-  } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
@@ -32,29 +29,8 @@ const cloudflareAccountGet = async (
     API_TOKEN,
     ACCOUNT_ID,
   } = creds;
-  const resolvedAccountId = accountId ?? ACCOUNT_ID;
 
-  if (!API_TOKEN) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_CREDS',
-        message: 'API_TOKEN is required.',
-      },
-    };
-  }
-
-  if (!resolvedAccountId) {
-    return {
-      ok: false,
-      error: {
-        code: 'INVALID_CREDS',
-        message: 'ACCOUNT_ID is required (creds or options.accountId).',
-      },
-    };
-  }
-
-  const url = appendUrlToBase(BASE_URL, `/accounts/${ resolvedAccountId }`);
+  const url = appendUrlToBase(BASE_URL, `/accounts/${ ACCOUNT_ID }`);
 
   const response = await customFetch(
     url,
@@ -66,33 +42,7 @@ const cloudflareAccountGet = async (
     },
   );
 
-  if (!response.ok) {
-    return response;
-  }
-
-  const {
-    success,
-    result,
-    errors,
-    messages,
-  } = response.data ?? {};
-
-  if (success === false) {
-    return {
-      ok: false,
-      error: {
-        code: 'CLOUDFLARE_API_ERROR',
-        message: 'Cloudflare API returned success: false.',
-        details: errors ?? response.data,
-      },
-    };
-  }
-
-  return {
-    ok: true,
-    data: result,
-    ...(messages?.length && { meta: { messages } }),
-  };
+  return response;
 };
 
 const funcApiConfig = {
