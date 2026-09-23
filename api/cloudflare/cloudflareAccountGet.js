@@ -15,6 +15,9 @@ const argsWarden = new ArgsWarden([
 
 const cloudflareAccountGet = async (
   credsPayload,
+  {
+    accountId, // If not provided in creds
+  } = {},
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
@@ -30,7 +33,19 @@ const cloudflareAccountGet = async (
     ACCOUNT_ID,
   } = creds;
 
-  const url = appendUrlToBase(BASE_URL, `/accounts/${ ACCOUNT_ID }`);
+  accountId = accountId ?? ACCOUNT_ID;
+
+  if (!accountId) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_CREDS',
+        message: 'ACCOUNT_ID is required.',
+      },
+    };
+  }
+
+  const url = appendUrlToBase(BASE_URL, `/accounts/${ accountId }`);
 
   const response = await customFetch(
     url,
