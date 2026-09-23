@@ -185,7 +185,7 @@ fedex:
   # SANDBOX: true   # only if using sandbox credentials
   
 cloudflare:
-  ACCOUNT_ID: ____________________________ # Not in use yet
+  ACCOUNT_ID: ____________________________
   API_TOKEN: _____________________________
   ACCESS_KEY_ID: _________________________ # Not in use yet
   SECRET_ACCESS_KEY: _____________________ # Not in use yet
