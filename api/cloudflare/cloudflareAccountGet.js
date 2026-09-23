@@ -2,12 +2,10 @@
 
 const {
   ArgsWarden,
-  appendUrlToBase,
   credsFromPayload,
-  customFetch,
 } = require('../utils');
 const { credsValidator } = require('../validators');
-const { BASE_URL } = require('../cloudflare/cloudflare.constants');
+const { cloudflareClient } = require('../cloudflare/cloudflare.utils');
 
 const argsWarden = new ArgsWarden([
   ['credsPayload', credsValidator],
@@ -16,7 +14,9 @@ const argsWarden = new ArgsWarden([
 const cloudflareAccountGet = async (
   credsPayload,
   {
-    accountId, // If not provided in creds
+    accountId,
+    inspect = false,
+    fetchClient = cloudflareClient,
   } = {},
 ) => {
 
@@ -28,14 +28,9 @@ const cloudflareAccountGet = async (
   }
 
   const creds = await credsFromPayload(credsPayload);
-  const {
-    API_TOKEN,
-    ACCOUNT_ID,
-  } = creds;
+  const resolvedAccountId = accountId ?? creds.ACCOUNT_ID;
 
-  accountId = accountId ?? ACCOUNT_ID;
-
-  if (!accountId) {
+  if (!resolvedAccountId) {
     return {
       ok: false,
       error: {
@@ -45,19 +40,17 @@ const cloudflareAccountGet = async (
     };
   }
 
-  const url = appendUrlToBase(BASE_URL, `/accounts/${ accountId }`);
-
-  const response = await customFetch(
-    url,
-    {
+  return fetchClient.fetch({
+    requestPayload: {
       method: 'get',
-      headers: {
-        Authorization: `Bearer ${ API_TOKEN }`,
-      },
+      url: `/accounts/${ resolvedAccountId }`,
     },
-  );
-
-  return response;
+    context: {
+      credsPayload,
+      resultPath: 'result',
+    },
+    inspect,
+  });
 };
 
 const funcApiConfig = {
