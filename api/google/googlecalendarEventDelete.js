@@ -13,6 +13,7 @@ const googlecalendarEventDelete = async (
   {
     subject,
     calendarId = 'primary',
+    sendUpdates,
   } = {},
 ) => {
 
@@ -33,6 +34,7 @@ const googlecalendarEventDelete = async (
   return googleApiCall(() => client.events.delete({
     calendarId,
     eventId,
+    ...sendUpdates && { sendUpdates },
   }));
 };
 
