@@ -42,6 +42,7 @@ const shopifyMetafieldValuesMove = async (
   toNamespaceDotKey,
   {
     apiVersion,
+    fromValuesDelete = false,
     ...bulkOptions
   } = {},
 ) => {
@@ -131,6 +132,10 @@ const shopifyMetafieldValuesMove = async (
       ...bulkOptions,
     },
   );
+
+  if (!fromValuesDelete) {
+    return setResponse;
+  }
 
   const {
     ok: setOk,
