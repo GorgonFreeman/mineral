@@ -159,11 +159,8 @@ const shopifyMetafieldValuesMove = async (
       ok: false,
       error: {
         code: 'METAFIELD_SET_PARTIAL_FAILURE',
-        message: `${ failedSets.length } of ${ setResults.length } metafield set(s) failed; aborting delete of originals`,
+        message: `${ failedSets.length } of ${ setData.length } metafield set(s) failed; aborting delete of originals`,
         details: failedSets,
-      },
-      data: {
-        set: setResults,
       },
       meta: {
         queryBulkOperation: queryResponse.meta?.bulkOperation,
