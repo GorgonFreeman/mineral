@@ -367,9 +367,13 @@ const selectDirInteractive = async (dirs) => {
     return '';
   }
 
+  // choicy's resolveValue uses `||`, so an empty string value falls through to the
+  // whole choice object — use a truthy sentinel and normalise back to ''.
+  const rootDirValue = '.';
+
   const dir = await choicy(
     [
-      { title: 'api/ (root)', value: '' },
+      { title: 'api/ (root)', value: rootDirValue },
       ...dirs.map((dirName) => ({ title: dirName, value: dirName })),
     ],
     {
@@ -379,7 +383,7 @@ const selectDirInteractive = async (dirs) => {
     },
   );
 
-  return dir;
+  return dir === rootDirValue ? '' : dir;
 };
 
 const getExampleFilesForContext = async ({ context, dir }) => {
