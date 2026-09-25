@@ -1607,6 +1607,10 @@ const truncateMiddle = (
   return `${ string.slice(0, frontLength) }${ marker }${ string.slice(string.length - backLength) }`;
 };
 
+const toSnakeCase = (string) => {
+  return string.toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, '');
+};
+
 module.exports = {
   wait,
   timeMs,
@@ -1657,4 +1661,5 @@ module.exports = {
   oneTrickProcessor,
   arrayPartition,
   truncateMiddle,
+  toSnakeCase,
 };
