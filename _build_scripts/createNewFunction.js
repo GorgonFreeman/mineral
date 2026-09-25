@@ -380,6 +380,7 @@ const selectDirInteractive = async (dirs) => {
       question: 'Where does your new function live?',
       oneChoice: true,
       index0: true,
+      valueProp: 'value',
     },
   );
 
@@ -442,6 +443,7 @@ const selectTemplateInteractive = async ({ exampleFiles, dir, inMineral }) => {
     {
       question: 'Which template would you like to use?',
       oneChoice: true,
+      valueProp: 'value',
     },
   );
 
