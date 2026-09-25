@@ -132,11 +132,42 @@ const shopifyMetafieldValuesMove = async (
     },
   );
 
-  if (!setResponse.ok) {
+  const {
+    ok: setOk,
+    data: setData,
+  } = setResponse;
+
+  if (!setOk) {
     return setResponse;
   }
 
-  // Bulk delete the originals (only after a successful set)
+  // Abort if any individual set line reported userErrors (or top-level errors)
+  const failedSets = setData.filter((line) => {
+    const userErrors = line?.data?.metafieldsSet?.userErrors;
+    const topLevelErrors = line?.errors;
+    return (Array.isArray(userErrors) && userErrors.length > 0)
+      || (Array.isArray(topLevelErrors) && topLevelErrors.length > 0);
+  });
+
+  if (failedSets.length) {
+    return {
+      ok: false,
+      error: {
+        code: 'METAFIELD_SET_PARTIAL_FAILURE',
+        message: `${ failedSets.length } of ${ setResults.length } metafield set(s) failed; aborting delete of originals`,
+        details: failedSets,
+      },
+      data: {
+        set: setResults,
+      },
+      meta: {
+        queryBulkOperation: queryResponse.meta?.bulkOperation,
+        setBulkOperation: setResponse.meta?.bulkOperation,
+      },
+    };
+  }
+
+  // Bulk delete the originals (only after every set succeeded)
   const deleteResponse = await shopifyBulkMutationDo(
     credsPayload,
     {
