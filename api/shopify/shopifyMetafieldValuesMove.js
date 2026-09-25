@@ -183,7 +183,8 @@ const shopifyMetafieldValuesMove = async (
       ...bulkOptions,
     },
   );
-
+  
+  // TODO: Revise final response structure
   return {
     ok: deleteResponse.ok,
     data: {
