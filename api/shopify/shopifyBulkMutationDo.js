@@ -49,6 +49,8 @@ const shopifyBulkMutationDo = async (
     apiVersion,
     clientIdentifier,
     waitForResult = true,
+    // Called with the numeric bulk operation id as soon as it is known (create path)
+    onBulkOperationId,
   } = {},
 ) => {
 
@@ -146,24 +148,46 @@ const shopifyBulkMutationDo = async (
     
     bulkOperation = mutationRunData.bulkOperation;
     bulkOperationId = gidToId(bulkOperation.id);
+
+    if (onBulkOperationId) {
+      await onBulkOperationId(bulkOperationId);
+    }
   }
   
-  while (['CREATED', 'RUNNING'].includes(bulkOperation?.status)) {
+  // Resume path starts with bulkOperation unset — fetch at least once before status checks.
+  // Treat missing/empty status as still in flight (occasional empty digests while RUNNING).
+  const isInFlight = (op) => !op?.status || ['CREATED', 'RUNNING'].includes(op.status);
+
+  while (!bulkOperation || isInFlight(bulkOperation)) {
 
     if (bulkOperation) {
       await wait(5000);
     }
 
-    const operationResponse = await shopifyBulkOperationGet(
-      credsPayload,
-      bulkOperationId,
-      {
-        apiVersion,
-        attrs: bulkOpAttrs,
-      },
-    );
-    if (!operationResponse.ok) {
+    let operationResponse;
+    let pollAttempts = 0;
+    while (pollAttempts < 5) {
+      pollAttempts += 1;
+      operationResponse = await shopifyBulkOperationGet(
+        credsPayload,
+        bulkOperationId,
+        {
+          apiVersion,
+          attrs: bulkOpAttrs,
+        },
+      );
+      if (operationResponse.ok && operationResponse.data?.status) {
+        break;
+      }
+      await wait(5000);
+    }
+
+    if (!operationResponse?.ok) {
       return operationResponse;
+    }
+
+    if (!operationResponse.data?.status) {
+      continue;
     }
 
     bulkOperation = operationResponse.data;

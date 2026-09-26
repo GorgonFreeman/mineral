@@ -29,6 +29,10 @@ const shopifyBulkQueryDo = async (
   {
     apiVersion,
     waitForResult = true,
+    // Resume an existing bulk query by numeric id (skips runQuery)
+    bulkOperationId: resumeBulkOperationId,
+    // Called with the numeric bulk operation id as soon as it is known (create path)
+    onBulkOperationId,
   } = {},
 ) => {
 
@@ -40,42 +44,69 @@ const shopifyBulkQueryDo = async (
     return rejectResponse;
   }
 
-  const queryRunResponse = await shopifyBulkOperationRunQuery(
-    credsPayload,
-    query,
-    {
-      apiVersion,
-      returnAttrs: bulkOpAttrs,
-    },
-  );
+  let bulkOperation;
+  let bulkOperationId = resumeBulkOperationId;
 
-  if (!waitForResult) {
-    return queryRunResponse;
+  if (!bulkOperationId) {
+    const queryRunResponse = await shopifyBulkOperationRunQuery(
+      credsPayload,
+      query,
+      {
+        apiVersion,
+        returnAttrs: bulkOpAttrs,
+      },
+    );
+
+    if (!waitForResult) {
+      return queryRunResponse;
+    }
+
+    if (!queryRunResponse.ok) {
+      return queryRunResponse;
+    }
+
+    bulkOperation = queryRunResponse.data.bulkOperation;
+    bulkOperationId = gidToId(bulkOperation.id);
+
+    if (onBulkOperationId) {
+      await onBulkOperationId(bulkOperationId);
+    }
   }
 
-  if (!queryRunResponse.ok) {
-    return queryRunResponse;
-  }
+  // Resume path starts with bulkOperation unset — fetch at least once before status checks.
+  // Treat missing/empty status as still in flight (occasional empty digests while RUNNING).
+  const isInFlight = (op) => !op?.status || ['CREATED', 'RUNNING'].includes(op.status);
 
-  let bulkOperation = queryRunResponse.data.bulkOperation;
-  let bulkOperationId = gidToId(bulkOperation.id);
-
-  while (['CREATED', 'RUNNING'].includes(bulkOperation?.status)) {
+  while (!bulkOperation || isInFlight(bulkOperation)) {
 
     if (bulkOperation) {
       await wait(5000);
     }
 
-    const operationResponse = await shopifyBulkOperationGet(
-      credsPayload,
-      bulkOperationId,
-      {
-        apiVersion,
-        attrs: bulkOpAttrs,
-      },
-    );
-    if (!operationResponse.ok) {
+    let operationResponse;
+    let pollAttempts = 0;
+    while (pollAttempts < 5) {
+      pollAttempts += 1;
+      operationResponse = await shopifyBulkOperationGet(
+        credsPayload,
+        bulkOperationId,
+        {
+          apiVersion,
+          attrs: bulkOpAttrs,
+        },
+      );
+      if (operationResponse.ok && operationResponse.data?.status) {
+        break;
+      }
+      await wait(5000);
+    }
+
+    if (!operationResponse?.ok) {
       return operationResponse;
+    }
+
+    if (!operationResponse.data?.status) {
+      continue;
     }
 
     bulkOperation = operationResponse.data;

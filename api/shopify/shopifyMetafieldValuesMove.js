@@ -35,6 +35,12 @@ const metafieldsDeleteBulkMutation = `
   }
 `.trim();
 
+const ownerIdsFromSetLines = (setData = []) => {
+  return setData
+    .map((line) => line?.data?.metafieldsSet?.metafields?.[0]?.ownerId)
+    .filter(Boolean);
+};
+
 const shopifyMetafieldValuesMove = async (
   credsPayload,
   resourceType,
@@ -43,6 +49,10 @@ const shopifyMetafieldValuesMove = async (
   {
     apiVersion,
     fromValuesDelete = false,
+    // Persist/resume helpers for long-running bulk stages: 'query' | 'set' | 'delete'
+    getOperationId,
+    setOperationId,
+    deleteOperationId,
     ...bulkOptions
   } = {},
 ) => {
@@ -60,8 +70,6 @@ const shopifyMetafieldValuesMove = async (
   const [fromNamespace, fromKey] = fromNamespaceDotKey.split('.');
   const [toNamespace, toKey] = toNamespaceDotKey.split('.');
 
-  // Bulk query every resource of this type, requesting only the target metafield.
-  // Connection name follows the same simple pluralisation used by shopifyGet.
   const resources = `${ resourceType }s`;
   const bulkQuery = `
     {
@@ -81,11 +89,196 @@ const shopifyMetafieldValuesMove = async (
     }
   `.trim();
 
-  const queryResponse = await shopifyBulkQueryDo(
+  const existingQueryId = getOperationId ? await getOperationId('query') : null;
+  const existingSetId = getOperationId ? await getOperationId('set') : null;
+  const existingDeleteId = getOperationId ? await getOperationId('delete') : null;
+
+  let queryResponse;
+  let setResponse;
+  let deleteResponse;
+  let resourcesWithMetafield;
+
+  // --- Resume delete (latest stage) ---
+  if (existingDeleteId) {
+    deleteResponse = await shopifyBulkMutationDo(
+      credsPayload,
+      { bulkOperationId: existingDeleteId },
+      {
+        apiVersion,
+        ...bulkOptions,
+      },
+    );
+
+    if (deleteResponse.ok && deleteOperationId) {
+      await deleteOperationId('delete');
+    }
+
+    return {
+      ok: deleteResponse.ok,
+      data: {
+        set: null,
+        deleted: deleteResponse.data,
+      },
+      ...(deleteResponse.error && { error: deleteResponse.error }),
+      meta: {
+        resumed: 'delete',
+        deleteBulkOperation: deleteResponse.meta?.bulkOperation,
+      },
+    };
+  }
+
+  // --- Resume set (skip query; rebuild delete inputs from set results or re-query) ---
+  if (existingSetId) {
+    setResponse = await shopifyBulkMutationDo(
+      credsPayload,
+      { bulkOperationId: existingSetId },
+      {
+        apiVersion,
+        ...bulkOptions,
+      },
+    );
+
+    if (!setResponse.ok) {
+      return setResponse;
+    }
+
+    if (deleteOperationId) {
+      await deleteOperationId('set');
+    }
+
+    if (!fromValuesDelete) {
+      return setResponse;
+    }
+
+    const {
+      ok: setOk,
+      data: setData,
+    } = setResponse;
+
+    const failedSets = (setData || []).filter((line) => {
+      const userErrors = line?.data?.metafieldsSet?.userErrors;
+      const topLevelErrors = line?.errors;
+      return (Array.isArray(userErrors) && userErrors.length > 0)
+        || (Array.isArray(topLevelErrors) && topLevelErrors.length > 0);
+    });
+
+    if (failedSets.length) {
+      return {
+        ok: false,
+        error: {
+          code: 'METAFIELD_SET_PARTIAL_FAILURE',
+          message: `${ failedSets.length } of ${ setData.length } metafield set(s) failed; aborting delete of originals`,
+          details: failedSets,
+        },
+        meta: {
+          resumed: 'set',
+          setBulkOperation: setResponse.meta?.bulkOperation,
+        },
+      };
+    }
+
+    let deleteInputs = ownerIdsFromSetLines(setData).map((ownerId) => ({
+      ownerId,
+      namespace: fromNamespace,
+      key: fromKey,
+    }));
+
+    // Older set mutations may not return ownerId — re-query remaining from-values
+    if (!deleteInputs.length) {
+      queryResponse = await shopifyBulkQueryDo(
+        credsPayload,
+        bulkQuery,
+        {
+          apiVersion,
+          onBulkOperationId: setOperationId
+            ? (id) => setOperationId('query', id)
+            : undefined,
+          ...bulkOptions,
+        },
+      );
+
+      if (!queryResponse.ok) {
+        return queryResponse;
+      }
+
+      if (deleteOperationId) {
+        await deleteOperationId('query');
+      }
+
+      deleteInputs = (queryResponse.data || [])
+        .filter((resource) => resource?.metafield?.value != null)
+        .map((resource) => ({
+          ownerId: resource.id,
+          namespace: fromNamespace,
+          key: fromKey,
+        }));
+    }
+
+    if (!deleteInputs.length) {
+      return {
+        ok: true,
+        data: {
+          set: setData,
+          deleted: [],
+          message: 'Nothing to delete after set',
+        },
+        meta: {
+          resumed: 'set',
+          setBulkOperation: setResponse.meta?.bulkOperation,
+          queryBulkOperation: queryResponse?.meta?.bulkOperation,
+        },
+      };
+    }
+
+    deleteResponse = await shopifyBulkMutationDo(
+      credsPayload,
+      {
+        mutation: metafieldsDeleteBulkMutation,
+        input: {
+          data: deleteInputs.map((identifier) => ({
+            metafields: [identifier],
+          })),
+        },
+      },
+      {
+        apiVersion,
+        onBulkOperationId: setOperationId
+          ? (id) => setOperationId('delete', id)
+          : undefined,
+        ...bulkOptions,
+      },
+    );
+
+    if (deleteResponse.ok && deleteOperationId) {
+      await deleteOperationId('delete');
+    }
+
+    return {
+      ok: deleteResponse.ok,
+      data: {
+        set: setData,
+        deleted: deleteResponse.data,
+      },
+      ...(deleteResponse.error && { error: deleteResponse.error }),
+      meta: {
+        resumed: 'set',
+        queryBulkOperation: queryResponse?.meta?.bulkOperation,
+        setBulkOperation: setResponse.meta?.bulkOperation,
+        deleteBulkOperation: deleteResponse.meta?.bulkOperation,
+      },
+    };
+  }
+
+  // --- Query (fresh or resume) ---
+  queryResponse = await shopifyBulkQueryDo(
     credsPayload,
     bulkQuery,
     {
       apiVersion,
+      ...(existingQueryId ? { bulkOperationId: existingQueryId } : {}),
+      onBulkOperationId: setOperationId
+        ? (id) => setOperationId('query', id)
+        : undefined,
       ...bulkOptions,
     },
   );
@@ -94,7 +287,11 @@ const shopifyMetafieldValuesMove = async (
     return queryResponse;
   }
 
-  const resourcesWithMetafield = (queryResponse.data || []).filter(
+  if (deleteOperationId) {
+    await deleteOperationId('query');
+  }
+
+  resourcesWithMetafield = (queryResponse.data || []).filter(
     (resource) => resource?.metafield?.value != null,
   );
 
@@ -105,6 +302,9 @@ const shopifyMetafieldValuesMove = async (
         moved: [],
         deleted: [],
         message: 'Nothing to move',
+      },
+      meta: {
+        queryBulkOperation: queryResponse.meta?.bulkOperation,
       },
     };
   }
@@ -124,16 +324,22 @@ const shopifyMetafieldValuesMove = async (
   }));
 
   // Bulk set under the new namespace/key
-  const setResponse = await shopifyMetafieldsSetBulk(
+  setResponse = await shopifyMetafieldsSetBulk(
     credsPayload,
     setInputs,
     {
       apiVersion,
+      onBulkOperationId: setOperationId
+        ? (id) => setOperationId('set', id)
+        : undefined,
       ...bulkOptions,
     },
   );
 
   if (!fromValuesDelete) {
+    if (setResponse.ok && deleteOperationId) {
+      await deleteOperationId('set');
+    }
     return setResponse;
   }
 
@@ -144,6 +350,10 @@ const shopifyMetafieldValuesMove = async (
 
   if (!setOk) {
     return setResponse;
+  }
+
+  if (deleteOperationId) {
+    await deleteOperationId('set');
   }
 
   // Abort if any individual set line reported userErrors (or top-level errors)
@@ -170,7 +380,7 @@ const shopifyMetafieldValuesMove = async (
   }
 
   // Bulk delete the originals (only after every set succeeded)
-  const deleteResponse = await shopifyBulkMutationDo(
+  deleteResponse = await shopifyBulkMutationDo(
     credsPayload,
     {
       mutation: metafieldsDeleteBulkMutation,
@@ -182,9 +392,16 @@ const shopifyMetafieldValuesMove = async (
     },
     {
       apiVersion,
+      onBulkOperationId: setOperationId
+        ? (id) => setOperationId('delete', id)
+        : undefined,
       ...bulkOptions,
     },
   );
+
+  if (deleteResponse.ok && deleteOperationId) {
+    await deleteOperationId('delete');
+  }
   
   // TODO: Revise final response structure
   return {
