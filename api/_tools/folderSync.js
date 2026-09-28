@@ -6,11 +6,30 @@
  * It is intended to be generic but will start as locked on Google Drive.
  */
 
+const { ArgsWarden } = require('../utils');
+const { credsValidator } = require('../validators');
+
+const argsWarden = new ArgsWarden([
+  ['folderPath'],
+  ['googledriveCredsPayload', credsValidator],
+  ['googledriveFolderId'],
+]);
+
 const folderSync = async (
   folderPath,
   googledriveCredsPayload,
   googledriveFolderId,
 ) => {
+
+  const rejectResponse = await argsWarden.responseIfRejectingArgs({
+    folderPath,
+    googledriveCredsPayload,
+    googledriveFolderId,
+  });
+  if (rejectResponse) {
+    return rejectResponse;
+  }
+
   /**
    * 1. For each file in the local folder,
    * Check if a file with the same name exists in the destination.
@@ -26,6 +45,21 @@ const folderSync = async (
   };
 };
 
+const funcApiConfig = {
+  argsWarden,
+};
+
 module.exports = {
   folderSync,
+  funcApiConfig,
 };
+
+/*
+curl -X POST "http://localhost:8000/folderSync" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "folderPath": "/cool_stuff/freezing_cold",
+    "googledriveCredsPayload": { "credsPath": "google" },
+    "googledriveFolderId": "123XYZ"
+  }'
+*/
