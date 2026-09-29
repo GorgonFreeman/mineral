@@ -6,7 +6,9 @@
  * It is intended to be generic but will start as locked on Google Drive.
  */
 
-const fs = require('fs').promises;
+const crypto = require('crypto');
+const fs = require('fs');
+const fsPromises = fs.promises;
 
 const { ArgsWarden, logDeep } = require('../utils');
 const { credsValidator } = require('../validators');
@@ -17,6 +19,21 @@ const argsWarden = new ArgsWarden([
   ['googledriveCredsPayload', credsValidator],
   ['googledriveFolderId'],
 ]);
+
+const fileMd5 = (filePath) => {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash('md5');
+    const stream = fs.createReadStream(filePath);
+
+    stream.on('data', (chunk) => {
+      hash.update(chunk);
+    });
+    stream.on('end', () => {
+      resolve(hash.digest('hex'));
+    });
+    stream.on('error', reject);
+  });
+};
 
 const folderSync = async (
   folderPath,
@@ -58,7 +75,7 @@ const folderSync = async (
 
   logDeep({ googledriveFilesByName });
 
-  const dirents = await fs.readdir(folderPath, { withFileTypes: true });
+  const dirents = await fsPromises.readdir(folderPath, { withFileTypes: true });
   const files = dirents.filter((dirent) => dirent.isFile());
 
   for (const file of files) {
@@ -66,6 +83,19 @@ const folderSync = async (
 
     const googledriveFile = googledriveFilesByName[file.name] || null;
     logDeep({ googledriveFile });
+
+    // Compare the checksums
+    if (googledriveFile) {
+      const filePath = `${ folderPath }/${ file.name }`;
+      const localMd5 = await fileMd5(filePath);
+      const googledriveMd5 = googledriveFile.md5Checksum || null;
+      const checksumsMatch = Boolean(
+        localMd5
+        && googledriveMd5
+        && localMd5 === googledriveMd5,
+      );
+      logDeep({ localMd5, googledriveMd5, checksumsMatch });
+    }
   }
 
   return { 
