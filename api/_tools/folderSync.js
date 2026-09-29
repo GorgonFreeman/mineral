@@ -17,6 +17,7 @@ const execFileAsync = promisify(execFile);
 const { ArgsWarden, askQuestion, logDeep } = require('../utils');
 const { credsValidator } = require('../validators');
 const { googledriveFilesGet } = require('../google/googledriveFilesGet');
+const { googledriveFileDelete } = require('../google/googledriveFileDelete');
 
 const argsWarden = new ArgsWarden([
   ['folderPath'],
@@ -115,6 +116,18 @@ const folderSync = async (
         // Trash local by moving it to the Bin (MacOS)
         await trashLocalFile(filePath);
         console.log('trashed local file', filePath);
+      } else {
+        // Checksums differ — delete destination file
+        const googledriveFileDeleteResponse = await googledriveFileDelete(
+          googledriveCredsPayload,
+          googledriveFile.id,
+        );
+        if (!googledriveFileDeleteResponse.ok) {
+          return googledriveFileDeleteResponse;
+        }
+
+        delete googledriveFilesByName[file.name];
+        console.log('deleted googledrive file', googledriveFile.id, file.name);
       }
 
       await askQuestion('?');
