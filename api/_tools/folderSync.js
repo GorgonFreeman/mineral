@@ -116,19 +116,20 @@ const folderSync = async (
         // Trash local by moving it to the Bin (MacOS)
         await trashLocalFile(filePath);
         console.log('trashed local file', filePath);
-      } else {
-        // Checksums differ — delete destination file
-        const googledriveFileDeleteResponse = await googledriveFileDelete(
-          googledriveCredsPayload,
-          googledriveFile.id,
-        );
-        if (!googledriveFileDeleteResponse.ok) {
-          return googledriveFileDeleteResponse;
-        }
-
-        delete googledriveFilesByName[file.name];
-        console.log('deleted googledrive file', googledriveFile.id, file.name);
+        continue;
       }
+      
+      // Checksums differ — delete destination file
+      const googledriveFileDeleteResponse = await googledriveFileDelete(
+        googledriveCredsPayload,
+        googledriveFile.id,
+      );
+      if (!googledriveFileDeleteResponse.ok) {
+        return googledriveFileDeleteResponse;
+      }
+
+      delete googledriveFilesByName[file.name];
+      console.log('deleted googledrive file', googledriveFile.id, file.name);
 
       await askQuestion('?');
     }
