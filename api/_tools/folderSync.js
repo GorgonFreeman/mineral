@@ -175,8 +175,6 @@ const folderSync = async (
         },
       };
     }
-
-    await askQuestion('?');
   }
 
   return { 
