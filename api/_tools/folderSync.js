@@ -108,6 +108,22 @@ const folderSync = async (
 
   const googledriveFilesByName = {};
   for (const googledriveFile of googledriveFilesGetResponse.data) {
+    if (googledriveFilesByName[googledriveFile.name]) {
+      return {
+        ok: false,
+        error: {
+          code: 'DUPLICATE_DRIVE_NAMES',
+          message: `Drive folder has multiple files named ${ googledriveFile.name }`,
+          details: {
+            name: googledriveFile.name,
+            ids: [
+              googledriveFilesByName[googledriveFile.name].id,
+              googledriveFile.id,
+            ],
+          },
+        },
+      };
+    }
     googledriveFilesByName[googledriveFile.name] = googledriveFile;
   }
 
