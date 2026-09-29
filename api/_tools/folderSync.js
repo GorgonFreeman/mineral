@@ -104,8 +104,13 @@ const folderSync = async (
 
     // Compare the checksums
     if (googledriveFile) {
-      const localMd5 = await fileMd5(filePath);
       const googledriveMd5 = googledriveFile.md5Checksum || null;
+      if (!googledriveMd5) {
+        console.log('no md5Checksum, skipping', file.name, googledriveFile.id);
+        continue;
+      }
+
+      const localMd5 = await fileMd5(filePath);
       const checksumsMatch = Boolean(
         localMd5
         && googledriveMd5
@@ -149,8 +154,17 @@ const folderSync = async (
     logDeep({ uploadedGoogledriveFile });
 
     // When done, check checksums again
-    const localMd5 = await fileMd5(filePath);
     const uploadedMd5 = uploadedGoogledriveFile.md5Checksum || null;
+    if (!uploadedMd5) {
+      console.log(
+        'no md5Checksum after upload, skipping trash',
+        file.name,
+        uploadedGoogledriveFile.id,
+      );
+      continue;
+    }
+
+    const localMd5 = await fileMd5(filePath);
     const checksumsMatch = Boolean(
       localMd5
       && uploadedMd5
