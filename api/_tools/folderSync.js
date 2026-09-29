@@ -21,6 +21,7 @@ const argsWarden = new ArgsWarden([
 ]);
 
 const fileMd5 = (filePath) => {
+  console.log(`making checksum of ${ filePath }`);
   return new Promise((resolve, reject) => {
     const hash = crypto.createHash('md5');
     const stream = fs.createReadStream(filePath);
