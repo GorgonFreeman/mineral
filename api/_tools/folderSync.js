@@ -9,6 +9,10 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const fsPromises = fs.promises;
+const { execFile } = require('child_process');
+const { promisify } = require('util');
+
+const execFileAsync = promisify(execFile);
 
 const { ArgsWarden, askQuestion, logDeep } = require('../utils');
 const { credsValidator } = require('../validators');
@@ -34,6 +38,16 @@ const fileMd5 = (filePath) => {
     });
     stream.on('error', reject);
   });
+};
+
+const trashLocalFile = async (filePath) => {
+  await execFileAsync('osascript', [
+    '-e', 'on run argv',
+    '-e', 'set theFile to POSIX file (item 1 of argv)',
+    '-e', 'tell application "Finder" to delete theFile',
+    '-e', 'end run',
+    filePath,
+  ]);
 };
 
 const folderSync = async (
@@ -96,6 +110,13 @@ const folderSync = async (
         && localMd5 === googledriveMd5,
       );
       logDeep({ localMd5, googledriveMd5, checksumsMatch });
+
+      if (checksumsMatch) {
+        // Trash local by moving it to the Bin (MacOS)
+        await trashLocalFile(filePath);
+        console.log('trashed local file', filePath);
+      }
+
       await askQuestion('?');
     }
   }
