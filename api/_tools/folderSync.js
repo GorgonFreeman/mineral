@@ -18,6 +18,7 @@ const { ArgsWarden, askQuestion, logDeep } = require('../utils');
 const { credsValidator } = require('../validators');
 const { googledriveFilesGet } = require('../google/googledriveFilesGet');
 const { googledriveFileDelete } = require('../google/googledriveFileDelete');
+const { googledriveFileUpload } = require('../google/googledriveFileUpload');
 
 const argsWarden = new ArgsWarden([
   ['folderPath'],
@@ -97,12 +98,12 @@ const folderSync = async (
   for (const file of files) {
     logDeep({ file });
 
+    const filePath = `${ folderPath }/${ file.name }`;
     const googledriveFile = googledriveFilesByName[file.name] || null;
     logDeep({ googledriveFile });
 
     // Compare the checksums
     if (googledriveFile) {
-      const filePath = `${ folderPath }/${ file.name }`;
       const localMd5 = await fileMd5(filePath);
       const googledriveMd5 = googledriveFile.md5Checksum || null;
       const checksumsMatch = Boolean(
@@ -133,6 +134,49 @@ const folderSync = async (
 
       await askQuestion('?');
     }
+
+    // Upload file
+    const googledriveFileUploadResponse = await googledriveFileUpload(
+      googledriveCredsPayload,
+      { filePath },
+      { folderId: googledriveFolderId },
+    );
+    if (!googledriveFileUploadResponse.ok) {
+      return googledriveFileUploadResponse;
+    }
+
+    const uploadedGoogledriveFile = googledriveFileUploadResponse.data;
+    logDeep({ uploadedGoogledriveFile });
+
+    // When done, check checksums again
+    const localMd5 = await fileMd5(filePath);
+    const uploadedMd5 = uploadedGoogledriveFile.md5Checksum || null;
+    const checksumsMatch = Boolean(
+      localMd5
+      && uploadedMd5
+      && localMd5 === uploadedMd5,
+    );
+    logDeep({ localMd5, uploadedMd5, checksumsMatch });
+
+    if (checksumsMatch) {
+      await trashLocalFile(filePath);
+      console.log('trashed local file after upload', filePath);
+    } else {
+      return {
+        ok: false,
+        error: {
+          code: 'UPLOAD_CHECKSUM_MISMATCH',
+          message: `Uploaded checksum mismatch for ${ file.name }`,
+          details: {
+            localMd5,
+            uploadedMd5,
+            uploadedFileId: uploadedGoogledriveFile.id,
+          },
+        },
+      };
+    }
+
+    await askQuestion('?');
   }
 
   return { 

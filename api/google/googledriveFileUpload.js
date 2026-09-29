@@ -1,10 +1,11 @@
-const fs = require('fs').promises;
+const fs = require('fs');
 const path = require('path');
-const { Readable } = require('stream');
 
 const { ArgsWarden, objHasAny } = require('../utils');
 const { credsValidator } = require('../validators');
 const { getGoogleDrive, googleApiCall } = require('../google/google.utils');
+
+const defaultFields = 'id, name, mimeType, size, md5Checksum, webViewLink';
 
 const fileDataValidator = (fileData) => {
   if (fileData?.filePath) {
@@ -30,6 +31,7 @@ const googledriveFileUpload = async (
   folderIdentifier,
   {
     mimeType = 'application/octet-stream',
+    fields = defaultFields,
   } = {},
 ) => {
 
@@ -50,12 +52,18 @@ const googledriveFileUpload = async (
 
   const { folderId } = folderIdentifier;
 
+  let mediaBody;
+
   if (filePath) {
     fileName = path.basename(filePath);
-    fileSource = await fs.readFile(filePath);
+    mediaBody = fs.createReadStream(filePath);
+  } else if (fileSource !== undefined) {
+    mediaBody = Buffer.isBuffer(fileSource)
+      ? fileSource
+      : Buffer.from(String(fileSource));
   }
 
-  if (!(fileName && fileSource !== undefined)) {
+  if (!(fileName && mediaBody !== undefined)) {
     return {
       ok: false,
       error: {
@@ -64,10 +72,6 @@ const googledriveFileUpload = async (
       },
     };
   }
-
-  const buffer = Buffer.isBuffer(fileSource)
-    ? fileSource
-    : Buffer.from(String(fileSource));
 
   const { client, error } = await getGoogleDrive(credsPayload);
 
@@ -82,9 +86,10 @@ const googledriveFileUpload = async (
       ...folderId && { parents: [folderId] },
     },
     media: {
-      body: Readable.from(buffer),
+      body: mediaBody,
       mimeType,
     },
+    fields,
   }));
 
   if (!uploadResponse.ok) {
