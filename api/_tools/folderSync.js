@@ -10,7 +10,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const fsPromises = fs.promises;
 
-const { ArgsWarden, logDeep } = require('../utils');
+const { ArgsWarden, askQuestion, logDeep } = require('../utils');
 const { credsValidator } = require('../validators');
 const { googledriveFilesGet } = require('../google/googledriveFilesGet');
 
@@ -95,6 +95,7 @@ const folderSync = async (
         && localMd5 === googledriveMd5,
       );
       logDeep({ localMd5, googledriveMd5, checksumsMatch });
+      await askQuestion('?');
     }
   }
 
