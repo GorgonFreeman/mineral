@@ -5,6 +5,9 @@ const GOOGLE_SCOPES = {
   analytics: ['https://www.googleapis.com/auth/analytics'],
 };
 
+const MAX_PER_PAGE = 1000;
+
 module.exports = {
   GOOGLE_SCOPES,
+  MAX_PER_PAGE,
 };

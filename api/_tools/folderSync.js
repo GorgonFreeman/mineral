@@ -10,6 +10,7 @@ const fs = require('fs').promises;
 
 const { ArgsWarden, logDeep } = require('../utils');
 const { credsValidator } = require('../validators');
+const { googledriveFilesGet } = require('../google/googledriveFilesGet');
 
 const argsWarden = new ArgsWarden([
   ['folderPath'],
@@ -42,11 +43,29 @@ const folderSync = async (
    * 5. Once the file is uploaded, compare the checksums. If they match, trash the local file.
    */
 
+  const googledriveFilesGetResponse = await googledriveFilesGet(
+    googledriveCredsPayload,
+    { folderId: googledriveFolderId },
+  );
+  if (!googledriveFilesGetResponse.ok) {
+    return googledriveFilesGetResponse;
+  }
+
+  const googledriveFilesByName = {};
+  for (const googledriveFile of googledriveFilesGetResponse.data) {
+    googledriveFilesByName[googledriveFile.name] = googledriveFile;
+  }
+
+  logDeep({ googledriveFilesByName });
+
   const dirents = await fs.readdir(folderPath, { withFileTypes: true });
   const files = dirents.filter((dirent) => dirent.isFile());
 
   for (const file of files) {
     logDeep({ file });
+
+    const googledriveFile = googledriveFilesByName[file.name] || null;
+    logDeep({ googledriveFile });
   }
 
   return { 
