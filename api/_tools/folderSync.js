@@ -117,6 +117,8 @@ const folderSync = async (
   const files = dirents.filter((dirent) => dirent.isFile());
 
   const uploadPile = [];
+  const skipped = [];
+  const trashedExisting = [];
 
   const uploadProcessor = new Processor(
     uploadPile,
@@ -150,10 +152,15 @@ const folderSync = async (
           uploadedGoogledriveFile.id,
         );
         return {
-          ok: true,
+          ok: false,
           fileName,
-          skippedTrash: true,
-          uploadedFileId: uploadedGoogledriveFile.id,
+          error: {
+            code: 'UPLOAD_MISSING_CHECKSUM',
+            message: `Uploaded file missing md5Checksum for ${ fileName }`,
+            details: {
+              uploadedFileId: uploadedGoogledriveFile.id,
+            },
+          },
         };
       }
 
@@ -182,6 +189,7 @@ const folderSync = async (
       return {
         ok: true,
         fileName,
+        trashed: true,
         uploadedFileId: uploadedGoogledriveFile.id,
       };
     },
@@ -204,6 +212,11 @@ const folderSync = async (
       const googledriveMd5 = googledriveFile.md5Checksum || null;
       if (!googledriveMd5) {
         console.log('no md5Checksum, skipping', file.name, googledriveFile.id);
+        skipped.push({
+          fileName: file.name,
+          reason: 'MISSING_REMOTE_CHECKSUM',
+          googledriveFileId: googledriveFile.id,
+        });
         continue;
       }
 
@@ -211,6 +224,7 @@ const folderSync = async (
 
       if (checksumsMatch) {
         await trashLocalFile(filePath);
+        trashedExisting.push(file.name);
         continue;
       }
 
@@ -240,13 +254,27 @@ const folderSync = async (
   const uploadResults = await uploadRunPromise;
 
   const uploadFailures = uploadResults.filter((result) => result && !result.ok);
-  if (uploadFailures.length > 0) {
+  const trashedUploads = uploadResults.filter((result) => result?.ok && result?.trashed);
+
+  const allFilesHandled = (
+    skipped.length === 0
+    && uploadFailures.length === 0
+    && (trashedExisting.length + trashedUploads.length) === files.length
+  );
+
+  if (!allFilesHandled) {
     return {
       ok: false,
       error: {
-        code: 'UPLOAD_FAILURES',
-        message: `${ uploadFailures.length } upload(s) failed`,
-        details: uploadFailures,
+        code: 'FOLDER_SYNC_INCOMPLETE',
+        message: 'Not all files were uploaded and trashed',
+        details: {
+          fileCount: files.length,
+          trashedExistingCount: trashedExisting.length,
+          trashedUploadCount: trashedUploads.length,
+          skipped,
+          uploadFailures,
+        },
       },
     };
   }
@@ -254,7 +282,9 @@ const folderSync = async (
   return {
     ok: true,
     data: {
-      uploadedCount: uploadResults.filter((result) => result?.ok).length,
+      fileCount: files.length,
+      trashedExistingCount: trashedExisting.length,
+      trashedUploadCount: trashedUploads.length,
     },
   };
 };
