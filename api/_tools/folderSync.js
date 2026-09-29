@@ -6,7 +6,9 @@
  * It is intended to be generic but will start as locked on Google Drive.
  */
 
-const { ArgsWarden } = require('../utils');
+const fs = require('fs').promises;
+
+const { ArgsWarden, logDeep } = require('../utils');
 const { credsValidator } = require('../validators');
 
 const argsWarden = new ArgsWarden([
@@ -39,6 +41,13 @@ const folderSync = async (
    * 4. If the file does not exist in the destination, or the checksums were different, upload it.
    * 5. Once the file is uploaded, compare the checksums. If they match, trash the local file.
    */
+
+  const dirents = await fs.readdir(folderPath, { withFileTypes: true });
+  const files = dirents.filter((dirent) => dirent.isFile());
+
+  for (const file of files) {
+    logDeep({ file });
+  }
 
   return { 
     ok: true, 
