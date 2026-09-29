@@ -14,7 +14,12 @@ const { promisify } = require('util');
 
 const execFileAsync = promisify(execFile);
 
-const { ArgsWarden, askQuestion, logDeep } = require('../utils');
+const {
+  ArgsWarden,
+  askQuestion,
+  logDeep,
+  Processor,
+} = require('../utils');
 const { credsValidator } = require('../validators');
 const { googledriveFilesGet } = require('../google/googledriveFilesGet');
 const { googledriveFileDelete } = require('../google/googledriveFileDelete');
@@ -50,6 +55,22 @@ const trashLocalFile = async (filePath) => {
     '-e', 'end run',
     filePath,
   ]);
+  console.log('trashed local file', filePath);
+};
+
+const compareChecksums = async (filePath, remoteMd5) => {
+  const localMd5 = await fileMd5(filePath);
+  const checksumsMatch = Boolean(
+    localMd5
+    && remoteMd5
+    && localMd5 === remoteMd5,
+  );
+  logDeep({ localMd5, remoteMd5, checksumsMatch });
+  return {
+    localMd5,
+    remoteMd5,
+    checksumsMatch,
+  };
 };
 
 const folderSync = async (
@@ -95,6 +116,83 @@ const folderSync = async (
   const dirents = await fsPromises.readdir(folderPath, { withFileTypes: true });
   const files = dirents.filter((dirent) => dirent.isFile());
 
+  const uploadPile = [];
+
+  const uploadProcessor = new Processor(
+    uploadPile,
+    async (pile) => {
+      const {
+        filePath,
+        fileName,
+      } = pile.shift();
+
+      const googledriveFileUploadResponse = await googledriveFileUpload(
+        googledriveCredsPayload,
+        { filePath },
+        { folderId: googledriveFolderId },
+      );
+      if (!googledriveFileUploadResponse.ok) {
+        return {
+          ok: false,
+          fileName,
+          error: googledriveFileUploadResponse.error,
+        };
+      }
+
+      const uploadedGoogledriveFile = googledriveFileUploadResponse.data;
+      logDeep({ uploadedGoogledriveFile });
+
+      const uploadedMd5 = uploadedGoogledriveFile.md5Checksum || null;
+      if (!uploadedMd5) {
+        console.log(
+          'no md5Checksum after upload, skipping trash',
+          fileName,
+          uploadedGoogledriveFile.id,
+        );
+        return {
+          ok: true,
+          fileName,
+          skippedTrash: true,
+          uploadedFileId: uploadedGoogledriveFile.id,
+        };
+      }
+
+      const {
+        localMd5,
+        checksumsMatch,
+      } = await compareChecksums(filePath, uploadedMd5);
+
+      if (!checksumsMatch) {
+        return {
+          ok: false,
+          fileName,
+          error: {
+            code: 'UPLOAD_CHECKSUM_MISMATCH',
+            message: `Uploaded checksum mismatch for ${ fileName }`,
+            details: {
+              localMd5,
+              uploadedMd5,
+              uploadedFileId: uploadedGoogledriveFile.id,
+            },
+          },
+        };
+      }
+
+      await trashLocalFile(filePath);
+      return {
+        ok: true,
+        fileName,
+        uploadedFileId: uploadedGoogledriveFile.id,
+      };
+    },
+    {
+      canFinish: false,
+      logFlavourText: 'folderSyncUpload',
+    },
+  );
+
+  const uploadRunPromise = uploadProcessor.run();
+
   for (const file of files) {
     logDeep({ file });
 
@@ -102,7 +200,6 @@ const folderSync = async (
     const googledriveFile = googledriveFilesByName[file.name] || null;
     logDeep({ googledriveFile });
 
-    // Compare the checksums
     if (googledriveFile) {
       const googledriveMd5 = googledriveFile.md5Checksum || null;
       if (!googledriveMd5) {
@@ -110,27 +207,20 @@ const folderSync = async (
         continue;
       }
 
-      const localMd5 = await fileMd5(filePath);
-      const checksumsMatch = Boolean(
-        localMd5
-        && googledriveMd5
-        && localMd5 === googledriveMd5,
-      );
-      logDeep({ localMd5, googledriveMd5, checksumsMatch });
+      const { checksumsMatch } = await compareChecksums(filePath, googledriveMd5);
 
       if (checksumsMatch) {
-        // Trash local by moving it to the Bin (MacOS)
         await trashLocalFile(filePath);
-        console.log('trashed local file', filePath);
         continue;
       }
-      
-      // Checksums differ — delete destination file
+
       const googledriveFileDeleteResponse = await googledriveFileDelete(
         googledriveCredsPayload,
         googledriveFile.id,
       );
       if (!googledriveFileDeleteResponse.ok) {
+        uploadProcessor.canFinish = true;
+        await uploadRunPromise;
         return googledriveFileDeleteResponse;
       }
 
@@ -140,59 +230,32 @@ const folderSync = async (
       await askQuestion('?');
     }
 
-    // Upload file
-    const googledriveFileUploadResponse = await googledriveFileUpload(
-      googledriveCredsPayload,
-      { filePath },
-      { folderId: googledriveFolderId },
-    );
-    if (!googledriveFileUploadResponse.ok) {
-      return googledriveFileUploadResponse;
-    }
-
-    const uploadedGoogledriveFile = googledriveFileUploadResponse.data;
-    logDeep({ uploadedGoogledriveFile });
-
-    // When done, check checksums again
-    const uploadedMd5 = uploadedGoogledriveFile.md5Checksum || null;
-    if (!uploadedMd5) {
-      console.log(
-        'no md5Checksum after upload, skipping trash',
-        file.name,
-        uploadedGoogledriveFile.id,
-      );
-      continue;
-    }
-
-    const localMd5 = await fileMd5(filePath);
-    const checksumsMatch = Boolean(
-      localMd5
-      && uploadedMd5
-      && localMd5 === uploadedMd5,
-    );
-    logDeep({ localMd5, uploadedMd5, checksumsMatch });
-
-    if (checksumsMatch) {
-      await trashLocalFile(filePath);
-      console.log('trashed local file after upload', filePath);
-    } else {
-      return {
-        ok: false,
-        error: {
-          code: 'UPLOAD_CHECKSUM_MISMATCH',
-          message: `Uploaded checksum mismatch for ${ file.name }`,
-          details: {
-            localMd5,
-            uploadedMd5,
-            uploadedFileId: uploadedGoogledriveFile.id,
-          },
-        },
-      };
-    }
+    uploadPile.push({
+      filePath,
+      fileName: file.name,
+    });
   }
 
-  return { 
-    ok: true, 
+  uploadProcessor.canFinish = true;
+  const uploadResults = await uploadRunPromise;
+
+  const uploadFailures = uploadResults.filter((result) => result && !result.ok);
+  if (uploadFailures.length > 0) {
+    return {
+      ok: false,
+      error: {
+        code: 'UPLOAD_FAILURES',
+        message: `${ uploadFailures.length } upload(s) failed`,
+        details: uploadFailures,
+      },
+    };
+  }
+
+  return {
+    ok: true,
+    data: {
+      uploadedCount: uploadResults.filter((result) => result?.ok).length,
+    },
   };
 };
 
