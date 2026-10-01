@@ -19,16 +19,48 @@ const {
   askQuestion,
   logDeep,
   Processor,
+  valueProvided,
 } = require('../utils');
 const { credsValidator } = require('../validators');
 const { googledriveFilesGet } = require('../google/googledriveFilesGet');
 const { googledriveFileDelete } = require('../google/googledriveFileDelete');
 const { googledriveFileUpload } = require('../google/googledriveFileUpload');
 
+// When validating destinationPayload, be strict about which keys are being provided - no ambivalence
+const destinationPayloadValidator = (destinationPayload) => {
+  if (!destinationPayload) {
+    return false;
+  }
+
+  const {
+    googledriveCredsPayload,
+    googledriveFolderId,
+    destinationFolderPath,
+  } = destinationPayload;
+
+  const keysLength = Object.keys(destinationPayload).length;
+
+  if (
+    credsValidator(googledriveCredsPayload) 
+    && valueProvided(googledriveFolderId)
+    && keysLength === 2
+  ) {
+    return true;
+  }
+
+  if (
+    valueProvided(destinationFolderPath)
+    && keysLength === 1
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
 const argsWarden = new ArgsWarden([
   ['folderPath'],
-  ['googledriveCredsPayload', credsValidator],
-  ['googledriveFolderId'],
+  ['destinationPayload', destinationPayloadValidator],
 ]);
 
 const fileMd5 = (filePath) => {
@@ -75,17 +107,31 @@ const compareChecksums = async (filePath, remoteMd5) => {
 
 const folderSync = async (
   folderPath,
-  googledriveCredsPayload,
-  googledriveFolderId,
+  destinationPayload,
 ) => {
 
   const rejectResponse = await argsWarden.responseIfRejectingArgs({
     folderPath,
-    googledriveCredsPayload,
-    googledriveFolderId,
+    destinationPayload,
   });
   if (rejectResponse) {
     return rejectResponse;
+  }
+
+  const {
+    googledriveCredsPayload,
+    googledriveFolderId,
+    destinationFolderPath,
+  } = destinationPayload;
+
+  if (destinationFolderPath) {
+    return {
+      ok: false,
+      error: {
+        code: 'NOT_IMPLEMENTED',
+        message: 'Local destinationFolderPath sync is not implemented yet',
+      },
+    };
   }
 
   /**
@@ -319,7 +365,9 @@ curl -X POST "http://localhost:8000/folderSync" \
   -H "Content-Type: application/json" \
   -d '{
     "folderPath": "/cool_stuff/freezing_cold",
-    "googledriveCredsPayload": { "credsPath": "google" },
-    "googledriveFolderId": "123XYZ"
+    "destinationPayload": {
+      "googledriveCredsPayload": { "credsPath": "google" },
+      "googledriveFolderId": "123XYZ"
+    }
   }'
 */
