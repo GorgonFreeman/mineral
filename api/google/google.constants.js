@@ -3,6 +3,7 @@ const GOOGLE_SCOPES = {
   drive: ['https://www.googleapis.com/auth/drive'],
   calendar: ['https://www.googleapis.com/auth/calendar'],
   analytics: ['https://www.googleapis.com/auth/analytics'],
+  gmailSettings: ['https://www.googleapis.com/auth/gmail.settings.basic'],
 };
 
 const MAX_PER_PAGE = 1000;

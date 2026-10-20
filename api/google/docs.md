@@ -6,3 +6,4 @@ Service account auth via `SERVICE_ACCOUNT_JSON` on the `google` creds path. Uses
 - [Drive API](https://developers.google.com/workspace/drive/api/reference/rest/v3)
 - [Calendar API](https://developers.google.com/workspace/calendar/api/v3/reference)
 - [Analytics Data API](https://developers.google.com/analytics/devguides/reporting/data/v1/rest)
+- [Gmail API](https://developers.google.com/gmail/api/reference/rest) (settings via domain-wide delegation + `subject`)
